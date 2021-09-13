@@ -24,7 +24,7 @@ const data = {
 };
 
 const graph = new G6.Graph({
-  container: 'container',
+  container: 'mountNode',
   width: 500,
   height: 500,
   defaultNode: {

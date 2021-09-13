@@ -1,7 +1,8 @@
 {
   "compilerOptions": {
-    "target": "es5",
-    "module": "commonjs",
+    "target": "esnext",
+    "module": "esnext",
+    "moduleResolution": "node",
     "strict": true,
     "noImplicitAny": true,
     "removeComments": true,
@@ -13,6 +14,7 @@
     "src"
   ],
   "exclude": [
+    "**/*.spec.ts",
     "./node_modules"
   ]
 }
