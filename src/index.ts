@@ -3,51 +3,92 @@ import G6 from '@antv/g6';
 const data = {
   nodes: [
     {
-      id: 'node1',
-      label: 'Circle1',
-      x: 150,
-      y: 150,
+      id: '0',
+      label: 'Switch3',
     },
     {
-      id: 'node2',
-      label: 'Circle2',
-      x: 400,
-      y: 150,
+      id: '1',
+      label: 'Switch2',
+    },
+    {
+      id: '2',
+      label: 'Switch1',
+    },
+    {
+      id: '3',
+      label: 'Switch0',
     },
   ],
   edges: [
     {
-      source: 'node1',
-      target: 'node2',
+      source: '0',
+      target: '1',
+    },
+    {
+      source: '0',
+      target: '2',
+    },
+    {
+      source: '3',
+      target: '2',
+    },
+    {
+      source: '1',
+      target: '3',
     },
   ],
 };
 
-const graph = new G6.Graph({
+const container = document.getElementById('mountNode');
+const width = container.scrollWidth;
+const height = container.scrollHeight || 1200;
+const graph = new G6.Graph({ 
   container: 'mountNode',
-  width: 500,
-  height: 500,
+  width,
+  height,
+  modes: {
+    default: ['zoom-canvas', 'drag-canvas'],
+  },
+  layout: {
+    type: 'grid',
+    begin: [0, 0],
+    rows: 2,
+    cols: 2,
+    preventOverlap: true,
+    preventOverlapPdding: 20,
+    condense: false,
+    sortBy: 'id',
+    width: width - 20,
+    height: height - 20,
+  },
+  animate: true,
   defaultNode: {
-    type: 'circle',
-    size: [100],
-    color: '#5B8FF9',
     style: {
-      fill: '#9EC9FF',
-      lineWidth: 3,
+      opacity: 0.2,
+      fill: '#8fbdd1',
+      stroke: '#599dbb',
+      lineWidth: 5,
     },
-    labelCfg: {
-      style: {
-        fill: '#fff',
-        fontSize: 20,
-      },
-    },
+    size: 60,
   },
   defaultEdge: {
     style: {
-      stroke: '#e2e2e2',
+      stroke: '#8fb2d1',
+      lineWidth: 7,
+    },
+    labelCfg: {
+      position: 'end',
+      refY: -10,
     },
   },
 });
 
 graph.data(data);
 graph.render();
+
+if (typeof window !== 'undefined')
+  window.onresize = () => {
+    if (!graph || graph.get('destroyed')) return;
+    if (!container || !container.scrollWidth || !container.scrollHeight) return;
+    graph.changeSize(container.scrollWidth, container.scrollHeight);
+  };

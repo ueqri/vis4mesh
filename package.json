@@ -1,14 +1,18 @@
 {
   "name": "vis4mesh",
   "version": "0.0.1",
-  "description": "",
+  "description": "Visualization tool for mesh noc of Akita project.",
   "main": "src/index.ts",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ueqri/vis4mesh.git"
+  },
   "scripts": {
     "check": "tsc --noEmit",
     "dev": "parcel public/index.html",
     "build": "parcel build public/index.html"
   },
-  "keywords": [],
+  "keywords": ["akita", "mgpusim", "visualization", "networking", "mesh"],
   "author": "Hang Yan",
   "license": "MIT",
   "devDependencies": {
