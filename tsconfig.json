@@ -8,7 +8,9 @@
     "removeComments": true,
     "preserveConstEnums": true,
     "sourceMap": false,
-    "skipLibCheck":true
+    "skipLibCheck":true,
+"resolveJsonModule": true,
+"esModuleInterop": true,
   },
   "include": [
     "src"
