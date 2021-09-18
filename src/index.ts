@@ -4,35 +4,26 @@ import insertCss from "insert-css";
 import data from "./content.json";
 
 //
-// Global Variables
+// Global Variables & Initiations
 //
 
 const edgeWidth = 7;
-
-//
-// Register Elements
-//
-
-G6.registerEdge(
-  "custom-edge",
-  {
-    // Response the states change
-    setState(name, value, item) {
-      const group = (item as any).getContainer();
-      // The order is determined by the ordering of been draw
-      const shape = group.get("children")[0];
-      const originColor = (item as any).getModel().style.stroke;
-      if (name === "active") {
-        if (value) {
-          shape.attr("stroke", "red");
-        } else {
-          shape.attr("stroke", originColor);
-        }
-      }
-    },
-  },
-  "line"
-);
+const colorPalette = [
+  "#ab162a",
+  "#cf5246",
+  "#eb9172",
+  "#fac8af",
+  "#faeae1",
+  "#e6eff4",
+  "#bbdaea",
+  "#7bb6d6",
+  "#3c8abe",
+  "#1e61a5",
+];
+data.edges.forEach(item => {
+  item.style = {}
+  item.style.stroke = colorPalette[9-item.value]
+})
 
 //
 // Plugins
@@ -73,19 +64,6 @@ const tooltip = new G6.Tooltip({
     return outDiv;
   },
 });
-
-const colorPalette = [
-  "#ab162a",
-  "#cf5246",
-  "#eb9172",
-  "#fac8af",
-  "#faeae1",
-  "#e6eff4",
-  "#bbdaea",
-  "#7bb6d6",
-  "#3c8abe",
-  "#1e61a5",
-];
 
 const legendData = {
   edges: [
@@ -166,17 +144,11 @@ const legend = new G6.Legend({
     graphInactiveState: "inactiveByLegend",
     filterFunctions: {
       eType0: (d) => {
-        if (d.value === 9) {
-          console.log(d);
-          return true;
-        }
+        if (d.value === 9) return true;
         return false;
       },
       eType1: (d) => {
-        if (d.value === 8) {
-          console.log(d);
-          return true;
-        }
+        if (d.value === 8) return true;
         return false;
       },
       eType2: (d) => {
@@ -192,7 +164,6 @@ const legend = new G6.Legend({
         return false;
       },
       eType5: (d) => {
-        console.log(d);
         if (d.value === 4) return true;
         return false;
       },
@@ -217,16 +188,12 @@ const legend = new G6.Legend({
 });
 
 //
-// Parameters
+// Graph Config
 //
 
 const container = document.getElementById("mountNode");
 const width = container.scrollWidth;
 const height = container.scrollHeight || 1250;
-
-//
-// Graph Config
-//
 
 const graph = new G6.Graph({
   container: "mountNode",
@@ -269,10 +236,18 @@ const graph = new G6.Graph({
   },
   edgeStateStyles: {
     activeByLegend: {
-      lineWidth: edgeWidth + 100,
+      lineWidth: edgeWidth * 1.6,
+      strokeOpacity: 0.72,
     },
     inactiveByLegend: {
-      opacity: 0.2,
+      opacity: 0.12,
+    },
+    active: {
+      fill: "LightCoral",
+      stroke: "LightCoral",
+      lineWidth: edgeWidth,
+      shadowColor: 'LightCoral',
+      shadowBlur: 9,
     },
   },
   plugins: [toolbar, tooltip, legend],
@@ -292,12 +267,10 @@ graph.on("node:mouseleave", (e) => {
   graph.setItemState(e.item, "active", false);
 });
 graph.on("edge:mouseenter", (ev) => {
-  const edge = ev.item;
-  graph.setItemState(edge, "active", true);
+  graph.setItemState(ev.item, "active", true);
 });
 graph.on("edge:mouseleave", (ev) => {
-  const edge = ev.item;
-  graph.setItemState(edge, "active", false);
+  graph.setItemState(ev.item, "active", false);
 });
 
 //

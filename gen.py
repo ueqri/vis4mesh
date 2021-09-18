@@ -41,11 +41,7 @@ class edge:
         return {
             "source": str(self.link[0]),
             "target": str(self.link[1]),
-            "type": "custom-edge",
             "value": self.val,
-            "style": {
-                "stroke": str(color_by_value(self.val))
-            }
         }
 
 
@@ -74,15 +70,18 @@ class mesh:
         # North Link
         if idx-self.c >= 0:
             edges.append(edge([idx-self.c, idx]))
-        # Source Link
-        if idx+self.c < self.r*self.c:
-            edges.append(edge([idx, idx+self.c]))
+
+        # Source Link (would duplicate some edges)
+        # if idx+self.c < self.r*self.c:
+        #     edges.append(edge([idx, idx+self.c]))
+
         # East Link
         if idx % self.c != 0:
             edges.append(edge([idx-1, idx]))
-        # West Link
-        if (idx+1) % self.c != 0:
-            edges.append(edge([idx, idx+1]))
+
+        # West Link (would duplicate some edges)
+        # if (idx+1) % self.c != 0:
+        #     edges.append(edge([idx, idx+1]))
 
         return edges
 
@@ -91,7 +90,11 @@ class mesh:
             self.data["nodes"].append(node(idx, self.total).dump())
 
     def random_edges(self, num):
-        for idx in random.sample(range(len(self.edge_pool)), num):
+        if num < 0 or num > 1:
+            raise ValueError
+        size = len(self.edge_pool)
+        print("Edge Pool: [{}]".format(size))
+        for idx in random.sample(range(size), int(num*size)):
             val = random.randint(0, 9)
             self.edge_pool[idx].set_value(val)
 
@@ -103,6 +106,6 @@ class mesh:
 
 if __name__ == '__main__':
     m = mesh(8, 8)
-    m.random_edges(200)
+    m.random_edges(0.8)
     with open('src/content.json', 'w') as f:
         f.write(json.dumps(m.dump(), indent=4))
