@@ -3,339 +3,339 @@
         {
             "id": "0",
             "weight": 64,
-            "label": "Switch0"
+            "label": "Sw0"
         },
         {
             "id": "1",
             "weight": 63,
-            "label": "Switch1"
+            "label": "Sw1"
         },
         {
             "id": "2",
             "weight": 62,
-            "label": "Switch2"
+            "label": "Sw2"
         },
         {
             "id": "3",
             "weight": 61,
-            "label": "Switch3"
+            "label": "Sw3"
         },
         {
             "id": "4",
             "weight": 60,
-            "label": "Switch4"
+            "label": "Sw4"
         },
         {
             "id": "5",
             "weight": 59,
-            "label": "Switch5"
+            "label": "Sw5"
         },
         {
             "id": "6",
             "weight": 58,
-            "label": "Switch6"
+            "label": "Sw6"
         },
         {
             "id": "7",
             "weight": 57,
-            "label": "Switch7"
+            "label": "Sw7"
         },
         {
             "id": "8",
             "weight": 56,
-            "label": "Switch8"
+            "label": "Sw8"
         },
         {
             "id": "9",
             "weight": 55,
-            "label": "Switch9"
+            "label": "Sw9"
         },
         {
             "id": "10",
             "weight": 54,
-            "label": "Switch10"
+            "label": "Sw10"
         },
         {
             "id": "11",
             "weight": 53,
-            "label": "Switch11"
+            "label": "Sw11"
         },
         {
             "id": "12",
             "weight": 52,
-            "label": "Switch12"
+            "label": "Sw12"
         },
         {
             "id": "13",
             "weight": 51,
-            "label": "Switch13"
+            "label": "Sw13"
         },
         {
             "id": "14",
             "weight": 50,
-            "label": "Switch14"
+            "label": "Sw14"
         },
         {
             "id": "15",
             "weight": 49,
-            "label": "Switch15"
+            "label": "Sw15"
         },
         {
             "id": "16",
             "weight": 48,
-            "label": "Switch16"
+            "label": "Sw16"
         },
         {
             "id": "17",
             "weight": 47,
-            "label": "Switch17"
+            "label": "Sw17"
         },
         {
             "id": "18",
             "weight": 46,
-            "label": "Switch18"
+            "label": "Sw18"
         },
         {
             "id": "19",
             "weight": 45,
-            "label": "Switch19"
+            "label": "Sw19"
         },
         {
             "id": "20",
             "weight": 44,
-            "label": "Switch20"
+            "label": "Sw20"
         },
         {
             "id": "21",
             "weight": 43,
-            "label": "Switch21"
+            "label": "Sw21"
         },
         {
             "id": "22",
             "weight": 42,
-            "label": "Switch22"
+            "label": "Sw22"
         },
         {
             "id": "23",
             "weight": 41,
-            "label": "Switch23"
+            "label": "Sw23"
         },
         {
             "id": "24",
             "weight": 40,
-            "label": "Switch24"
+            "label": "Sw24"
         },
         {
             "id": "25",
             "weight": 39,
-            "label": "Switch25"
+            "label": "Sw25"
         },
         {
             "id": "26",
             "weight": 38,
-            "label": "Switch26"
+            "label": "Sw26"
         },
         {
             "id": "27",
             "weight": 37,
-            "label": "Switch27"
+            "label": "Sw27"
         },
         {
             "id": "28",
             "weight": 36,
-            "label": "Switch28"
+            "label": "Sw28"
         },
         {
             "id": "29",
             "weight": 35,
-            "label": "Switch29"
+            "label": "Sw29"
         },
         {
             "id": "30",
             "weight": 34,
-            "label": "Switch30"
+            "label": "Sw30"
         },
         {
             "id": "31",
             "weight": 33,
-            "label": "Switch31"
+            "label": "Sw31"
         },
         {
             "id": "32",
             "weight": 32,
-            "label": "Switch32"
+            "label": "Sw32"
         },
         {
             "id": "33",
             "weight": 31,
-            "label": "Switch33"
+            "label": "Sw33"
         },
         {
             "id": "34",
             "weight": 30,
-            "label": "Switch34"
+            "label": "Sw34"
         },
         {
             "id": "35",
             "weight": 29,
-            "label": "Switch35"
+            "label": "Sw35"
         },
         {
             "id": "36",
             "weight": 28,
-            "label": "Switch36"
+            "label": "Sw36"
         },
         {
             "id": "37",
             "weight": 27,
-            "label": "Switch37"
+            "label": "Sw37"
         },
         {
             "id": "38",
             "weight": 26,
-            "label": "Switch38"
+            "label": "Sw38"
         },
         {
             "id": "39",
             "weight": 25,
-            "label": "Switch39"
+            "label": "Sw39"
         },
         {
             "id": "40",
             "weight": 24,
-            "label": "Switch40"
+            "label": "Sw40"
         },
         {
             "id": "41",
             "weight": 23,
-            "label": "Switch41"
+            "label": "Sw41"
         },
         {
             "id": "42",
             "weight": 22,
-            "label": "Switch42"
+            "label": "Sw42"
         },
         {
             "id": "43",
             "weight": 21,
-            "label": "Switch43"
+            "label": "Sw43"
         },
         {
             "id": "44",
             "weight": 20,
-            "label": "Switch44"
+            "label": "Sw44"
         },
         {
             "id": "45",
             "weight": 19,
-            "label": "Switch45"
+            "label": "Sw45"
         },
         {
             "id": "46",
             "weight": 18,
-            "label": "Switch46"
+            "label": "Sw46"
         },
         {
             "id": "47",
             "weight": 17,
-            "label": "Switch47"
+            "label": "Sw47"
         },
         {
             "id": "48",
             "weight": 16,
-            "label": "Switch48"
+            "label": "Sw48"
         },
         {
             "id": "49",
             "weight": 15,
-            "label": "Switch49"
+            "label": "Sw49"
         },
         {
             "id": "50",
             "weight": 14,
-            "label": "Switch50"
+            "label": "Sw50"
         },
         {
             "id": "51",
             "weight": 13,
-            "label": "Switch51"
+            "label": "Sw51"
         },
         {
             "id": "52",
             "weight": 12,
-            "label": "Switch52"
+            "label": "Sw52"
         },
         {
             "id": "53",
             "weight": 11,
-            "label": "Switch53"
+            "label": "Sw53"
         },
         {
             "id": "54",
             "weight": 10,
-            "label": "Switch54"
+            "label": "Sw54"
         },
         {
             "id": "55",
             "weight": 9,
-            "label": "Switch55"
+            "label": "Sw55"
         },
         {
             "id": "56",
             "weight": 8,
-            "label": "Switch56"
+            "label": "Sw56"
         },
         {
             "id": "57",
             "weight": 7,
-            "label": "Switch57"
+            "label": "Sw57"
         },
         {
             "id": "58",
             "weight": 6,
-            "label": "Switch58"
+            "label": "Sw58"
         },
         {
             "id": "59",
             "weight": 5,
-            "label": "Switch59"
+            "label": "Sw59"
         },
         {
             "id": "60",
             "weight": 4,
-            "label": "Switch60"
+            "label": "Sw60"
         },
         {
             "id": "61",
             "weight": 3,
-            "label": "Switch61"
+            "label": "Sw61"
         },
         {
             "id": "62",
             "weight": 2,
-            "label": "Switch62"
+            "label": "Sw62"
         },
         {
             "id": "63",
             "weight": 1,
-            "label": "Switch63"
+            "label": "Sw63"
         }
     ],
     "edges": [
         {
             "source": "0",
             "target": "1",
-            "value": 5
+            "value": 2
         },
         {
             "source": "1",
             "target": "2",
-            "value": 6
+            "value": 8
         },
         {
             "source": "2",
             "target": "3",
-            "value": 1
+            "value": 0
         },
         {
             "source": "3",
@@ -345,27 +345,27 @@
         {
             "source": "4",
             "target": "5",
-            "value": 5
+            "value": 0
         },
         {
             "source": "5",
             "target": "6",
-            "value": 1
+            "value": 5
         },
         {
             "source": "6",
             "target": "7",
-            "value": 0
+            "value": 9
         },
         {
             "source": "0",
             "target": "8",
-            "value": 4
+            "value": 2
         },
         {
             "source": "1",
             "target": "9",
-            "value": 0
+            "value": 8
         },
         {
             "source": "8",
@@ -375,37 +375,37 @@
         {
             "source": "2",
             "target": "10",
-            "value": 9
+            "value": 0
         },
         {
             "source": "9",
             "target": "10",
-            "value": 0
+            "value": 6
         },
         {
             "source": "3",
             "target": "11",
-            "value": 0
+            "value": 6
         },
         {
             "source": "10",
             "target": "11",
-            "value": 2
+            "value": 7
         },
         {
             "source": "4",
             "target": "12",
-            "value": 0
+            "value": 6
         },
         {
             "source": "11",
             "target": "12",
-            "value": 1
+            "value": 0
         },
         {
             "source": "5",
             "target": "13",
-            "value": 6
+            "value": 2
         },
         {
             "source": "12",
@@ -415,7 +415,7 @@
         {
             "source": "6",
             "target": "14",
-            "value": 1
+            "value": 0
         },
         {
             "source": "13",
@@ -425,7 +425,7 @@
         {
             "source": "7",
             "target": "15",
-            "value": 9
+            "value": 2
         },
         {
             "source": "14",
@@ -435,7 +435,7 @@
         {
             "source": "8",
             "target": "16",
-            "value": 0
+            "value": 8
         },
         {
             "source": "9",
@@ -445,27 +445,27 @@
         {
             "source": "16",
             "target": "17",
-            "value": 5
+            "value": 7
         },
         {
             "source": "10",
             "target": "18",
-            "value": 0
+            "value": 6
         },
         {
             "source": "17",
             "target": "18",
-            "value": 9
+            "value": 6
         },
         {
             "source": "11",
             "target": "19",
-            "value": 0
+            "value": 2
         },
         {
             "source": "18",
             "target": "19",
-            "value": 0
+            "value": 2
         },
         {
             "source": "12",
@@ -475,57 +475,57 @@
         {
             "source": "19",
             "target": "20",
-            "value": 0
+            "value": 5
         },
         {
             "source": "13",
             "target": "21",
-            "value": 2
+            "value": 5
         },
         {
             "source": "20",
             "target": "21",
-            "value": 5
+            "value": 0
         },
         {
             "source": "14",
             "target": "22",
-            "value": 9
+            "value": 7
         },
         {
             "source": "21",
             "target": "22",
-            "value": 0
+            "value": 9
         },
         {
             "source": "15",
             "target": "23",
-            "value": 0
+            "value": 1
         },
         {
             "source": "22",
             "target": "23",
-            "value": 0
+            "value": 8
         },
         {
             "source": "16",
             "target": "24",
-            "value": 0
+            "value": 2
         },
         {
             "source": "17",
             "target": "25",
-            "value": 0
+            "value": 4
         },
         {
             "source": "24",
             "target": "25",
-            "value": 3
+            "value": 9
         },
         {
             "source": "18",
             "target": "26",
-            "value": 0
+            "value": 7
         },
         {
             "source": "25",
@@ -535,22 +535,22 @@
         {
             "source": "19",
             "target": "27",
-            "value": 1
+            "value": 8
         },
         {
             "source": "26",
             "target": "27",
-            "value": 0
+            "value": 3
         },
         {
             "source": "20",
             "target": "28",
-            "value": 0
+            "value": 5
         },
         {
             "source": "27",
             "target": "28",
-            "value": 0
+            "value": 3
         },
         {
             "source": "21",
@@ -560,7 +560,7 @@
         {
             "source": "28",
             "target": "29",
-            "value": 1
+            "value": 5
         },
         {
             "source": "22",
@@ -570,62 +570,62 @@
         {
             "source": "29",
             "target": "30",
-            "value": 1
+            "value": 8
         },
         {
             "source": "23",
             "target": "31",
-            "value": 9
+            "value": 1
         },
         {
             "source": "30",
             "target": "31",
-            "value": 0
+            "value": 5
         },
         {
             "source": "24",
             "target": "32",
-            "value": 0
+            "value": 8
         },
         {
             "source": "25",
             "target": "33",
-            "value": 7
+            "value": 8
         },
         {
             "source": "32",
             "target": "33",
-            "value": 7
+            "value": 8
         },
         {
             "source": "26",
             "target": "34",
-            "value": 4
+            "value": 7
         },
         {
             "source": "33",
             "target": "34",
-            "value": 0
+            "value": 3
         },
         {
             "source": "27",
             "target": "35",
-            "value": 8
+            "value": 7
         },
         {
             "source": "34",
             "target": "35",
-            "value": 1
+            "value": 5
         },
         {
             "source": "28",
             "target": "36",
-            "value": 9
+            "value": 7
         },
         {
             "source": "35",
             "target": "36",
-            "value": 0
+            "value": 3
         },
         {
             "source": "29",
@@ -635,17 +635,17 @@
         {
             "source": "36",
             "target": "37",
-            "value": 6
+            "value": 0
         },
         {
             "source": "30",
             "target": "38",
-            "value": 8
+            "value": 7
         },
         {
             "source": "37",
             "target": "38",
-            "value": 0
+            "value": 1
         },
         {
             "source": "31",
@@ -655,22 +655,22 @@
         {
             "source": "38",
             "target": "39",
-            "value": 8
+            "value": 9
         },
         {
             "source": "32",
             "target": "40",
-            "value": 1
+            "value": 0
         },
         {
             "source": "33",
             "target": "41",
-            "value": 4
+            "value": 8
         },
         {
             "source": "40",
             "target": "41",
-            "value": 0
+            "value": 2
         },
         {
             "source": "34",
@@ -685,42 +685,42 @@
         {
             "source": "35",
             "target": "43",
-            "value": 0
+            "value": 3
         },
         {
             "source": "42",
             "target": "43",
-            "value": 0
+            "value": 5
         },
         {
             "source": "36",
             "target": "44",
-            "value": 8
+            "value": 9
         },
         {
             "source": "43",
             "target": "44",
-            "value": 0
+            "value": 6
         },
         {
             "source": "37",
             "target": "45",
-            "value": 5
+            "value": 1
         },
         {
             "source": "44",
             "target": "45",
-            "value": 8
+            "value": 4
         },
         {
             "source": "38",
             "target": "46",
-            "value": 9
+            "value": 2
         },
         {
             "source": "45",
             "target": "46",
-            "value": 0
+            "value": 5
         },
         {
             "source": "39",
@@ -730,7 +730,7 @@
         {
             "source": "46",
             "target": "47",
-            "value": 0
+            "value": 9
         },
         {
             "source": "40",
@@ -745,7 +745,7 @@
         {
             "source": "48",
             "target": "49",
-            "value": 0
+            "value": 2
         },
         {
             "source": "42",
@@ -755,17 +755,17 @@
         {
             "source": "49",
             "target": "50",
-            "value": 4
+            "value": 8
         },
         {
             "source": "43",
             "target": "51",
-            "value": 1
+            "value": 5
         },
         {
             "source": "50",
             "target": "51",
-            "value": 4
+            "value": 0
         },
         {
             "source": "44",
@@ -775,7 +775,7 @@
         {
             "source": "51",
             "target": "52",
-            "value": 0
+            "value": 9
         },
         {
             "source": "45",
@@ -785,27 +785,27 @@
         {
             "source": "52",
             "target": "53",
-            "value": 7
+            "value": 9
         },
         {
             "source": "46",
             "target": "54",
-            "value": 0
+            "value": 2
         },
         {
             "source": "53",
             "target": "54",
-            "value": 7
+            "value": 3
         },
         {
             "source": "47",
             "target": "55",
-            "value": 0
+            "value": 9
         },
         {
             "source": "54",
             "target": "55",
-            "value": 5
+            "value": 6
         },
         {
             "source": "48",
@@ -815,7 +815,7 @@
         {
             "source": "49",
             "target": "57",
-            "value": 0
+            "value": 1
         },
         {
             "source": "56",
@@ -825,27 +825,27 @@
         {
             "source": "50",
             "target": "58",
-            "value": 0
+            "value": 8
         },
         {
             "source": "57",
             "target": "58",
-            "value": 0
+            "value": 7
         },
         {
             "source": "51",
             "target": "59",
-            "value": 5
+            "value": 1
         },
         {
             "source": "58",
             "target": "59",
-            "value": 0
+            "value": 3
         },
         {
             "source": "52",
             "target": "60",
-            "value": 6
+            "value": 1
         },
         {
             "source": "59",
@@ -855,7 +855,7 @@
         {
             "source": "53",
             "target": "61",
-            "value": 4
+            "value": 0
         },
         {
             "source": "60",
@@ -865,7 +865,7 @@
         {
             "source": "54",
             "target": "62",
-            "value": 6
+            "value": 2
         },
         {
             "source": "61",
@@ -875,12 +875,12 @@
         {
             "source": "55",
             "target": "63",
-            "value": 0
+            "value": 8
         },
         {
             "source": "62",
             "target": "63",
-            "value": 0
+            "value": 5
         }
     ]
 }

@@ -4,3 +4,7 @@ node_modules
 
 package-lock.json
 src/.trash
+server/server
+server/random.json
+
+.vscode

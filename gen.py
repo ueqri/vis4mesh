@@ -23,7 +23,7 @@ class node:
         return {
             "id": str(self.id),
             "weight": self.weight,
-            "label": "Switch{}".format(self.id),
+            "label": "Sw{}".format(self.id),
         }
 
 
@@ -106,6 +106,6 @@ class mesh:
 
 if __name__ == '__main__':
     m = mesh(8, 8)
-    m.random_edges(0.8)
+    m.random_edges(0.95)
     with open('src/content.json', 'w') as f:
         f.write(json.dumps(m.dump(), indent=4))

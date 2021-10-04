@@ -1,12 +1,13 @@
 import G6 from "@antv/g6";
 import insertCss from "insert-css";
 
-import data from "./content.json";
-
 //
 // Global Variables & Initiations
 //
 
+const container = document.getElementById("mountNode");
+const width = container.scrollWidth;
+const height = container.scrollHeight || 800;
 const edgeWidth = 7;
 const colorPalette = [
   "#ab162a",
@@ -20,10 +21,6 @@ const colorPalette = [
   "#3c8abe",
   "#1e61a5",
 ];
-data.edges.forEach(item => {
-  item.style = {}
-  item.style.stroke = colorPalette[9-item.value]
-})
 
 //
 // Plugins
@@ -121,10 +118,10 @@ const legend = new G6.Legend({
   data: legendData,
   align: "center",
   layout: "horizontal", // vertical
-  position: "bottom-left",
+  position: "bottom",
   vertiSep: 12,
-  horiSep: 24,
-  offsetY: -1,
+  horiSep: 10,
+  offsetY: 100,
   padding: [4, 16, 8, 16],
   containerStyle: {
     fill: "#ccc",
@@ -191,10 +188,6 @@ const legend = new G6.Legend({
 // Graph Config
 //
 
-const container = document.getElementById("mountNode");
-const width = container.scrollWidth;
-const height = container.scrollHeight || 1250;
-
 const graph = new G6.Graph({
   container: "mountNode",
   width,
@@ -230,31 +223,46 @@ const graph = new G6.Graph({
       lineWidth: edgeWidth,
     },
     labelCfg: {
-      position: "end",
+      position: "middle",
       refY: -10,
     },
   },
   edgeStateStyles: {
     activeByLegend: {
       lineWidth: edgeWidth * 1.6,
-      strokeOpacity: 0.72,
+      strokeOpacity: 0.75,
     },
     inactiveByLegend: {
-      opacity: 0.12,
+      opacity: 0.05,
     },
     active: {
       fill: "LightCoral",
       stroke: "LightCoral",
       lineWidth: edgeWidth,
-      shadowColor: 'LightCoral',
+      shadowColor: "LightCoral",
       shadowBlur: 9,
     },
   },
   plugins: [toolbar, tooltip, legend],
 });
 
-graph.data(data);
-graph.render();
+import { NetworkTopologySource, VisualizationTickController } from "./ws";
+
+import initialData from './content.json';
+graph.read(initialData)
+
+var source = new NetworkTopologySource("ws://127.0.0.1:8080/", function (
+  data: Object
+) {
+  data.edges.forEach((item) => {
+    item.style = {};
+    item.style.stroke = colorPalette[9 - item.value];
+  });
+  graph.changeData(data);
+  graph.refresh();
+});
+
+var vis = new VisualizationTickController(source);
 
 //
 // Events
@@ -271,6 +279,21 @@ graph.on("edge:mouseenter", (ev) => {
 });
 graph.on("edge:mouseleave", (ev) => {
   graph.setItemState(ev.item, "active", false);
+});
+
+document.addEventListener('keydown', function (event) {
+  if (event.key === ' ') {
+    vis.flip();
+  }
+  if (event.key == 'ArrowRight') {
+    vis.timeNext();
+  }
+  if (event.key == 'ArrowLeft') {
+    vis.timePrevious();
+  }
+  if (event.key === 'l') {
+    document.body.style = '';
+  }
 });
 
 //
