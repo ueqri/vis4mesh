@@ -23,19 +23,18 @@ var maxCount int64
 func FormatChannelName(e *EdgeInfo) string {
 	return fmt.Sprintf(
 		"GPU1.GPU1_SW_%d_%d_0_Port[0-4]-GPU1_SW_%d_%d_0_Port[0-4]",
-		e.SourceNode.x,
-		e.SourceNode.y,
-		e.TargetNode.x,
-		e.SourceNode.y,
+		e.SourceNode.X,
+		e.SourceNode.Y,
+		e.TargetNode.X,
+		e.TargetNode.Y,
 	)
 }
 
 type NodeInfo struct {
-	x      int    `json:"-"`
-	y      int    `json:"-"`
-	ID     string `json:"id"`
-	Weight int    `json:"weight"` // For antv-G6, large weight lays first.
-	Label  string `json:"label"`
+	ID   string `json:"id"`
+	Name string `json:"name"`
+	X    int    `json:"xid"`
+	Y    int    `json:"yid"`
 }
 
 type EdgeInfo struct {
@@ -45,7 +44,7 @@ type EdgeInfo struct {
 	LinkName   string    `json:"-"`
 	Source     string    `json:"source"`
 	Target     string    `json:"target"`
-	Value      string    `json:"value"`
+	Value      int64     `json:"value"`
 	Details    string    `json:"details"`
 }
 
@@ -54,21 +53,19 @@ type MeshInfo struct {
 	Edges []EdgeInfo `json:"edges"`
 }
 
-func (e *EdgeInfo) UpdateValue(val int) {
-	e.Value = strconv.Itoa(val)
+func (e *EdgeInfo) UpdateValue(val int64) {
+	e.Value = val
 }
 
 func (m *MeshInfo) InitNodes() {
-	totalNumber := row * col
 	for i := 0; i < row; i++ {
 		for j := 0; j < col; j++ {
 			nodeIdx := i*col + j
 			m.Nodes = append(m.Nodes, NodeInfo{
-				x:      i,
-				y:      j,
-				ID:     strconv.Itoa(nodeIdx),
-				Weight: totalNumber - nodeIdx,
-				Label:  fmt.Sprintf("Sw%d", nodeIdx),
+				X:    i,
+				Y:    j,
+				ID:   strconv.Itoa(nodeIdx),
+				Name: fmt.Sprintf("Sw%d", nodeIdx),
 			})
 		}
 	}
@@ -129,7 +126,7 @@ func (m *MeshInfo) Random() string {
 	m.InitNodes()
 	m.InitEdgePool()
 	for i := range m.Edges {
-		m.Edges[i].UpdateValue(rand.Intn(10))
+		m.Edges[i].UpdateValue((int64)(rand.Intn(10)))
 		m.Edges[i].Details = strconv.Itoa(rand.Intn(50))
 	}
 	output, err := json.Marshal(m)

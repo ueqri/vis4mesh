@@ -14,7 +14,8 @@
     "suppressImplicitAnyIndexErrors": true,
     "skipLibCheck": true,
     "esModuleInterop": true,
-    "baseUrl": "./src/"
+    "resolveJsonModule": true,
+    "baseUrl": "./src/",
   },
   "include": ["./src/**/*"]
 }

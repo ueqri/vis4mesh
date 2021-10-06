@@ -87,9 +87,10 @@ func handle(w http.ResponseWriter, r *http.Request) {
 
 func main() {
 	// connectDB()
-	mesh.InitMesh()
+	// mesh.InitMesh()
+	WriteStringToFile(JSONPrettyPrint([]byte(mesh.Random())), "random.json")
 	// queryEachChannel("GPU1.GPU1_SW_0_2_0_Port[0-4]-GPU1_SW_0_3_0_Port[0-4]", 0.000003000, 0.000014500)
-
+	return
 	flag.Parse()
 	log.SetFlags(0)
 	http.HandleFunc("/echo", echo)

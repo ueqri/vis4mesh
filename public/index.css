@@ -1,0 +1,22 @@
+.tooltip {
+  position: absolute;
+  z-index: 10;
+  visibility: hidden;
+  background-color: #E89F65;
+  text-align: center;
+  padding: 4px;
+  border-radius: 4px;
+  font-weight: bold;
+  color: #B94629;
+}
+
+body {
+  background-color: #E3DEC1;
+}
+
+/* .rect {
+  height: 30;
+  width: 30;
+  rx: 5;
+  ry: 5;
+} */
