@@ -1,10 +1,9 @@
-.cache
+.parcel-cache
 dist
 node_modules
+.vscode
 
 package-lock.json
-src/.trash
+
 server/server
 server/random.json
-
-.vscode
