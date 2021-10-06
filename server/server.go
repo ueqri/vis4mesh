@@ -59,9 +59,11 @@ func handle(w http.ResponseWriter, r *http.Request) {
 		log.Printf("recv: %s", message)
 		msg := strings.Split(string(message[:]), " ")
 
-		var resp string
+		var resp []byte
 
 		switch msg[0] {
+		case "pong":
+			continue // heartbeat package
 		case "range":
 			var from, to int64
 			if from, err = strconv.ParseInt(msg[1], 10, 64); err != nil {
@@ -70,15 +72,17 @@ func handle(w http.ResponseWriter, r *http.Request) {
 			if to, err = strconv.ParseInt(msg[2], 10, 64); err != nil {
 				panic(err)
 			}
-			resp = mesh.Random()
+			resp = mesh.RandomEdges()
 			// WriteStringToFile(JSONPrettyPrint([]byte(resp)), "random.json")
 			fmt.Printf("%d,%d\n", from, to)
 			//resp = instRange(from, to)
+		case "init":
+			resp = mesh.InstInitiate()
 		default:
 			panic("Unrecognized instructions for vis4mesh server.")
 		}
 
-		if err := c.WriteMessage(mt, []byte(resp)); err != nil {
+		if err := c.WriteMessage(mt, resp); err != nil {
 			log.Println("write:", err)
 			break
 		}
@@ -88,9 +92,10 @@ func handle(w http.ResponseWriter, r *http.Request) {
 func main() {
 	// connectDB()
 	// mesh.InitMesh()
-	WriteStringToFile(JSONPrettyPrint([]byte(mesh.Random())), "random.json")
+	// WriteStringToFile(JSONPrettyPrint([]byte(mesh.InstNodes())), "random.json")
 	// queryEachChannel("GPU1.GPU1_SW_0_2_0_Port[0-4]-GPU1_SW_0_3_0_Port[0-4]", 0.000003000, 0.000014500)
-	return
+	// return
+	mesh.InitMesh()
 	flag.Parse()
 	log.SetFlags(0)
 	http.HandleFunc("/echo", echo)

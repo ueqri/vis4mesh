@@ -1,18 +1,36 @@
 import { Grid } from "./layout/grid";
+import { DataPort, Ticker } from "./data";
 
-import {NodeData, EdgeData} from "data"
+var port = new DataPort("ws://localhost:8080/");
 
-interface Data {
-  nodes: NodeData[];
-  edges: EdgeData[];
-}
+var graph = new Grid(1000, 1000);
 
-import data from '../server/random.json'
+port.init((d) => {
+  var data = JSON.parse(d);
+  graph.nodeData(data.nodes);
+  graph.edgeData(data.edges);
+  graph.render();
+});
 
-var d: Data = data
+var tick = new Ticker();
+tick.tickFunc = () => {
+  port.range(0, tick.elapse, (d) => {
+    graph.edgeData(JSON.parse(d));
+  });
+  graph.refresh();
+};
 
-var g = new Grid(1000,1000);
-g.nodeData(d.nodes)
-g.edgeData(d.edges)
-console.log(g.mapNodeLocation("2"))
-g.render()
+document.addEventListener("keydown", function (event) {
+  if (event.key === " ") {
+    tick.auto();
+  }
+  if (event.key === "p") {
+    tick.pause();
+  }
+  if (event.key == "ArrowRight") {
+    tick.manual();
+  }
+  // if (event.key == 'ArrowLeft') {
+  //   vis.timePrevious();
+  // }
+});

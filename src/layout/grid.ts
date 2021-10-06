@@ -10,6 +10,7 @@ export class Grid {
   width: number;
   height: number;
   nodeSize: number;
+  edgeWidth: number;
   paddingX: number;
   paddingY: number;
   nodes!: NodeData[];
@@ -18,7 +19,8 @@ export class Grid {
   constructor(width: number, height: number) {
     this.width = width;
     this.height = height;
-    this.nodeSize = 40;
+    this.nodeSize = 21;
+    this.edgeWidth = 6.2;
     this.paddingX = 100;
     this.paddingY = 100;
   }
@@ -32,11 +34,11 @@ export class Grid {
   }
 
   mapAxisX: (xid: number) => number = (xid) => {
-    return xid * 130 + this.paddingX;
+    return xid * 120 + this.paddingX;
   };
 
   mapAxisY: (yid: number) => number = (yid) => {
-    return yid * 130 + this.paddingY;
+    return yid * 120 + this.paddingY;
   };
 
   mapNodeLocation: (id: string) => Location = (id) => {
@@ -55,14 +57,24 @@ export class Grid {
     return loc;
   };
 
+  refresh() {
+    var g = d3.select("body").select("svg").select("g");
+    g.selectAll("line")
+      .data(this.links)
+      .attr("stroke", function (d) {
+        return d3.interpolateRdYlBu((9 - d.value) / 9);
+      });
+  }
+
   render() {
     const nodeSize = this.nodeSize;
+    const edgeWidth = this.edgeWidth;
     const mapAxisX = this.mapAxisX;
     const mapAxisY = this.mapAxisY;
     const mapNodeLocation = this.mapNodeLocation;
 
     function edgeStrokeWidth(value: any): number {
-      return 8;
+      return edgeWidth;
     }
 
     var nodeTooltip = d3.select("body").append("div").attr("class", "tooltip");
@@ -72,7 +84,8 @@ export class Grid {
       .select("body")
       .append("svg")
       .attr("width", "100%")
-      .attr("height", "900");
+      .attr("height", "1200")
+      .append("g");
 
     //
     // Lines
@@ -97,7 +110,9 @@ export class Grid {
       .attr("stroke-width", function (d) {
         return edgeStrokeWidth(d.value);
       })
-      .attr("stroke", "black")
+      .attr("stroke", function (d) {
+        return d3.interpolateRdYlBu((9 - d.value) / 9);
+      })
       // Mouse over
       .on("mouseover", function (event, d) {
         svg.selectAll("line").attr("opacity", 0.2);
@@ -108,14 +123,8 @@ export class Grid {
         return edgeTooltip
           .style("visibility", "visible")
           .html(
-            "Edge valued " +
-              d.value +
-              ", linked " +
-              d.source +
-              " and " +
-              d.target +
-              "<br>With details: " +
-              d.details
+            `Edge valued ${d.value} , linked ${d.source} -> ${d.target}` +
+              `<br>With details: ${d.details}`
           )
           .style("opacity", 0.85);
       })
@@ -142,8 +151,8 @@ export class Grid {
       .append("rect")
       .attr("width", nodeSize)
       .attr("height", nodeSize)
-      .attr("rx", 5)
-      .attr("ry", 5)
+      .attr("rx", 1)
+      .attr("ry", 1)
       .attr("x", function (d, i) {
         return mapAxisX(d.xid) - nodeSize / 2;
       })
@@ -153,11 +162,11 @@ export class Grid {
       .attr("nodeID", function (d, i) {
         return d.id;
       })
-      .attr("stroke", "grey")
-      .attr("fill", "#B94629")
+      .attr("stroke", "#599dbb")
+      .attr("fill", "#8fbdd1")
       // Mouse over
       .on("mouseover", function (event, d) {
-        svg.selectAll("rect").attr("opacity", 0.2);
+        svg.selectAll("rect").attr("opacity", 0.1);
 
         d3.select(this).attr("opacity", 1);
         var nodeID = d3.select(this).attr("nodeID");
@@ -165,14 +174,8 @@ export class Grid {
         return nodeTooltip
           .style("visibility", "visible")
           .html(
-            "Location : " +
-              d.id +
-              "<br>Grid Node ID: " +
-              nodeID +
-              "<br>Select Coord: " +
-              d.xid +
-              "," +
-              d.yid
+            `Location : ${d.id} <br> Grid Node ID: ${nodeID} ` +
+              `<br>Select Coord: [${d.xid}, ${d.yid}]`
           )
           .style("opacity", 0.85);
       })
@@ -202,7 +205,7 @@ export class Grid {
       })
       //Set Y value to be more than the d.yid to display the text beneath
       .attr("y", function (d) {
-        return mapAxisY(d.yid) + nodeSize;
+        return mapAxisY(d.yid) + nodeSize * 1.5;
       })
       .attr("text-anchor", "middle")
       //Set the location name to be d.id

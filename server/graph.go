@@ -9,6 +9,7 @@ import (
 	"math/rand"
 	"os"
 	"strconv"
+	"time"
 )
 
 const (
@@ -122,23 +123,22 @@ func WriteStringToFile(data, file string) {
 	writer.Flush()
 }
 
-func (m *MeshInfo) Random() string {
-	m.InitNodes()
-	m.InitEdgePool()
+func (m *MeshInfo) RandomEdges() []byte {
 	for i := range m.Edges {
 		m.Edges[i].UpdateValue((int64)(rand.Intn(10)))
 		m.Edges[i].Details = strconv.Itoa(rand.Intn(50))
 	}
-	output, err := json.Marshal(m)
+	output, err := json.Marshal(m.Edges)
 	if err != nil {
 		panic(err)
 	}
-	return string(output[:])
+	return output
 }
 
 func (m *MeshInfo) InitMesh() {
 	m.InitNodes()
 	m.InitEdgePool()
+	rand.Seed(time.Now().Unix())
 	// for i := range m.Edges {
 	// 	go func(e *EdgeInfo) {
 	// 		var t float64 = 0.000000000
@@ -149,6 +149,22 @@ func (m *MeshInfo) InitMesh() {
 	// 		}
 	// 	}(&m.Edges[i])
 	// }
+}
+
+func (m *MeshInfo) InstInitiate() []byte {
+	output, err := json.Marshal(m)
+	if err != nil {
+		panic(err)
+	}
+	return output
+}
+
+func (m *MeshInfo) InstEdges() []byte {
+	output, err := json.Marshal(m.Edges)
+	if err != nil {
+		panic(err)
+	}
+	return output
 }
 
 func instRange(from, to int64) string {

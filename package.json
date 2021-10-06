@@ -22,11 +22,11 @@
   "author": "Hang Yan",
   "license": "MIT",
   "devDependencies": {
-    "ts-loader": "^9.2.5",
-    "typescript": "^4.4.3",
     "@babel/core": "^7.15.5",
     "@babel/preset-env": "^7.15.6",
-    "parcel": "^2.0.0-rc.0"
+    "parcel": "^2.0.0-rc.0",
+    "ts-loader": "^9.2.5",
+    "typescript": "^4.4.3"
   },
   "dependencies": {
     "@types/d3": "^7.0.0",
