@@ -84,6 +84,13 @@ func (m *MeshInfo) InitEdgePool() {
 				Source:     strconv.Itoa(north),
 				Target:     strconv.Itoa(cur),
 			})
+			// reversed link
+			m.Edges = append(m.Edges, EdgeInfo{
+				SourceNode: &m.Nodes[cur],
+				TargetNode: &m.Nodes[north],
+				Source:     strconv.Itoa(cur),
+				Target:     strconv.Itoa(north),
+			})
 		}
 	}
 	// Horizontal direction
@@ -96,6 +103,13 @@ func (m *MeshInfo) InitEdgePool() {
 				TargetNode: &m.Nodes[cur],
 				Source:     strconv.Itoa(left),
 				Target:     strconv.Itoa(cur),
+			})
+			// reversed link
+			m.Edges = append(m.Edges, EdgeInfo{
+				SourceNode: &m.Nodes[cur],
+				TargetNode: &m.Nodes[left],
+				Source:     strconv.Itoa(cur),
+				Target:     strconv.Itoa(left),
 			})
 		}
 	}

@@ -18,6 +18,7 @@ tick.tickFunc = () => {
     graph.edgeData(JSON.parse(d));
   });
   graph.refresh();
+  // graph.legend(9);
 };
 
 document.addEventListener("keydown", function (event) {

@@ -11,6 +11,7 @@ export class Grid {
   height: number;
   nodeSize: number;
   edgeWidth: number;
+  dualLinkSpace: number;
   paddingX: number;
   paddingY: number;
   nodes!: NodeData[];
@@ -19,8 +20,9 @@ export class Grid {
   constructor(width: number, height: number) {
     this.width = width;
     this.height = height;
-    this.nodeSize = 21;
+    this.nodeSize = 40;
     this.edgeWidth = 6.2;
+    this.dualLinkSpace = this.edgeWidth;
     this.paddingX = 100;
     this.paddingY = 100;
   }
@@ -34,11 +36,11 @@ export class Grid {
   }
 
   mapAxisX: (xid: number) => number = (xid) => {
-    return xid * 120 + this.paddingX;
+    return xid * 130 + this.paddingX;
   };
 
   mapAxisY: (yid: number) => number = (yid) => {
-    return yid * 120 + this.paddingY;
+    return yid * 130 + this.paddingY;
   };
 
   mapNodeLocation: (id: string) => Location = (id) => {
@@ -59,6 +61,7 @@ export class Grid {
 
   refresh() {
     var g = d3.select("body").select("svg").select("g");
+    // Refresh color
     g.selectAll("line")
       .data(this.links)
       .attr("stroke", function (d) {
@@ -69,6 +72,7 @@ export class Grid {
   render() {
     const nodeSize = this.nodeSize;
     const edgeWidth = this.edgeWidth;
+    const dualLinkSpace = this.dualLinkSpace;
     const mapAxisX = this.mapAxisX;
     const mapAxisY = this.mapAxisY;
     const mapNodeLocation = this.mapNodeLocation;
@@ -87,6 +91,22 @@ export class Grid {
       .attr("height", "1200")
       .append("g");
 
+    svg
+      .append("svg:defs")
+      .selectAll("marker")
+      .data(["end"]) // different link/path types can be defined here
+      .enter()
+      .append("svg:marker") // this section adds in the arrows
+      .attr("id", String)
+      .attr("viewBox", "0 -5 10 10")
+      .attr("refX", this.nodeSize/2+5)
+      .attr("refY", 0)
+      .attr("markerWidth", this.edgeWidth / 3.5)
+      .attr("markerHeight", this.edgeWidth / 3.5)
+      .attr("orient", "auto")
+      .append("svg:path")
+      .attr("d", "M0,-5L10,0L0,5");
+
     //
     // Lines
     //
@@ -96,16 +116,62 @@ export class Grid {
       .enter()
       .append("line")
       .attr("x1", function (d) {
-        return mapNodeLocation(d.source).mappedX;
+        var src = mapNodeLocation(d.source),
+          dst = mapNodeLocation(d.target);
+        if (src.mappedX == dst.mappedX) {
+          // vertical link
+          return src.mappedY < dst.mappedY
+            ? src.mappedX - dualLinkSpace
+            : src.mappedX + dualLinkSpace;
+        } else {
+          return src.mappedX; // horizontal link
+        }
       })
       .attr("y1", function (d) {
-        return mapNodeLocation(d.source).mappedY;
+        var src = mapNodeLocation(d.source),
+          dst = mapNodeLocation(d.target);
+        if (src.mappedY == dst.mappedY) {
+          // horizontal link
+          return src.mappedX < dst.mappedX
+            ? src.mappedY - dualLinkSpace
+            : src.mappedY + dualLinkSpace;
+        } else {
+          return src.mappedY; // vertical link
+        }
       })
       .attr("x2", function (d) {
-        return mapNodeLocation(d.target).mappedX;
+        var src = mapNodeLocation(d.source),
+          dst = mapNodeLocation(d.target);
+        if (src.mappedX == dst.mappedX) {
+          // vertical link
+          return src.mappedY < dst.mappedY
+            ? dst.mappedX - dualLinkSpace
+            : dst.mappedX + dualLinkSpace;
+        } else {
+          return dst.mappedX; // horizontal link
+        }
       })
       .attr("y2", function (d) {
-        return mapNodeLocation(d.target).mappedY;
+        var src = mapNodeLocation(d.source),
+          dst = mapNodeLocation(d.target);
+        if (src.mappedY == dst.mappedY) {
+          // horizontal link
+          return src.mappedX < dst.mappedX
+            ? dst.mappedY - dualLinkSpace
+            : dst.mappedY + dualLinkSpace;
+        } else {
+          return dst.mappedY; // vertical link
+        }
+      })
+      .attr("marker-end", "url(#end)")
+      .attr("stroke-dasharray", function (d) {
+        var src = mapNodeLocation(d.source),
+          dst = mapNodeLocation(d.target);
+        if (src.mappedX < dst.mappedX || src.mappedY < dst.mappedY) {
+          return "5,0";
+        } else {
+          return "2,1";
+        }
       })
       .attr("stroke-width", function (d) {
         return edgeStrokeWidth(d.value);
@@ -166,7 +232,7 @@ export class Grid {
       .attr("fill", "#8fbdd1")
       // Mouse over
       .on("mouseover", function (event, d) {
-        svg.selectAll("rect").attr("opacity", 0.1);
+        svg.selectAll("rect").attr("opacity", 1);
 
         d3.select(this).attr("opacity", 1);
         var nodeID = d3.select(this).attr("nodeID");
@@ -215,5 +281,16 @@ export class Grid {
       .attr("fill", "#B94629")
       .style("font-size", "20px")
       .style("font-weight", "bold");
+  }
+
+  legend(val: number) {
+    var g = d3.select("body").select("svg").select("g");
+    g.selectAll("line")
+      .data(this.links)
+      .attr("opacity", (d) => {
+        return d.value == val ? 1 : 0.2;
+      }).attr("stroke-width", (d) => {
+        return d.value == val ? this.edgeWidth*1.2: this.edgeWidth ;
+      });
   }
 }
