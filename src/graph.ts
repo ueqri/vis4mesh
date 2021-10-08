@@ -3,7 +3,7 @@ import { DataPort, Ticker } from "./data";
 
 var port = new DataPort("ws://localhost:8080/");
 
-var graph = new Grid(1000, 1000);
+var graph = new Grid();
 
 port.init((d) => {
   var data = JSON.parse(d);

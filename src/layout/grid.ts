@@ -7,8 +7,6 @@ interface Location {
 }
 
 export class Grid {
-  width: number;
-  height: number;
   nodeSize: number;
   edgeWidth: number;
   dualLinkSpace: number;
@@ -17,9 +15,7 @@ export class Grid {
   nodes!: NodeData[];
   links!: EdgeData[];
 
-  constructor(width: number, height: number) {
-    this.width = width;
-    this.height = height;
+  constructor() {
     this.nodeSize = 40;
     this.edgeWidth = 6.2;
     this.dualLinkSpace = this.edgeWidth;
@@ -87,8 +83,6 @@ export class Grid {
     var svg = d3
       .select("body")
       .append("svg")
-      .attr("width", "100%")
-      .attr("height", "1200")
       .append("g");
 
     svg

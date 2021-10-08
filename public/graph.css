@@ -1,0 +1,17 @@
+.tooltip {
+  position: absolute;
+  z-index: 10;
+  visibility: hidden;
+  background-color: #e89f65;
+  text-align: center;
+  padding: 4px;
+  border-radius: 4px;
+  font-weight: bold;
+  color: #b94629;
+}
+
+svg {
+  overflow: visible;
+  width: 100vw;
+  height: 100vh;
+}
