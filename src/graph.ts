@@ -1,37 +1,31 @@
 import { Grid } from "./layout/grid";
 import { DataPort, Ticker } from "./data";
 
-var port = new DataPort("ws://localhost:8080/");
+export class Graph {
+  port: DataPort;
+  graph: Grid;
+  tick: Ticker;
+  targetDOM: Document;
 
-var graph = new Grid();
+  constructor(targetDOM: Document) {
+    this.targetDOM = targetDOM;
 
-port.init((d) => {
-  var data = JSON.parse(d);
-  graph.nodeData(data.nodes);
-  graph.edgeData(data.edges);
-  graph.render();
-});
+    this.port = new DataPort("ws://localhost:8080/");
+    this.tick = new Ticker();
+    this.graph = new Grid(targetDOM);
 
-var tick = new Ticker();
-tick.tickFunc = () => {
-  port.range(0, tick.elapse, (d) => {
-    graph.edgeData(JSON.parse(d));
-  });
-  graph.refresh();
-  // graph.legend(9);
-};
+    this.port.init((d) => {
+      var data = JSON.parse(d);
+      this.graph.nodeData(data.nodes);
+      this.graph.edgeData(data.edges);
+      this.graph.render();
+    });
 
-document.addEventListener("keydown", function (event) {
-  if (event.key === " ") {
-    tick.auto();
+    this.tick.tickFunc = () => {
+      this.port.range(0, this.tick.elapse, (d) => {
+        this.graph.edgeData(JSON.parse(d));
+      });
+      this.graph.refresh();
+    };
   }
-  if (event.key === "p") {
-    tick.pause();
-  }
-  if (event.key == "ArrowRight") {
-    tick.manual();
-  }
-  // if (event.key == 'ArrowLeft') {
-  //   vis.timePrevious();
-  // }
-});
+}

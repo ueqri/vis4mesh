@@ -15,7 +15,7 @@
     integrity="sha384-kQtW33rZJAHjgefvhyyzcGF3C5TFyBQBA13V1RKPf4uH+bwyzQxZ6CmMZHmNBEfJ"
     crossorigin="anonymous"></script>
 
-  <iframe src="./graph.html" id="ifram-graph" width="70%" height="100%" frameborder="0"></iframe>
+  <iframe src="./graph.html" id="iframe-graph" width="70%" height="100%" frameborder="0"></iframe>
 
   <section class="sidebar">
     <div class="accordion accordion-flush" id="accordionFlushExample">
@@ -28,9 +28,7 @@
         </h2>
         <div id="flush-collapseOne" class="accordion-collapse collapse" aria-labelledby="flush-headingOne"
           data-bs-parent="#accordionFlushExample">
-          <div class="accordion-body">
-            <input type="checkbox" name="" id="red"> Red
-            <input type="checkbox" name="" id="yellow"> Yellow
+          <div class="accordion-body" id="div-sidebar-legend">
           </div>
         </div>
       </div>
@@ -44,7 +42,7 @@
         <div id="flush-collapseTwo" class="accordion-collapse collapse" aria-labelledby="flush-headingTwo"
           data-bs-parent="#accordionFlushExample">
           <div class="accordion-body">
-            <input type="range" name="" id="slider" min=0 max=100>
+            <input type="range" id="slider" min=0 max=100>
           </div>
         </div>
       </div>
@@ -63,7 +61,7 @@
     </div>
   </section>
 
-  <!-- <script src="../src/event.ts"></script> -->
+  <script type="module" src="../src/index.ts"></script>
 </body>
 
 </html>

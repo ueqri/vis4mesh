@@ -1,12 +1,20 @@
 import * as d3 from "d3";
 import { NodeData, EdgeData } from "../data";
 
+export type LinkSelection = d3.Selection<
+  d3.BaseType,
+  EdgeData,
+  d3.BaseType,
+  unknown
+>;
+
 interface Location {
   mappedX: number;
   mappedY: number;
 }
 
 export class Grid {
+  targetDOM: Document;
   nodeSize: number;
   edgeWidth: number;
   dualLinkSpace: number;
@@ -14,13 +22,16 @@ export class Grid {
   paddingY: number;
   nodes!: NodeData[];
   links!: EdgeData[];
+  refreshCallbacks: Array<(g: LinkSelection) => any>;
 
-  constructor() {
+  constructor(targetDOM: Document) {
+    this.targetDOM = targetDOM;
     this.nodeSize = 40;
     this.edgeWidth = 6.2;
     this.dualLinkSpace = this.edgeWidth;
     this.paddingX = 100;
     this.paddingY = 100;
+    this.refreshCallbacks = new Array<(g: LinkSelection) => any>();
   }
 
   nodeData(data: NodeData[]) {
@@ -55,14 +66,27 @@ export class Grid {
     return loc;
   };
 
+  addRefreshCallback(callback: (g: LinkSelection) => any) {
+    this.refreshCallbacks.push(callback);
+  }
+
   refresh() {
-    var g = d3.select("body").select("svg").select("g");
+    var g = d3
+      .select(this.targetDOM)
+      .select("body")
+      .select("svg")
+      .select("g")
+      .selectAll("line")
+      .data(this.links);
+
     // Refresh color
-    g.selectAll("line")
-      .data(this.links)
-      .attr("stroke", function (d) {
-        return d3.interpolateRdYlBu((9 - d.value) / 9);
-      });
+    g.attr("stroke", function (d) {
+      return d3.interpolateRdYlBu((9 - d.value) / 9);
+    });
+
+    this.refreshCallbacks.forEach((callback) => {
+      callback(g);
+    });
   }
 
   render() {
@@ -77,14 +101,11 @@ export class Grid {
       return edgeWidth;
     }
 
-    var nodeTooltip = d3.select("body").append("div").attr("class", "tooltip");
-    var edgeTooltip = d3.select("body").append("div").attr("class", "tooltip");
+    var body = d3.select(this.targetDOM).select("body");
+    var nodeTooltip = body.append("div").attr("class", "tooltip");
+    var edgeTooltip = body.append("div").attr("class", "tooltip");
 
-    var svg = d3
-      .select("body")
-      .append("svg")
-      .append("g");
-
+    var svg = body.append("svg").append("g");
     svg
       .append("svg:defs")
       .selectAll("marker")
@@ -93,7 +114,7 @@ export class Grid {
       .append("svg:marker") // this section adds in the arrows
       .attr("id", String)
       .attr("viewBox", "0 -5 10 10")
-      .attr("refX", this.nodeSize/2+5)
+      .attr("refX", this.nodeSize / 2 + 5)
       .attr("refY", 0)
       .attr("markerWidth", this.edgeWidth / 3.5)
       .attr("markerHeight", this.edgeWidth / 3.5)
@@ -278,13 +299,14 @@ export class Grid {
   }
 
   legend(val: number) {
-    var g = d3.select("body").select("svg").select("g");
+    var g = d3.select(this.targetDOM).select("body").select("svg").select("g");
     g.selectAll("line")
       .data(this.links)
       .attr("opacity", (d) => {
         return d.value == val ? 1 : 0.2;
-      }).attr("stroke-width", (d) => {
-        return d.value == val ? this.edgeWidth*1.2: this.edgeWidth ;
+      })
+      .attr("stroke-width", (d) => {
+        return d.value == val ? this.edgeWidth * 1.2 : this.edgeWidth;
       });
   }
 }
