@@ -48,6 +48,7 @@ export class Legend {
       //
       item
         .append("input")
+        .attr("class", "form-check-input")
         .style("margin-right", "0.5em")
         .attr("type", "checkbox")
         .attr("checked", true)
@@ -80,6 +81,7 @@ export class Legend {
       //
       item
         .append("label")
+        .attr("class", "form-check-label")
         .style("padding-left", "0.5em")
         .attr("for", `checkbox-legend-${idx}`)
         .text(v.name);

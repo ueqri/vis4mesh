@@ -14,21 +14,23 @@ interface Location {
 }
 
 export class Grid {
-  targetDOM: Document;
-  nodeSize: number;
-  edgeWidth: number;
-  dualLinkSpace: number;
-  paddingX: number;
-  paddingY: number;
-  nodes!: NodeData[];
-  links!: EdgeData[];
-  refreshCallbacks: Array<(g: LinkSelection) => any>;
+  protected targetDOM: Document;
+  protected nodeSize: number;
+  protected edgeWidth: number;
+  protected dualLinkSpace: number;
+  protected mapRatio: number;
+  protected paddingX: number;
+  protected paddingY: number;
+  protected nodes!: NodeData[];
+  protected links!: EdgeData[];
+  protected refreshCallbacks: Array<(g: LinkSelection) => any>;
 
   constructor(targetDOM: Document) {
     this.targetDOM = targetDOM;
     this.nodeSize = 40;
     this.edgeWidth = 6.2;
-    this.dualLinkSpace = this.edgeWidth;
+    this.dualLinkSpace = this.edgeWidth + 0.4;
+    this.mapRatio = 13;
     this.paddingX = 100;
     this.paddingY = 100;
     this.refreshCallbacks = new Array<(g: LinkSelection) => any>();
@@ -42,34 +44,54 @@ export class Grid {
     this.links = data;
   }
 
-  mapAxisX: (xid: number) => number = (xid) => {
-    return xid * 130 + this.paddingX;
-  };
+  getNodeSize(): number {
+    return this.nodeSize;
+  }
 
-  mapAxisY: (yid: number) => number = (yid) => {
-    return yid * 130 + this.paddingY;
-  };
+  updateNodeSize(size: number) {
+    this.nodeSize = size;
+    this.rebuild();
+  }
 
-  mapNodeLocation: (id: string) => Location = (id) => {
-    var loc: Location = { mappedX: 0, mappedY: 0 };
-    const mapAxisX = this.mapAxisX;
-    const mapAxisY = this.mapAxisY;
+  getEdgeWidth(): number {
+    return this.edgeWidth;
+  }
 
-    this.nodes.some((node) => {
-      if (node.id == id) {
-        loc.mappedX = mapAxisX(node.xid);
-        loc.mappedY = mapAxisY(node.yid);
-        return true;
-      }
-    });
+  updateEdgeWidth(width: number) {
+    this.edgeWidth = width;
+    this.rebuild();
+  }
 
-    return loc;
-  };
+  // getDualLinkSpace(): number {
+  //   return this.dualLinkSpace;
+  // }
+
+  // updateDualLinkSpace(size: number) {
+  //   this.dualLinkSpace = size;
+  //   this.rebuild();
+  // }
+
+  getMapRatio(): number {
+    return this.mapRatio;
+  }
+
+  updateMapRatio(ratio: number) {
+    this.mapRatio = ratio;
+    this.rebuild();
+  }
 
   addRefreshCallback(callback: (g: LinkSelection) => any) {
     this.refreshCallbacks.push(callback);
   }
 
+  // Rebuild: Remove all elements, and then render new graph.
+  rebuild() {
+    d3.select(this.targetDOM).select("body").selectAll("svg").remove();
+    d3.select(this.targetDOM).select("body").selectAll("div").remove();
+    this.render();
+  }
+
+  // Refresh: refresh existed attributes in the old graph.
   refresh() {
     var g = d3
       .select(this.targetDOM)
@@ -90,16 +112,30 @@ export class Grid {
   }
 
   render() {
+    let mapAxisX: (xid: number) => number = (xid) => {
+      return xid * this.mapRatio * 10 + this.paddingX;
+    };
+    let mapAxisY: (yid: number) => number = (yid) => {
+      return yid * this.mapRatio * 10 + this.paddingY;
+    };
+    let mapNodeLocation: (id: string) => Location = (id) => {
+      var loc: Location = { mappedX: 0, mappedY: 0 };
+      this.nodes.some((node) => {
+        if (node.id == id) {
+          loc.mappedX = mapAxisX(node.xid);
+          loc.mappedY = mapAxisY(node.yid);
+          return true;
+        }
+      });
+      return loc;
+    };
+    let edgeStrokeWidth: (value: any) => number = (value) => {
+      return this.edgeWidth;
+    }
+
     const nodeSize = this.nodeSize;
     const edgeWidth = this.edgeWidth;
     const dualLinkSpace = this.dualLinkSpace;
-    const mapAxisX = this.mapAxisX;
-    const mapAxisY = this.mapAxisY;
-    const mapNodeLocation = this.mapNodeLocation;
-
-    function edgeStrokeWidth(value: any): number {
-      return edgeWidth;
-    }
 
     var body = d3.select(this.targetDOM).select("body");
     var nodeTooltip = body.append("div").attr("class", "tooltip");
@@ -196,11 +232,7 @@ export class Grid {
       })
       // Mouse over
       .on("mouseover", function (event, d) {
-        svg.selectAll("line").attr("opacity", 0.2);
-
-        d3.select(this).attr("opacity", 1);
-        var nodeID = d3.select(this).attr("nodeID");
-
+        d3.select(this).attr("stroke-width", edgeWidth * 1.5);
         return edgeTooltip
           .style("visibility", "visible")
           .html(
@@ -217,8 +249,7 @@ export class Grid {
       })
       // Mouse out
       .on("mouseout", function (event, d) {
-        svg.selectAll("rect").attr("opacity", 1);
-        svg.selectAll("line").attr("opacity", 1);
+        d3.select(this).attr("stroke-width", edgeWidth);
         return edgeTooltip.style("visibility", "hidden");
       });
 
@@ -258,7 +289,7 @@ export class Grid {
             `Location : ${d.id} <br> Grid Node ID: ${nodeID} ` +
               `<br>Select Coord: [${d.xid}, ${d.yid}]`
           )
-          .style("opacity", 0.85);
+          .style("opacity", 0.6);
       })
       // Mouse move
       .on("mousemove", function (event, d) {
@@ -269,7 +300,6 @@ export class Grid {
       // Mouse out
       .on("mouseout", function (event, d) {
         svg.selectAll("rect").attr("opacity", 1);
-        svg.selectAll("line").attr("opacity", 1);
         return nodeTooltip.style("visibility", "hidden");
       });
 

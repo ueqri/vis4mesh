@@ -31,7 +31,7 @@ class WebSocketClient {
     };
 
     this.ws.onmessage = function (e) {
-      console.log(`WebSocket received. `)
+      console.log(`WebSocket received. `);
       //console.log(e.data);
       var callback = currentHandler();
       callback(e.data);
