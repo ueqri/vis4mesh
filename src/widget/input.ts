@@ -1,6 +1,5 @@
 import * as d3 from "d3";
-
-type DivSelection = d3.Selection<HTMLDivElement, unknown, null, undefined>;
+import { DivSelection } from "./widget";
 
 export class InputBoxWithFloatingLabel {
   protected renderedElement!: DivSelection;
@@ -53,7 +52,7 @@ export class InputBoxWithFloatingLabel {
     return this;
   }
 
-  event(handle: ((value: number) => any) | undefined): this {
+  event(handle: ((value: any) => any) | undefined): this {
     const events = this.events;
     this.renderedElement.select("input").on("change", function () {
       const inputValue = (this as any).value;
@@ -65,19 +64,18 @@ export class InputBoxWithFloatingLabel {
     });
     return this;
   }
-}
 
-export function GroupRenderAsColumns(
-  renderToDiv: HTMLElement,
-  group: Array<InputBoxWithFloatingLabel>
-) {
-  let row = d3
-    .select(renderToDiv)
-    .append("div")
-    .attr("class", `row g-${group.length}`);
-  group.forEach((v) => {
-    v.renderTo(
-      row.append("div").attr("class", "col-md").node() as HTMLElement
-    ).event(undefined);
-  });
+  element(): HTMLElement {
+    return this.renderedElement.select("input").node() as HTMLElement;
+  }
+
+  deactivate(): this {
+    this.renderedElement.select("input").attr("disabled", "true");
+    return this;
+  }
+
+  activate(): this {
+    this.renderedElement.select("input").attr("disabled", null);
+    return this;
+  }
 }

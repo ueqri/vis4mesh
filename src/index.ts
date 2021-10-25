@@ -1,10 +1,10 @@
 import { Graph } from "./graph";
 import { Legend, GenerateColorByValue } from "./plugin/legend";
 import { SingleSlider } from "./widget/slider";
-import {
-  InputBoxWithFloatingLabel,
-  GroupRenderAsColumns,
-} from "./widget/input";
+import { InputBoxWithFloatingLabel } from "./widget/input";
+import { GroupRenderAsColumns } from "./widget/widget";
+import { RangeRecorder } from "./data";
+import { RadioButtonGroup } from "./widget/button";
 
 var iframe = document.getElementById("iframe-graph") as HTMLIFrameElement;
 var graphDOM = iframe.contentDocument || iframe.contentWindow!.document;
@@ -12,7 +12,8 @@ var graphDOM = iframe.contentDocument || iframe.contentWindow!.document;
 //
 // Graph
 //
-var g = new Graph(graphDOM);
+var range = new RangeRecorder();
+var g = new Graph(graphDOM, range);
 
 //
 // Legend
@@ -89,24 +90,48 @@ sliderMapStretchRatio
 //
 // General
 //
+var tempInputTimeRange = new RangeRecorder();
 var divGeneral = document.getElementById("div-sidebar-general") as HTMLElement;
 var timeFrom = new InputBoxWithFloatingLabel("input-time-from");
-
 var timeTo = new InputBoxWithFloatingLabel("input-time-to");
 GroupRenderAsColumns(divGeneral, [
   timeFrom
     .name("Time From")
     .default(0)
     .storeEvent((value: number) => {
-      console.log(value);
+      // range.startTime = Number(value);
+      tempInputTimeRange.startTime = Number(value);
     }),
   timeTo
     .name("Time To")
     .default(0)
     .storeEvent((value: number) => {
-      console.log(value);
+      // range.now = Number(value);
+      tempInputTimeRange.now = Number(value);
     }),
 ]);
+var toggle = new RadioButtonGroup("radio-toggle");
+toggle
+  .name(["Set&Run", "Pause", "Manual"])
+  .default("Stop")
+  .renderTo(divGeneral)
+  .event((value: string) => {
+    if (value === "Set&Run") {
+      range.copy(tempInputTimeRange);
+      timeFrom.deactivate();
+      timeTo.deactivate();
+      g.tick.auto();
+    } else if (value === "Pause") {
+      timeFrom.activate();
+      timeTo.activate();
+      g.tick.pause();
+    } else if (value === "Manual") {
+      timeFrom.activate();
+      timeTo.activate();
+      range.copy(tempInputTimeRange);
+      g.tick.manual();
+    }
+  });
 
 //
 // Global Event

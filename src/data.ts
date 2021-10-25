@@ -131,8 +131,8 @@ export class DataPort {
 
 export class Ticker {
   timeoutHandle: any;
-  speed: number; // rate of elapse number per second, default 1
-  elapse: number;
+  protected speed: number; // rate of elapse number per second, default 1
+  elapse: number; // not useful at present
   tickFunc!: () => any;
 
   constructor(speed: number = 1) {
@@ -140,18 +140,50 @@ export class Ticker {
     this.elapse = 0;
   }
 
+  next(now: number): number {
+    return Number(now + this.speed);
+  }
+
   auto() {
-    this.elapse += 1;
+    this.elapse = this.elapse + 1;
     this.tickFunc();
     this.timeoutHandle = setTimeout(() => this.auto(), 1000 / this.speed);
   }
 
-  manual() {
-    this.elapse += 1;
+  step() {
+    this.elapse = this.elapse + 1;
     this.tickFunc();
+  }
+
+  manual() {
+    // `method` and `auto` are not allowed to call concurrently
+    var temp = this.speed;
+    this.speed = 0;
+    this.tickFunc();
+    this.speed = temp;
   }
 
   pause() {
     clearTimeout(this.timeoutHandle);
+  }
+}
+
+export class RangeRecorder {
+  startTime: number;
+  now: number;
+
+  constructor() {
+    this.startTime = 0;
+    this.now = 0;
+  }
+
+  update(start: number, now: number) {
+    this.startTime = start;
+    this.now = now;
+  }
+
+  copy(src: RangeRecorder) {
+    this.startTime = src.startTime;
+    this.now = src.now;
   }
 }

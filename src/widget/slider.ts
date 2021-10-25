@@ -1,6 +1,5 @@
 import * as d3 from "d3";
-
-type DivSelection = d3.Selection<HTMLDivElement, unknown, null, undefined>;
+import { DivSelection } from "./widget";
 
 export class SingleSlider {
   protected renderedElement!: DivSelection;
@@ -10,6 +9,7 @@ export class SingleSlider {
   protected step: number;
   protected label: string;
   protected defaultValue: number;
+  protected events: Array<(value: any) => any>;
 
   constructor(id: string, min: number, max: number, step: number = 1) {
     this.elementID = id;
@@ -18,6 +18,7 @@ export class SingleSlider {
     this.step = step;
     this.label = "Slider";
     this.defaultValue = (min + max) / 2;
+    this.events = new Array<(value: any) => any>();
   }
 
   name(str: string): this {
@@ -102,12 +103,22 @@ export class SingleSlider {
     return this;
   }
 
-  event(handle: (value: number) => any): this {
+  storeEvent(handle: (value: any) => any): this {
+    this.events.push(handle);
+    return this;
+  }
+
+  event(handle: ((value: any) => any) | undefined): this {
+    const events = this.events;
     let outputLabel = this.renderedElement.select("output");
     this.renderedElement.select("input").on("input", function () {
-      const inputNumber = (this as any).value;
-      outputLabel.property("value", inputNumber);
-      handle(inputNumber);
+      const inputValue = (this as any).value;
+      if (handle === undefined) {
+        events.forEach((func) => func(inputValue));
+      } else {
+        handle(inputValue as number);
+      }
+      outputLabel.property("value", inputValue);
     });
     this.renderedElement.select("bottom").on("click", () => {
       this.renderedElement
@@ -116,5 +127,9 @@ export class SingleSlider {
         .dispatch("input");
     });
     return this;
+  }
+
+  element(): HTMLElement {
+    return this.renderedElement.select("input").node() as HTMLElement;
   }
 }
