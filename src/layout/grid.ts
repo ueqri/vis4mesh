@@ -1,5 +1,6 @@
 import * as d3 from "d3";
-import { NodeData, EdgeData } from "../data";
+import { transform } from "typescript";
+import { NodeData, EdgeData, MetaData } from "../data";
 
 export type LinkSelection = d3.Selection<
   d3.BaseType,
@@ -25,6 +26,9 @@ export class Grid {
   protected links!: EdgeData[];
   protected refreshCallbacks: Array<(g: LinkSelection) => any>;
 
+  protected xSize: number;
+  protected ySize: number;
+
   constructor(targetDOM: Document) {
     this.targetDOM = targetDOM;
     this.nodeSize = 40;
@@ -34,10 +38,23 @@ export class Grid {
     this.paddingX = 100;
     this.paddingY = 100;
     this.refreshCallbacks = new Array<(g: LinkSelection) => any>();
+
+    this.xSize = this.ySize = 0;
   }
 
   nodeData(data: NodeData[]) {
     this.nodes = data;
+    this.nodes.forEach((node: NodeData) => {
+      if (this.xSize < node.xid) {
+        this.xSize = node.xid;
+      }
+      if (this.ySize < node.yid) {
+        this.ySize = node.yid;
+      }
+    });
+    // assume xid/yid iterates from 0
+    this.xSize += 1;
+    this.ySize += 1;
   }
 
   edgeData(data: EdgeData[]) {
@@ -131,19 +148,24 @@ export class Grid {
     };
     let edgeStrokeWidth: (value: any) => number = (value) => {
       return this.edgeWidth;
-    }
+    };
 
     const nodeSize = this.nodeSize;
     const edgeWidth = this.edgeWidth;
     const dualLinkSpace = this.dualLinkSpace;
 
+    const svgWidth = this.xSize * (nodeSize + edgeWidth);
+    const svgHeight = this.ySize * (nodeSize + edgeWidth);
+
     var body = d3.select(this.targetDOM).select("body");
     var nodeTooltip = body.append("div").attr("class", "tooltip");
     var edgeTooltip = body.append("div").attr("class", "tooltip");
 
-    var svg = body.append("svg").append("g");
-    svg
-      .append("svg:defs")
+    var svg = body
+      .append("svg")
+      .attr("viewBox", `0 0 ${svgWidth}, ${svgHeight}`);
+    var g = svg.append("g");
+    g.append("svg:defs")
       .selectAll("marker")
       .data(["end"]) // different link/path types can be defined here
       .enter()
@@ -158,11 +180,22 @@ export class Grid {
       .append("svg:path")
       .attr("d", "M0,-5L10,0L0,5");
 
+    let transform;
+    const zoom = d3
+      .zoom()
+      .scaleExtent([1, 20])
+      .on("zoom", (e) => {
+        g.attr("transform", (transform = e.transform));
+        g.style("stroke-width", 3 / Math.sqrt(transform.k));
+        // zoom other components
+      });
+
+    svg.call(zoom as any);
+
     //
     // Lines
     //
-    svg
-      .selectAll("line")
+    g.selectAll("line")
       .data(this.links)
       .enter()
       .append("line")
@@ -256,8 +289,7 @@ export class Grid {
     //
     // Nodes
     //
-    svg
-      .selectAll("rect")
+    g.selectAll("rect")
       .data(this.nodes)
       .enter()
       .append("rect")
@@ -278,7 +310,7 @@ export class Grid {
       .attr("fill", "#8fbdd1")
       // Mouse over
       .on("mouseover", function (event, d) {
-        svg.selectAll("rect").attr("opacity", 1);
+        g.selectAll("rect").attr("opacity", 1);
 
         d3.select(this).attr("opacity", 1);
         var nodeID = d3.select(this).attr("nodeID");
@@ -299,15 +331,14 @@ export class Grid {
       })
       // Mouse out
       .on("mouseout", function (event, d) {
-        svg.selectAll("rect").attr("opacity", 1);
+        g.selectAll("rect").attr("opacity", 1);
         return nodeTooltip.style("visibility", "hidden");
       });
 
     //
     // Text
     //
-    svg
-      .selectAll("text")
+    g.selectAll("text")
       .data(this.nodes)
       .enter()
       .append("text")
@@ -316,7 +347,7 @@ export class Grid {
       })
       //Set Y value to be more than the d.yid to display the text beneath
       .attr("y", function (d) {
-        return mapAxisY(d.yid) + nodeSize * 1.5;
+        return mapAxisY(d.yid) + nodeSize * 1.05;
       })
       .attr("text-anchor", "middle")
       //Set the location name to be d.id

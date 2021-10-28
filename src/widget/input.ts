@@ -33,7 +33,8 @@ export class InputBoxWithFloatingLabel {
       .select(div)
       .append("div")
       .attr("id", `div-for-${this.elementID}`)
-      .attr("class", "form-floating");
+      .attr("class", "form-floating")
+      .style("margin", "0.25rem");
     let input = item
       .append("input")
       .attr("class", "form-control")
@@ -76,6 +77,12 @@ export class InputBoxWithFloatingLabel {
 
   activate(): this {
     this.renderedElement.select("input").attr("disabled", null);
+    return this;
+  }
+
+  updateValue(val: number): this {
+    this.renderedElement.select("input").property("value", val);
+    // need to consider whether to trigger/dispatch input `change` event again
     return this;
   }
 }

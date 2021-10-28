@@ -2,16 +2,15 @@ package main
 
 import (
 	"flag"
-	"fmt"
 	"log"
 	"net/http"
-	"strconv"
 	"strings"
 
 	"github.com/gorilla/websocket"
 )
 
 var mesh MeshInfo
+var redisReader RedisTracerReader
 
 var addr = flag.String("addr", "localhost:8080", "http service address")
 
@@ -65,17 +64,9 @@ func handle(w http.ResponseWriter, r *http.Request) {
 		case "pong":
 			continue // heartbeat package
 		case "range":
-			var from, to int64
-			if from, err = strconv.ParseInt(msg[1], 10, 64); err != nil {
-				panic(err)
-			}
-			if to, err = strconv.ParseInt(msg[2], 10, 64); err != nil {
-				panic(err)
-			}
-			resp = mesh.RandomEdges()
-			// WriteStringToFile(JSONPrettyPrint([]byte(resp)), "random.json")
-			fmt.Printf("%d,%d\n", from, to)
-			//resp = instRange(from, to)
+			from := ParseInt64Decimal(msg[1])
+			to := ParseInt64Decimal(msg[2])
+			resp = mesh.InstRange(from, to)
 		case "init":
 			resp = mesh.InstInitiate()
 		default:
@@ -90,12 +81,9 @@ func handle(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-	// connectDB()
-	// mesh.InitMesh()
-	// WriteStringToFile(JSONPrettyPrint([]byte(mesh.InstNodes())), "random.json")
-	// queryEachChannel("GPU1.GPU1_SW_0_2_0_Port[0-4]-GPU1_SW_0_3_0_Port[0-4]", 0.000003000, 0.000014500)
-	// return
 	mesh.InitMesh()
+	redisReader.Init()
+
 	flag.Parse()
 	log.SetFlags(0)
 	http.HandleFunc("/echo", echo)

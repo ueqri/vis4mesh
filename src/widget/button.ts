@@ -36,18 +36,18 @@ export class RadioButtonGroup {
       .attr("class", "btn-group")
       .attr("role", "group")
       .attr("aria-label", "Basic radio toggle button group")
-      .style("margin-top", "1em");
+      .style("margin", "0.25em");
     this.label.forEach((v, idx) => {
       let id = `div-for-${this.elementID}-btnradio${idx}`;
       let input = group
         .append("input")
         .attr("type", "radio")
         .attr("class", "btn-check")
-        .attr("name", "btnradio")
+        .attr("name", `${this.elementID}-btnradio`)
         .attr("id", id)
         .attr("autocomplete", "off");
       if (this.withDefault && this.defaultValue == v) {
-        input.append("checked");
+        input.property("checked", true);
       }
       group
         .append("label")
@@ -85,5 +85,16 @@ export class RadioButtonGroup {
 
   element(): HTMLElement {
     return this.renderedElement.node() as HTMLElement;
+  }
+
+  switch(target: string): this {
+    this.label.some((v: string, idx: number) => {
+      if (v === target) {
+        let inputID = `div-for-${this.elementID}-btnradio${idx}`;
+        this.renderedElement.select(`#${inputID}`).property("checked", true);
+        return true;
+      }
+    });
+    return this;
   }
 }

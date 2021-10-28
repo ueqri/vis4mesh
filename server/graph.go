@@ -1,29 +1,22 @@
 package main
 
 import (
-	"bufio"
-	"bytes"
 	"encoding/json"
 	"fmt"
-	"log"
 	"math/rand"
-	"os"
 	"strconv"
 	"time"
 )
 
 const (
-	col       int     = 8
-	row       int     = 8
-	totalTime float64 = 0.000010543
-	slice     float64 = 0.000001000
+	col   int     = 8
+	row   int     = 8
+	slice float64 = 0.000001000
 )
-
-var maxCount int64
 
 func FormatChannelName(e *EdgeInfo) string {
 	return fmt.Sprintf(
-		"GPU1.GPU1_SW_%d_%d_0_Port[0-4]-GPU1_SW_%d_%d_0_Port[0-4]",
+		"GPU1.SW_%d_%d_0->GPU1.SW_%d_%d_0",
 		e.SourceNode.X,
 		e.SourceNode.Y,
 		e.TargetNode.X,
@@ -39,14 +32,14 @@ type NodeInfo struct {
 }
 
 type EdgeInfo struct {
-	SourceNode *NodeInfo `json:"-"`
-	TargetNode *NodeInfo `json:"-"`
-	ValueList  []int64   `json:"-"`
-	LinkName   string    `json:"-"`
-	Source     string    `json:"source"`
-	Target     string    `json:"target"`
-	Value      int64     `json:"value"`
-	Details    string    `json:"details"`
+	SourceNode  *NodeInfo       `json:"-"`
+	TargetNode  *NodeInfo       `json:"-"`
+	CountRecord map[int64]int64 `json:"-"`
+	LinkName    string          `json:"-"`
+	Source      string          `json:"source"`
+	Target      string          `json:"target"`
+	Value       int64           `json:"value"`
+	Details     string          `json:"details"`
 }
 
 type MeshInfo struct {
@@ -79,17 +72,19 @@ func (m *MeshInfo) InitEdgePool() {
 			cur := i*col + j
 			north := cur - col
 			m.Edges = append(m.Edges, EdgeInfo{
-				SourceNode: &m.Nodes[north],
-				TargetNode: &m.Nodes[cur],
-				Source:     strconv.Itoa(north),
-				Target:     strconv.Itoa(cur),
+				SourceNode:  &m.Nodes[north],
+				TargetNode:  &m.Nodes[cur],
+				Source:      strconv.Itoa(north),
+				Target:      strconv.Itoa(cur),
+				CountRecord: make(map[int64]int64),
 			})
 			// reversed link
 			m.Edges = append(m.Edges, EdgeInfo{
-				SourceNode: &m.Nodes[cur],
-				TargetNode: &m.Nodes[north],
-				Source:     strconv.Itoa(cur),
-				Target:     strconv.Itoa(north),
+				SourceNode:  &m.Nodes[cur],
+				TargetNode:  &m.Nodes[north],
+				Source:      strconv.Itoa(cur),
+				Target:      strconv.Itoa(north),
+				CountRecord: make(map[int64]int64),
 			})
 		}
 	}
@@ -99,45 +94,26 @@ func (m *MeshInfo) InitEdgePool() {
 			cur := i*col + j
 			left := cur - 1
 			m.Edges = append(m.Edges, EdgeInfo{
-				SourceNode: &m.Nodes[left],
-				TargetNode: &m.Nodes[cur],
-				Source:     strconv.Itoa(left),
-				Target:     strconv.Itoa(cur),
+				SourceNode:  &m.Nodes[left],
+				TargetNode:  &m.Nodes[cur],
+				Source:      strconv.Itoa(left),
+				Target:      strconv.Itoa(cur),
+				CountRecord: make(map[int64]int64),
 			})
 			// reversed link
 			m.Edges = append(m.Edges, EdgeInfo{
-				SourceNode: &m.Nodes[cur],
-				TargetNode: &m.Nodes[left],
-				Source:     strconv.Itoa(cur),
-				Target:     strconv.Itoa(left),
+				SourceNode:  &m.Nodes[cur],
+				TargetNode:  &m.Nodes[left],
+				Source:      strconv.Itoa(cur),
+				Target:      strconv.Itoa(left),
+				CountRecord: make(map[int64]int64),
 			})
 		}
 	}
 }
 
-func JSONPrettyPrint(in []byte) string {
-	var out bytes.Buffer
-	err := json.Indent(&out, []byte(in), "", "\t")
-	if err != nil {
-		panic(err)
-	}
-	return out.String()
-}
-
-func WriteStringToFile(data, file string) {
-	f, err := os.Create(file)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	writer := bufio.NewWriter(f)
-	defer f.Close()
-
-	fmt.Fprintln(writer, data)
-	writer.Flush()
-}
-
 func (m *MeshInfo) RandomEdges() []byte {
+	rand.Seed(time.Now().Unix())
 	for i := range m.Edges {
 		m.Edges[i].UpdateValue((int64)(rand.Intn(10)))
 		m.Edges[i].Details = strconv.Itoa(rand.Intn(50))
@@ -152,17 +128,6 @@ func (m *MeshInfo) RandomEdges() []byte {
 func (m *MeshInfo) InitMesh() {
 	m.InitNodes()
 	m.InitEdgePool()
-	rand.Seed(time.Now().Unix())
-	// for i := range m.Edges {
-	// 	go func(e *EdgeInfo) {
-	// 		var t float64 = 0.000000000
-	// 		for t < totalTime {
-	// 			count := queryEachChannel(FormatChannelName(e), t, t+slice)
-	// 			e.ValueList = append(e.ValueList, count)
-	// 			t += slice
-	// 		}
-	// 	}(&m.Edges[i])
-	// }
 }
 
 func (m *MeshInfo) InstInitiate() []byte {
@@ -181,12 +146,69 @@ func (m *MeshInfo) InstEdges() []byte {
 	return output
 }
 
-func instRange(from, to int64) string {
-	// SQLCompute()
-	return ""
+func (m *MeshInfo) CleanEdgeValueInfo() {
+	for i := range m.Edges {
+		e := &m.Edges[i]
+		e.Value = 0
+	}
 }
 
-func instProgress() string {
-	return ""
-	// return fmt.Sprintf("%d %", processed/totalTime)
+// query the counts of all channels across the mesh during [time, time + 1)
+func (m *MeshInfo) QueryTimeSliceAndAppend(time int64) {
+	if _, ok := m.Edges[0].CountRecord[time]; ok {
+		// if the time slice is queried before
+		for i := range m.Edges {
+			e := &m.Edges[i]
+			e.Value += e.CountRecord[time]
+		}
+	} else {
+		for i := range m.Edges {
+			e := &m.Edges[i]
+			count := redisReader.Query(FormatChannelName(e), time, time+1)
+			// if count != 0 {
+			// 	fmt.Printf("%d: %d@%s\n", count, time, FormatChannelName(e))
+			// }
+			e.CountRecord[time] = count
+			e.Value += count // store counts in `Value` temporally
+		}
+	}
+}
+
+func (m *MeshInfo) NormalizeAndGenerateEdgeInfo() {
+	var max int64 = 0
+	for i := range m.Edges {
+		e := &m.Edges[i]
+		val := e.Value
+		e.Details = fmt.Sprintf("exact count: %d", val)
+		if max < val {
+			max = val
+		}
+	}
+
+	for i := range m.Edges {
+		e := &m.Edges[i]
+		if max != 0 {
+			e.Value = e.Value * 9 / max // normalize
+		} // else `Value` must be zero
+	}
+}
+
+// Response for range [from, to) instruction
+func (m *MeshInfo) InstRange(from, to int64) []byte {
+	m.CleanEdgeValueInfo()
+	for time := from; time < to; time++ {
+		m.QueryTimeSliceAndAppend(time)
+	}
+	m.NormalizeAndGenerateEdgeInfo()
+
+	output, err := json.Marshal(m.Edges)
+	if err != nil {
+		panic(err)
+	}
+	return output
+}
+
+func (m *MeshInfo) InstProgress() []byte {
+	// TODO
+	return []byte("")
 }
