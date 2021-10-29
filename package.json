@@ -9,7 +9,7 @@
   "scripts": {
     "check": "tsc --noEmit",
     "dev": "parcel public/index.html",
-    "build": "parcel build public/index.html"
+    "build": "parcel build public/index.html --public-url ./"
   },
   "keywords": [
     "akita",
