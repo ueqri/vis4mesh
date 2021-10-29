@@ -1,6 +1,5 @@
 import * as d3 from "d3";
-import { transform } from "typescript";
-import { NodeData, EdgeData, MetaData } from "../data";
+import { NodeData, EdgeData } from "../data";
 
 export type LinkSelection = d3.Selection<
   d3.BaseType,
