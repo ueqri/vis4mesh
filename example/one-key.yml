@@ -28,7 +28,7 @@ services:
     restart: always
 
   web:
-    image: node:alpine
+    image: node:slim
     container_name: vis4mesh-frontend
     links:
       - server
@@ -37,7 +37,7 @@ services:
       - ../public:/vis4mesh/public
       - ../package.json:/vis4mesh/package.json
       - ../tsconfig.json:/vis4mesh/tsconfig.json
-    entrypoint: sh -c "apk add --no-cache python3 py3-pip && cd /vis4mesh && npm install && npm run dev -- --host 0.0.0.0"
+    entrypoint: sh -c "apt-get update && apt-get install python3 -y && cd /vis4mesh && npm install && npm run dev -- --host 0.0.0.0"
     ports:
       - "1234:1234"
     restart: always

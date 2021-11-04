@@ -84,7 +84,7 @@ We recommend using detached mode, i.e., build & run the web frontend and server 
 
 In this mode, we use npm and NodeJS in the host to build TypeScript program, and trigger docker to maintain server backend and Redis DB. (PS: frontend build is **not need** when using online site)
 
-### Prerequisites
+#### Prerequisites
 
 - **frontend**: npm(v8.0+), NodeJS(v16.0+)
 - **backend**: docker(v20.0+), docker-compose(v2.0+)
@@ -95,9 +95,10 @@ cd vis4mesh
 # if you use online site, skip the `npm` commands
 npm install
 npm run dev # run parcel with HTTP server in localhost:1234
-docker-compose up -d
-# to close the container, use `docker-compose down`
+docker-compose up # add `-d` to run in background
 ```
+
+To close the container, use <kbd>Ctrl</kbd> + <kbd>C</kbd> to stop in interactive mode, then `docker-compose down`.
 
 ### One-key Mode
 
@@ -106,9 +107,12 @@ Use one-key docker-compose file to build all.
 ```bash
 git clone git@github.com:ueqri/vis4mesh.git
 cd vis4mesh
-docker-compose -f example/one-key.yml up -d
-# docker-compose -f example/one-key.yml down
+docker-compose -f example/one-key.yml up # add `-d` to run in background
 ```
+
+Like the previous, `docker-compose -f example/one-key.yml down` to close.
+
+### After Setup
 
 If it's all set, just open your favorable browser to view http://localhost:1234/ and see the visualization.
 
