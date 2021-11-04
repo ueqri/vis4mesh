@@ -135,7 +135,7 @@ export class Sidebar {
       .name("Step config (rate of time slices per tick)")
       .renderTo(div)
       .element();
-    var inputStep = new InputBoxWithFloatingLabel("step-config")
+    var inputStep = new InputBoxWithFloatingLabel("input-step-config")
       .name("Time slices per tick")
       .default(1)
       .renderTo(divStep)

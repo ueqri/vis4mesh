@@ -58,17 +58,19 @@ class WebSocketClient {
     };
   }
 
-  send(data: string): void {
+  send(data: string, callback: (data: any) => any): void {
     if (this.pending) {
-      setTimeout(() => this.send(data), 500);
+      // using atomic variables may be better
+      setTimeout(() => this.send(data, callback), 500);
     } else {
       this.pending = true;
+      this.handleMsg = callback;
       this.ws.send(data);
     }
   }
 
   heartBeat = () => {
-    this.ws.send("pong");
+    this.ws.send("pong"); // no response would come from server
     setTimeout(() => this.heartBeat(), 5000);
   };
 
@@ -114,8 +116,7 @@ export class DataPort {
 
   range(start: number, end: number, callback: (data: any) => any) {
     if (!this.conn.isClosed()) {
-      this.conn.handleMsg = callback;
-      this.conn.send(`range ${start} ${end}`);
+      this.conn.send(`range ${start} ${end}`, callback);
     } else {
       console.error("DataPort cannot send `range`, connection not works.");
     }
@@ -123,8 +124,7 @@ export class DataPort {
 
   init(callback: (data: any) => any) {
     if (!this.conn.isClosed()) {
-      this.conn.handleMsg = callback;
-      this.conn.send(`init`);
+      this.conn.send(`init`, callback);
     } else {
       console.error("DataPort cannot send `nodes`, connection not works.");
     }

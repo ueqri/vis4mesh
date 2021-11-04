@@ -7,7 +7,7 @@ export class Graph {
   status: StateController;
   targetDOM: Document;
 
-  constructor(targetDOM: Document, range: RangeRecorder) {
+  constructor(targetDOM: Document) {
     this.targetDOM = targetDOM;
 
     this.port = new DataPort("ws://localhost:8080/");

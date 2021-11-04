@@ -1,0 +1,43 @@
+version: "3"
+services:
+  redis:
+    image: redis:alpine
+    container_name: redis-db
+    command: redis-server --requirepass "akitavis"
+    volumes:
+      - ./demo.rdb:/data/dump.rdb
+
+  server:
+    image: golang:alpine
+    container_name: vis4mesh-backend
+    links:
+      - redis
+    environment:
+      - AKITA_TRACE_USERNAME=akita
+      - AKITA_TRACE_PASSWORD=akitavis
+      - AKITA_TRACE_IP=redis
+      - AKITA_TRACE_PORT=6379
+    depends_on:
+      - redis
+    volumes:
+      - ..:/vis4mesh
+      - ../docker-entrypoint.sh:/entrypoint.sh
+    entrypoint: /entrypoint.sh
+    ports:
+      - "8080:8080"
+    restart: always
+
+  web:
+    image: node:alpine
+    container_name: vis4mesh-frontend
+    links:
+      - server
+    volumes: # don't volume the node caches from host
+      - ../src:/vis4mesh/src
+      - ../public:/vis4mesh/public
+      - ../package.json:/vis4mesh/package.json
+      - ../tsconfig.json:/vis4mesh/tsconfig.json
+    entrypoint: sh -c "apk add --no-cache python3 py3-pip && cd /vis4mesh && npm install && npm run dev -- --host 0.0.0.0"
+    ports:
+      - "1234:1234"
+    restart: always
