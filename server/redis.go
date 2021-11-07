@@ -7,7 +7,27 @@ import (
 	"strconv"
 
 	"github.com/go-redis/redis/v8"
+	"gitlab.com/akita/util/v2/tracing"
 )
+
+var queriedMsgTypes = []string{
+	"*cache.FlushReq",
+	"*cache.FlushRsp",
+	"*mem.DataReadyRsp",
+	"*mem.ReadReq",
+	"*mem.WriteDoneRsp",
+	"*mem.WriteReq",
+	"*protocol.FlushReq",
+	"*protocol.LaunchKernelReq",
+	"*protocol.MapWGReq",
+	"*protocol.MemCopyD2HReq",
+	"*protocol.MemCopyH2DReq",
+	"*protocol.WGCompletionMsg",
+	"*vm.TranslationReq",
+	"*vm.TranslationRsp",
+}
+
+var recordEncoder *tracing.NetworkTracingRecordEncoder
 
 type RedisTracerReader struct {
 	password    string
@@ -21,6 +41,8 @@ type RedisTracerReader struct {
 func (t *RedisTracerReader) Init() {
 	t.getCredentials()
 	t.connect()
+	recordEncoder = tracing.NewNetworkTracingRecordEncoder(queriedMsgTypes).
+		OnlyOneGPU().Only2DMesh()
 }
 
 func (t *RedisTracerReader) getCredentials() {
@@ -60,24 +82,33 @@ func (t *RedisTracerReader) connect() {
 	t.ctx = context.Background()
 }
 
-func (t *RedisTracerReader) Query(location string, fromSlice, toSlice int64) int64 {
-	var count, value int64
-	for time := fromSlice; time < toSlice; time++ {
-		key := fmt.Sprintf("%d@%s", time, location)
+func (t *RedisTracerReader) queryKey(key string) int64 {
+	valueInString, err := t.rdb.Get(t.ctx, key).Result()
+	if err == redis.Nil {
+		valueInString = "0"
+	} else if err != nil {
+		panic(err)
+	}
+	value, err := strconv.ParseInt(valueInString, 10, 64)
+	if err != nil {
+		panic(err)
+	}
+	return value
+}
 
-		valueInString, err := t.rdb.Get(t.ctx, key).Result()
-		if err == redis.Nil {
-			valueInString = "0"
-		} else if err != nil {
-			panic(err)
+func (t *RedisTracerReader) Query(
+	fromTile [3]int, toTile [3]int,
+	fromSlice, toSlice int64,
+) map[string]int64 {
+	count := make(map[string]int64)
+
+	for _, msgType := range queriedMsgTypes {
+		count[msgType] = 0
+		for time := fromSlice; time < toSlice; time++ {
+			count[msgType] += t.queryKey(
+				recordEncoder.Marshal(time, 1, fromTile, toTile, msgType),
+			)
 		}
-
-		value, err = strconv.ParseInt(valueInString, 10, 64)
-		if err != nil {
-			panic(err)
-		}
-
-		count += value
 	}
 
 	return count

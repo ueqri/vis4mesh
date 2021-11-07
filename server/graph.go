@@ -14,16 +14,6 @@ const (
 	slice float64 = 0.000001000
 )
 
-func FormatChannelName(e *EdgeInfo) string {
-	return fmt.Sprintf(
-		"GPU1.SW_%d_%d_0->GPU1.SW_%d_%d_0",
-		e.SourceNode.X,
-		e.SourceNode.Y,
-		e.TargetNode.X,
-		e.TargetNode.Y,
-	)
-}
-
 type NodeInfo struct {
 	ID   string `json:"id"`
 	Name string `json:"name"`
@@ -32,14 +22,14 @@ type NodeInfo struct {
 }
 
 type EdgeInfo struct {
-	SourceNode  *NodeInfo       `json:"-"`
-	TargetNode  *NodeInfo       `json:"-"`
-	CountRecord map[int64]int64 `json:"-"`
-	LinkName    string          `json:"-"`
-	Source      string          `json:"source"`
-	Target      string          `json:"target"`
-	Value       int64           `json:"value"`
-	Details     string          `json:"details"`
+	SourceNode  *NodeInfo                    `json:"-"`
+	TargetNode  *NodeInfo                    `json:"-"`
+	CountRecord map[int64](map[string]int64) `json:"-"`
+	LinkName    string                       `json:"-"`
+	Source      string                       `json:"source"`
+	Target      string                       `json:"target"`
+	Value       map[string]int64             `json:"value"`
+	Details     string                       `json:"details"`
 }
 
 type MeshInfo struct {
@@ -47,7 +37,20 @@ type MeshInfo struct {
 	Edges []EdgeInfo `json:"edges"`
 }
 
-func (e *EdgeInfo) UpdateValue(val int64) {
+func StringInt64MapValueAdd(
+	dst map[string]int64,
+	src map[string]int64,
+) map[string]int64 {
+	for k, v := range src {
+		if _, ok := dst[k]; !ok {
+			panic("Source map has a unique key not existing in destination map")
+		}
+		dst[k] += v
+	}
+	return dst
+}
+
+func (e *EdgeInfo) UpdateValue(val map[string]int64) {
 	e.Value = val
 }
 
@@ -76,7 +79,8 @@ func (m *MeshInfo) InitEdgePool() {
 				TargetNode:  &m.Nodes[cur],
 				Source:      strconv.Itoa(north),
 				Target:      strconv.Itoa(cur),
-				CountRecord: make(map[int64]int64),
+				CountRecord: make(map[int64](map[string]int64)),
+				Value:       make(map[string]int64),
 			})
 			// reversed link
 			m.Edges = append(m.Edges, EdgeInfo{
@@ -84,7 +88,8 @@ func (m *MeshInfo) InitEdgePool() {
 				TargetNode:  &m.Nodes[north],
 				Source:      strconv.Itoa(cur),
 				Target:      strconv.Itoa(north),
-				CountRecord: make(map[int64]int64),
+				CountRecord: make(map[int64](map[string]int64)),
+				Value:       make(map[string]int64),
 			})
 		}
 	}
@@ -98,7 +103,8 @@ func (m *MeshInfo) InitEdgePool() {
 				TargetNode:  &m.Nodes[cur],
 				Source:      strconv.Itoa(left),
 				Target:      strconv.Itoa(cur),
-				CountRecord: make(map[int64]int64),
+				CountRecord: make(map[int64](map[string]int64)),
+				Value:       make(map[string]int64),
 			})
 			// reversed link
 			m.Edges = append(m.Edges, EdgeInfo{
@@ -106,16 +112,25 @@ func (m *MeshInfo) InitEdgePool() {
 				TargetNode:  &m.Nodes[left],
 				Source:      strconv.Itoa(cur),
 				Target:      strconv.Itoa(left),
-				CountRecord: make(map[int64]int64),
+				CountRecord: make(map[int64](map[string]int64)),
+				Value:       make(map[string]int64),
 			})
 		}
 	}
 }
 
+func randomValueMap() map[string]int64 {
+	val := make(map[string]int64)
+	for _, msgType := range queriedMsgTypes {
+		val[msgType] = (int64)(rand.Intn(10))
+	}
+	return val
+}
+
 func (m *MeshInfo) RandomEdges() []byte {
 	rand.Seed(time.Now().Unix())
 	for i := range m.Edges {
-		m.Edges[i].UpdateValue((int64)(rand.Intn(10)))
+		m.Edges[i].UpdateValue(randomValueMap())
 		m.Edges[i].Details = strconv.Itoa(rand.Intn(50))
 	}
 	output, err := json.Marshal(m.Edges)
@@ -149,7 +164,10 @@ func (m *MeshInfo) InstEdges() []byte {
 func (m *MeshInfo) CleanEdgeValueInfo() {
 	for i := range m.Edges {
 		e := &m.Edges[i]
-		e.Value = 0
+		e.Value = make(map[string]int64)
+		for _, msgType := range queriedMsgTypes {
+			e.Value[msgType] = 0
+		}
 	}
 }
 
@@ -159,39 +177,40 @@ func (m *MeshInfo) QueryTimeSliceAndAppend(time int64) {
 		// if the time slice is queried before
 		for i := range m.Edges {
 			e := &m.Edges[i]
-			e.Value += e.CountRecord[time]
+			e.Value = StringInt64MapValueAdd(e.Value, e.CountRecord[time])
 		}
 	} else {
 		for i := range m.Edges {
 			e := &m.Edges[i]
-			count := redisReader.Query(FormatChannelName(e), time, time+1)
-			// if count != 0 {
-			// 	fmt.Printf("%d: %d@%s\n", count, time, FormatChannelName(e))
-			// }
+			from := [3]int{e.SourceNode.X, e.SourceNode.Y, 0}
+			to := [3]int{e.TargetNode.X, e.TargetNode.Y, 0}
+			count := redisReader.Query(from, to, time, time+1)
 			e.CountRecord[time] = count
-			e.Value += count // store counts in `Value` temporally
+			// store counts in `Value` temporally
+			e.Value = StringInt64MapValueAdd(e.Value, e.CountRecord[time])
 		}
 	}
 }
 
-func (m *MeshInfo) NormalizeAndGenerateEdgeInfo() {
-	var max int64 = 0
-	for i := range m.Edges {
-		e := &m.Edges[i]
-		val := e.Value
-		e.Details = fmt.Sprintf("exact count: %d", val)
-		if max < val {
-			max = val
-		}
-	}
+// Deprecated: Normalize in frontend side
+// func (m *MeshInfo) NormalizeAndGenerateEdgeInfo() {
+// 	var max int64 = 0
+// 	for i := range m.Edges {
+// 		e := &m.Edges[i]
+// 		val := e.Value
+// 		e.Details = fmt.Sprintf("exact count: %d", val)
+// 		if max < val {
+// 			max = val
+// 		}
+// 	}
 
-	for i := range m.Edges {
-		e := &m.Edges[i]
-		if max != 0 {
-			e.Value = e.Value * 9 / max // normalize
-		} // else `Value` must be zero
-	}
-}
+// 	for i := range m.Edges {
+// 		e := &m.Edges[i]
+// 		if max != 0 {
+// 			e.Value = e.Value * 9 / max // normalize
+// 		} // else `Value` must be zero
+// 	}
+// }
 
 // Response for range [from, to) instruction
 func (m *MeshInfo) InstRange(from, to int64) []byte {
@@ -199,7 +218,7 @@ func (m *MeshInfo) InstRange(from, to int64) []byte {
 	for time := from; time < to; time++ {
 		m.QueryTimeSliceAndAppend(time)
 	}
-	m.NormalizeAndGenerateEdgeInfo()
+	// m.NormalizeAndGenerateEdgeInfo()
 
 	output, err := json.Marshal(m.Edges)
 	if err != nil {
