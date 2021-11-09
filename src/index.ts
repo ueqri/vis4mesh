@@ -1,21 +1,18 @@
 import { Graph } from "./graph";
 import { Sidebar } from "./sidebar";
-import { RangeRecorder } from "./data";
 
-var iframe = document.getElementById("iframe-graph") as HTMLIFrameElement;
-var graphDOM = iframe.contentDocument || iframe.contentWindow!.document;
+var divGraph = document.getElementById("div-graph") as HTMLElement;
 
 //
 // Graph
 //
-var range = new RangeRecorder();
-var g = new Graph(graphDOM, range);
+var g = new Graph(divGraph);
 
 //
 // Sidebar
 //
 var bar = new Sidebar(g);
-bar.renderLegend();
+bar.renderLegendFocus();
 bar.renderShapeConfig();
 bar.renderGeneralConfig();
 

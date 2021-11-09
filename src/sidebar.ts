@@ -1,5 +1,6 @@
 import { Grid } from "./layout/grid";
 import { Legend, GenerateColorByValue } from "./plugin/legend";
+import { MsgTypeFocus } from "./plugin/msgtypefocus";
 import { SingleSlider } from "./widget/slider";
 import { InputBoxWithFloatingLabel } from "./widget/input";
 import { GroupRenderAsColumns } from "./widget/widget";
@@ -10,6 +11,7 @@ import { LabelBox } from "./widget/labelbox";
 
 export class Sidebar {
   protected legend!: Legend;
+  protected msgTypeFocus!: MsgTypeFocus;
   protected sliderNodeSize!: SingleSlider;
   protected sliderEdgeWidth!: SingleSlider;
   protected sliderMapStretchRatio!: SingleSlider;
@@ -17,16 +19,16 @@ export class Sidebar {
   protected timeTo!: InputBoxWithFloatingLabel;
   protected stateToggle!: RadioButtonGroup;
 
-  protected divLegend: HTMLElement;
+  protected divLegendFocus: HTMLElement;
   protected divShapeConfig: HTMLElement;
   protected divGeneralConfig: HTMLElement;
 
-  protected graphDOM: Document;
+  protected divGraph: HTMLElement;
   protected bindInstance: Grid;
   protected stateControl: StateController;
 
   constructor(configFor: Graph) {
-    this.divLegend = document.getElementById(
+    this.divLegendFocus = document.getElementById(
       "div-sidebar-legend"
     ) as HTMLElement;
 
@@ -38,14 +40,13 @@ export class Sidebar {
       "div-sidebar-general"
     ) as HTMLElement;
 
-    this.graphDOM = configFor.targetDOM;
+    this.divGraph = configFor.renderToDiv;
     this.bindInstance = configFor.graph;
     this.stateControl = configFor.status;
   }
 
-  renderLegend() {
+  renderLegendFocus() {
     this.legend = new Legend();
-    this.legend.graphDOM = this.graphDOM;
     var legendTypes = [
       "Extremely-high Crowded",
       "High Crowded",
@@ -65,7 +66,9 @@ export class Sidebar {
         selectValue: 9 - idx,
       });
     });
-    this.legend.renderCheckboxTo(this.divLegend, this.bindInstance);
+    this.legend.renderCheckboxTo(this.divLegendFocus, this.bindInstance);
+
+    this.msgTypeFocus = new MsgTypeFocus();
   }
 
   renderShapeConfig() {

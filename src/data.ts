@@ -1,4 +1,5 @@
 import { Grid } from "./layout/grid";
+import { DataNormalize } from "./data/normalize";
 
 export interface NodeData {
   id: string;
@@ -10,8 +11,9 @@ export interface NodeData {
 export interface EdgeData {
   source: string;
   target: string;
-  value: number;
+  value: Object;
   details: string;
+  dynamicWeight?: number;
 }
 
 class WebSocketClient {
@@ -34,7 +36,7 @@ class WebSocketClient {
 
     this.ws.onmessage = function (e) {
       console.log(`WebSocket received. `);
-      //console.log(e.data);
+      // console.log(e.data);
       var callback = currentHandler();
       callback(e.data);
       notifyFree();
@@ -226,6 +228,9 @@ export class StateController {
   protected port: DataPort;
   protected bindInstance: Grid;
 
+  protected msgTypeMap: Map<string, boolean>;
+  protected msgTypes?: string[];
+
   constructor(updateFrom: DataPort, bindTo: Grid) {
     this.mode = Mode.SliceTick;
     this.speed = 1; // 1 time tick per second, by default
@@ -241,6 +246,8 @@ export class StateController {
 
     this.port = updateFrom;
     this.bindInstance = bindTo;
+
+    this.msgTypeMap = new Map<string, boolean>();
   }
 
   action() {
@@ -248,7 +255,12 @@ export class StateController {
     if (this.mode === Mode.SliceTick) {
       this.ticker.tickFunc = () => {
         this.port.range(this.startTime, this.endTime, (d) => {
-          this.bindInstance.edgeData(JSON.parse(d));
+          var edges: EdgeData[] = JSON.parse(d);
+          edges.forEach((e) => {
+            e.dynamicWeight = this.computeDynamicWeight(e.value);
+          });
+          DataNormalize(edges);
+          this.bindInstance.edgeData(edges);
         });
         this.bindInstance.refresh();
         this.callbacks();
@@ -259,7 +271,13 @@ export class StateController {
     } else if (this.mode === Mode.RangeTick) {
       this.ticker.tickFunc = () => {
         this.port.range(this.startTime, this.endTime, (d) => {
-          this.bindInstance.edgeData(JSON.parse(d));
+          // TODO: concat these processes as middleware
+          var edges: EdgeData[] = JSON.parse(d);
+          edges.forEach((e) => {
+            e.dynamicWeight = this.computeDynamicWeight(e.value);
+          });
+          DataNormalize(edges);
+          this.bindInstance.edgeData(edges);
         });
         this.bindInstance.refresh();
         this.callbacks();
@@ -269,7 +287,12 @@ export class StateController {
     } else if (this.mode === Mode.RangeSlider) {
       // static display, no ticking
       this.port.range(this.startTime, this.endTime, (d) => {
-        this.bindInstance.edgeData(JSON.parse(d));
+        var edges: EdgeData[] = JSON.parse(d);
+        edges.forEach((e) => {
+          e.dynamicWeight = this.computeDynamicWeight(e.value);
+        });
+        DataNormalize(edges);
+        this.bindInstance.edgeData(edges);
       });
       this.bindInstance.refresh();
       this.callbacks();
@@ -337,6 +360,32 @@ export class StateController {
     return new RangeRecorder().update(this.startTime, this.endTime);
   }
 
+  initAllMsgTypes(msgTypes: string[]): this {
+    this.msgTypeMap.clear();
+    this.msgTypes = msgTypes; // TODO: remove this temporary variable
+    msgTypes.forEach((v) => {
+      this.msgTypeMap.set(v, true);
+    });
+    return this;
+  }
+
+  focusOnMsgType(msgType: string): this {
+    this.msgTypeMap.set(msgType, true);
+    return this;
+  }
+
+  hideMsgType(msgType: string): this {
+    this.msgTypeMap.set(msgType, false);
+    return this;
+  }
+
+  // getMsgTypes(): string[] {
+  //   if (this.msgTypes === undefined) {
+  //     console.error("MsgTypes is undefined in StateController");
+  //   }
+  //   return this.msgTypes!;
+  // }
+
   protected setPause(): this {
     this.ticker.pause();
     this.isTick = false;
@@ -356,4 +405,23 @@ export class StateController {
       func(this.startTime, this.endTime)
     );
   }
+
+  // TODO: abstract data processing middleware
+  protected computeDynamicWeight(valuesWithMsgType: Object): number {
+    let weight: number = 0;
+    Object.keys(valuesWithMsgType).forEach((v) => {
+      let val = this.msgTypeMap.get(v);
+      if (val === undefined) {
+        console.error(
+          `undefined message types ${v} found in computeDynamicWeight`
+        );
+      }
+      if (val === true) {
+        weight += Number(valuesWithMsgType[v]);
+      }
+    });
+    return weight;
+  }
 }
+
+// TODO: separate this source into files in data directory

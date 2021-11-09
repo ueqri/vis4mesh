@@ -14,7 +14,7 @@ interface Location {
 }
 
 export class Grid {
-  protected targetDOM: Document;
+  protected renderToDiv: HTMLElement;
   protected nodeSize: number;
   protected edgeWidth: number;
   protected dualLinkSpace: number;
@@ -28,8 +28,8 @@ export class Grid {
   protected xSize: number;
   protected ySize: number;
 
-  constructor(targetDOM: Document) {
-    this.targetDOM = targetDOM;
+  constructor(renderToDiv: HTMLElement) {
+    this.renderToDiv = renderToDiv;
     this.nodeSize = 40;
     this.edgeWidth = 6.2;
     this.dualLinkSpace = this.edgeWidth + 0.4;
@@ -102,16 +102,15 @@ export class Grid {
 
   // Rebuild: Remove all elements, and then render new graph.
   rebuild() {
-    d3.select(this.targetDOM).select("body").selectAll("svg").remove();
-    d3.select(this.targetDOM).select("body").selectAll("div").remove();
+    d3.select(this.renderToDiv).selectAll("svg").remove();
+    d3.select(this.renderToDiv).selectAll("div").remove();
     this.render();
   }
 
   // Refresh: refresh existed attributes in the old graph.
   refresh() {
     var g = d3
-      .select(this.targetDOM)
-      .select("body")
+      .select(this.renderToDiv)
       .select("svg")
       .select("g")
       .selectAll("line")
@@ -119,7 +118,7 @@ export class Grid {
 
     // Refresh color
     g.attr("stroke", function (d) {
-      return d3.interpolateRdYlBu((9 - d.value) / 9);
+      return d3.interpolateRdYlBu((9 - d.dynamicWeight!) / 9);
     });
 
     this.refreshCallbacks.forEach((callback) => {
@@ -156,11 +155,11 @@ export class Grid {
     const svgWidth = this.xSize * (nodeSize + edgeWidth);
     const svgHeight = this.ySize * (nodeSize + edgeWidth);
 
-    var body = d3.select(this.targetDOM).select("body");
-    var nodeTooltip = body.append("div").attr("class", "tooltip");
-    var edgeTooltip = body.append("div").attr("class", "tooltip");
+    var div = d3.select(this.renderToDiv);
+    var nodeTooltip = div.append("div").attr("class", "tooltip");
+    var edgeTooltip = div.append("div").attr("class", "tooltip");
 
-    var svg = body
+    var svg = div
       .append("svg")
       .attr("viewBox", `0 0 ${svgWidth}, ${svgHeight}`);
     var g = svg.append("g");
@@ -257,10 +256,10 @@ export class Grid {
         }
       })
       .attr("stroke-width", function (d) {
-        return edgeStrokeWidth(d.value);
+        return edgeStrokeWidth(d.dynamicWeight!);
       })
       .attr("stroke", function (d) {
-        return d3.interpolateRdYlBu((9 - d.value) / 9);
+        return d3.interpolateRdYlBu((9 - d.dynamicWeight!) / 9);
       })
       // Mouse over
       .on("mouseover", function (event, d) {
@@ -268,8 +267,9 @@ export class Grid {
         return edgeTooltip
           .style("visibility", "visible")
           .html(
-            `Edge valued ${d.value} , linked ${d.source} -> ${d.target}` +
-              `<br>With details: ${d.details}`
+            `Edge valued ${d.dynamicWeight!} , linked ${d.source} -> ${
+              d.target
+            } <br>With details: ${d.details}`
           )
           .style("opacity", 0.85);
       })
@@ -356,17 +356,5 @@ export class Grid {
       .attr("fill", "#B94629")
       .style("font-size", "20px")
       .style("font-weight", "bold");
-  }
-
-  legend(val: number) {
-    var g = d3.select(this.targetDOM).select("body").select("svg").select("g");
-    g.selectAll("line")
-      .data(this.links)
-      .attr("opacity", (d) => {
-        return d.value == val ? 1 : 0.2;
-      })
-      .attr("stroke-width", (d) => {
-        return d.value == val ? this.edgeWidth * 1.2 : this.edgeWidth;
-      });
   }
 }

@@ -15,7 +15,6 @@ export function GenerateColorByValue(val: number): string {
 export class Legend {
   labels!: Array<LegendLabel>;
   checked!: Array<boolean>;
-  graphDOM!: Document;
   renderedElement: any;
 
   constructor() {
@@ -68,11 +67,10 @@ export class Legend {
       //
       item
         .append("svg")
-        .attr("width", "15")
-        .attr("height", "15")
+        .attr("class", "color-box")
         .append("rect")
-        .attr("width", "15")
-        .attr("height", "15")
+        .attr("width", "1em")
+        .attr("height", "1em")
         .attr("stroke", "linen")
         .attr("stroke-width", "2")
         .attr("fill", GenerateColorByValue(v.selectValue));
@@ -123,7 +121,7 @@ export class Legend {
     bindInstance.addRefreshCallback((g: LinkSelection) => {
       g.attr("opacity", function (d) {
         const edge = d as EdgeData;
-        if (checkedMap[edge.value] == true) {
+        if (checkedMap[edge.dynamicWeight!] == true) {
           return 1;
         } else {
           return 0.02;
