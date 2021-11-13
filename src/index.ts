@@ -1,30 +1,28 @@
-import { Graph } from "./graph";
-import { Sidebar } from "./sidebar";
+import { Controller } from "./controller/controller";
+import { Grid } from "./display/layout/grid";
+import { Display } from "./display/display";
+import { Ticker } from "./controller/module/ticker";
+import { Legend } from "./controller/module/legend";
+import { LinearNormalize } from "./controller/module/normalize";
 
 var divGraph = document.getElementById("div-graph") as HTMLElement;
 
-//
-// Graph
-//
-var g = new Graph(divGraph);
+let c = new Controller("ws://127.0.0.1:8080/", new Display(divGraph, Grid));
 
-//
-// Sidebar
-//
-var bar = new Sidebar(g);
-bar.renderLegendFocus();
-bar.renderShapeConfig();
-bar.renderGeneralConfig();
+let t = new Ticker();
+c.loadModule(t).loadModule(new Legend()).loadModule(new LinearNormalize());
+t.signalChange.get("state")!("still");
 
 //
 // Global Event
 //
+
 var flipCall = [
   function () {
-    bar.toggleRun();
+    t.signalChange.get("state")!("auto");
   },
   function () {
-    bar.togglePause();
+    t.signalChange.get("state")!("pause");
   },
 ];
 var flipIndex: number = 0;
@@ -33,10 +31,7 @@ document.addEventListener("keydown", function (event) {
     flipCall[flipIndex]();
     flipIndex = (flipIndex + 1) % flipCall.length;
   }
-  // if (event.key == "ArrowRight") {
-  //   g.tick.manual();
-  // }
-  // if (event.key == 'ArrowLeft') {
-  //   vis.timePrevious();
-  // }
+  if (event.key == "ArrowRight") {
+    t.signalChange.get("state")!("manual");
+  }
 });

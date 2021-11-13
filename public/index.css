@@ -4,12 +4,14 @@ body {
   display: flex;
 }
 
-.sidebar {
-  width: 25vw;
+svg {
+  overflow: visible;
+  width: 100vw;
+  height: 100vh;
 }
 
-.single-slider-div {
-  margin-bottom: 0.2em;
+.sidebar {
+  width: 25vw;
 }
 
 .graph {
@@ -18,25 +20,36 @@ body {
   display: flex;
 }
 
-.tooltip {
-  position: absolute;
-  z-index: 10;
-  visibility: hidden;
-  background-color: #e89f65;
-  text-align: center;
-  padding: 4px;
-  border-radius: 4px;
-  font-weight: bold;
-  color: #b94629;
-}
-
-svg {
-  overflow: visible;
-  width: 100vw;
-  height: 100vh;
+.single-slider-div {
+  margin-bottom: 0.2em;
 }
 
 .color-box {
   width: 1em;
   height: 1em;
+}
+
+.node-tooltip,
+.edge-tooltip {
+  position: absolute;
+  z-index: 10;
+  visibility: hidden;
+  text-align: left;
+  padding: 2em;
+  border-radius: 1em;
+  font-weight: bold;
+  background-color: gainsboro;
+}
+
+.node-label {
+  text-anchor: middle;
+  fill: #b94629;
+  font-size: 1em;
+  font-weight: bold;
+}
+
+.edge-label {
+  text-anchor: middle;
+  font-size: 0.75em;
+  font-weight: bold;
 }

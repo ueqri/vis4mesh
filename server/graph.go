@@ -1,74 +1,80 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
-	"math/rand"
 	"strconv"
-	"time"
-)
-
-const (
-	col   int     = 8
-	row   int     = 8
-	slice float64 = 0.000001000
 )
 
 type NodeInfo struct {
-	ID   string `json:"id"`
-	Name string `json:"name"`
-	X    int    `json:"xid"`
-	Y    int    `json:"yid"`
+	X      int    `json:"-"`
+	Y      int    `json:"-"`
+	ID     string `json:"id"`
+	Name   string `json:"label,omitempty"`
+	Detail string `json:"detail"`
 }
 
 type EdgeInfo struct {
 	SourceNode  *NodeInfo                    `json:"-"`
 	TargetNode  *NodeInfo                    `json:"-"`
 	CountRecord map[int64](map[string]int64) `json:"-"`
-	LinkName    string                       `json:"-"`
 	Source      string                       `json:"source"`
 	Target      string                       `json:"target"`
 	Value       map[string]int64             `json:"value"`
-	Details     string                       `json:"details"`
+	LinkName    string                       `json:"label,omitempty"`
+	Detail      string                       `json:"detail"`
 }
 
 type MeshInfo struct {
-	Nodes []NodeInfo `json:"nodes"`
-	Edges []EdgeInfo `json:"edges"`
+	Meta  map[string]string `json:"meta"`
+	Nodes []NodeInfo        `json:"nodes"`
+	Edges []EdgeInfo        `json:"edges"`
 }
 
-func StringInt64MapValueAdd(
-	dst map[string]int64,
-	src map[string]int64,
-) map[string]int64 {
-	for k, v := range src {
-		if _, ok := dst[k]; !ok {
-			panic("Source map has a unique key not existing in destination map")
-		}
-		dst[k] += v
+func (e *EdgeInfo) SumValue() (sum int64) {
+	for _, msgType := range queriedMsgTypes {
+		sum += e.Value[msgType]
 	}
-	return dst
+	return
 }
 
 func (e *EdgeInfo) UpdateValue(val map[string]int64) {
 	e.Value = val
 }
 
-func (m *MeshInfo) InitNodes() {
+func (m *MeshInfo) ParseMeta() (col, row int, slice float64) {
+	col, err := strconv.Atoi(m.Meta["width"])
+	if err != nil {
+		panic(err)
+	}
+	row, err = strconv.Atoi(m.Meta["height"])
+	if err != nil {
+		panic(err)
+	}
+	slice, err = strconv.ParseFloat(m.Meta["slice"], 64)
+	if err != nil {
+		panic(err)
+	}
+	return
+}
+
+func (m *MeshInfo) initNodes() {
+	col, row, _ := m.ParseMeta()
 	for i := 0; i < row; i++ {
 		for j := 0; j < col; j++ {
 			nodeIdx := i*col + j
 			m.Nodes = append(m.Nodes, NodeInfo{
-				X:    i,
-				Y:    j,
-				ID:   strconv.Itoa(nodeIdx),
-				Name: fmt.Sprintf("Sw%d", nodeIdx),
+				X:      i,
+				Y:      j,
+				ID:     strconv.Itoa(nodeIdx),
+				Name:   fmt.Sprintf("Sw%d", nodeIdx),
+				Detail: fmt.Sprintf("Sw[%d, %d]", i, j), // TODO: use node type
 			})
 		}
 	}
 }
 
-func (m *MeshInfo) InitEdgePool() {
+func (m *MeshInfo) initEdgePool() {
+	col, row, _ := m.ParseMeta()
 	// Vertical direction
 	for i := 1; i < row; i++ {
 		for j := 0; j < col; j++ {
@@ -77,19 +83,28 @@ func (m *MeshInfo) InitEdgePool() {
 			m.Edges = append(m.Edges, EdgeInfo{
 				SourceNode:  &m.Nodes[north],
 				TargetNode:  &m.Nodes[cur],
+				CountRecord: make(map[int64](map[string]int64)),
 				Source:      strconv.Itoa(north),
 				Target:      strconv.Itoa(cur),
-				CountRecord: make(map[int64](map[string]int64)),
 				Value:       make(map[string]int64),
+				// `label` is not used in backend, to display the
+				// counts of certain msg types in frontend instead
+				LinkName: "",
+				// `detail` is mainly used to display the details of
+				// each message type in frontend, here is only an
+				// trivial example to show information about an edge
+				Detail: "normal edge",
 			})
 			// reversed link
 			m.Edges = append(m.Edges, EdgeInfo{
 				SourceNode:  &m.Nodes[cur],
 				TargetNode:  &m.Nodes[north],
+				CountRecord: make(map[int64](map[string]int64)),
 				Source:      strconv.Itoa(cur),
 				Target:      strconv.Itoa(north),
-				CountRecord: make(map[int64](map[string]int64)),
 				Value:       make(map[string]int64),
+				LinkName:    "",
+				Detail:      "normal edge",
 			})
 		}
 	}
@@ -101,64 +116,38 @@ func (m *MeshInfo) InitEdgePool() {
 			m.Edges = append(m.Edges, EdgeInfo{
 				SourceNode:  &m.Nodes[left],
 				TargetNode:  &m.Nodes[cur],
+				CountRecord: make(map[int64](map[string]int64)),
 				Source:      strconv.Itoa(left),
 				Target:      strconv.Itoa(cur),
-				CountRecord: make(map[int64](map[string]int64)),
 				Value:       make(map[string]int64),
+				LinkName:    "",
+				Detail:      "normal edge",
 			})
 			// reversed link
 			m.Edges = append(m.Edges, EdgeInfo{
 				SourceNode:  &m.Nodes[cur],
 				TargetNode:  &m.Nodes[left],
+				CountRecord: make(map[int64](map[string]int64)),
 				Source:      strconv.Itoa(cur),
 				Target:      strconv.Itoa(left),
-				CountRecord: make(map[int64](map[string]int64)),
 				Value:       make(map[string]int64),
+				LinkName:    "",
+				Detail:      "normal edge",
 			})
 		}
 	}
 }
 
-func randomValueMap() map[string]int64 {
-	val := make(map[string]int64)
-	for _, msgType := range queriedMsgTypes {
-		val[msgType] = (int64)(rand.Intn(10))
-	}
-	return val
-}
+func (m *MeshInfo) Init(width, height int, timeSlice float64, elapse int64) {
+	// initiate meta
+	m.Meta = make(map[string]string)
+	m.Meta["width"] = fmt.Sprintf("%d", width)
+	m.Meta["height"] = fmt.Sprintf("%d", height)
+	m.Meta["slice"] = fmt.Sprintf("%.9f", timeSlice)
+	m.Meta["elapse"] = fmt.Sprintf("%d", elapse) // time slice count of simulation
 
-func (m *MeshInfo) RandomEdges() []byte {
-	rand.Seed(time.Now().Unix())
-	for i := range m.Edges {
-		m.Edges[i].UpdateValue(randomValueMap())
-		m.Edges[i].Details = strconv.Itoa(rand.Intn(50))
-	}
-	output, err := json.Marshal(m.Edges)
-	if err != nil {
-		panic(err)
-	}
-	return output
-}
-
-func (m *MeshInfo) InitMesh() {
-	m.InitNodes()
-	m.InitEdgePool()
-}
-
-func (m *MeshInfo) InstInitiate() []byte {
-	output, err := json.Marshal(m)
-	if err != nil {
-		panic(err)
-	}
-	return output
-}
-
-func (m *MeshInfo) InstEdges() []byte {
-	output, err := json.Marshal(m.Edges)
-	if err != nil {
-		panic(err)
-	}
-	return output
+	m.initNodes()
+	m.initEdgePool()
 }
 
 func (m *MeshInfo) CleanEdgeValueInfo() {
@@ -190,44 +179,4 @@ func (m *MeshInfo) QueryTimeSliceAndAppend(time int64) {
 			e.Value = StringInt64MapValueAdd(e.Value, e.CountRecord[time])
 		}
 	}
-}
-
-// Deprecated: Normalize in frontend side
-// func (m *MeshInfo) NormalizeAndGenerateEdgeInfo() {
-// 	var max int64 = 0
-// 	for i := range m.Edges {
-// 		e := &m.Edges[i]
-// 		val := e.Value
-// 		e.Details = fmt.Sprintf("exact count: %d", val)
-// 		if max < val {
-// 			max = val
-// 		}
-// 	}
-
-// 	for i := range m.Edges {
-// 		e := &m.Edges[i]
-// 		if max != 0 {
-// 			e.Value = e.Value * 9 / max // normalize
-// 		} // else `Value` must be zero
-// 	}
-// }
-
-// Response for range [from, to) instruction
-func (m *MeshInfo) InstRange(from, to int64) []byte {
-	m.CleanEdgeValueInfo()
-	for time := from; time < to; time++ {
-		m.QueryTimeSliceAndAppend(time)
-	}
-	// m.NormalizeAndGenerateEdgeInfo()
-
-	output, err := json.Marshal(m.Edges)
-	if err != nil {
-		panic(err)
-	}
-	return output
-}
-
-func (m *MeshInfo) InstProgress() []byte {
-	// TODO
-	return []byte("")
 }

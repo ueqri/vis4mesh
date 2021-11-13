@@ -1,18 +1,12 @@
 package main
 
 import (
-	"flag"
 	"log"
 	"net/http"
 	"strings"
 
 	"github.com/gorilla/websocket"
 )
-
-var mesh MeshInfo
-var redisReader RedisTracerReader
-
-var addr = flag.String("addr", ":8080", "http service address")
 
 var upgrader = websocket.Upgrader{
 	CheckOrigin: func(r *http.Request) bool {
@@ -62,15 +56,17 @@ func handle(w http.ResponseWriter, r *http.Request) {
 
 		switch msg[0] {
 		case "pong":
-			continue // heartbeat package
+			continue // won't response heartbeat package
 		case "range":
 			from := ParseInt64Decimal(msg[1])
 			to := ParseInt64Decimal(msg[2])
 			resp = mesh.InstRange(from, to)
 		case "init":
 			resp = mesh.InstInitiate()
+		case "rand":
+			resp = mesh.InstRandom()
 		default:
-			panic("Unrecognized instructions for vis4mesh server.")
+			panic("Unrecognized instructions for vis4mesh server")
 		}
 
 		if err := c.WriteMessage(mt, resp); err != nil {
@@ -78,15 +74,4 @@ func handle(w http.ResponseWriter, r *http.Request) {
 			break
 		}
 	}
-}
-
-func main() {
-	mesh.InitMesh()
-	redisReader.Init()
-
-	flag.Parse()
-	log.SetFlags(0)
-	http.HandleFunc("/echo", echo)
-	http.HandleFunc("/", handle)
-	log.Fatal(http.ListenAndServe(*addr, nil))
 }
