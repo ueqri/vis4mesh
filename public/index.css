@@ -1,23 +1,30 @@
-body {
-  width: 100vw;
-  height: 100vh;
-  display: flex;
+#navbar {
+  position: relative;
+}
+
+#graph {
+  z-index: 5;
+  position: absolute;
+}
+
+#sidebar {
+  width: 15vw; /* possibly use max-content */
+  z-index: 15;
+  position: relative;
+  float: right;
+  padding-top: 0.02em;
+}
+
+#slider {
+  width: 50em; /* must set */
+  margin-left: 1em;
+  margin-right: 1em;
 }
 
 svg {
   overflow: visible;
-  width: 100vw;
-  height: 100vh;
-}
-
-.sidebar {
-  width: 25vw;
-}
-
-.graph {
-  width: 75vw;
+  width: 100%;
   height: 100%;
-  display: flex;
 }
 
 .single-slider-div {
@@ -39,6 +46,7 @@ svg {
   border-radius: 1em;
   font-weight: bold;
   background-color: gainsboro;
+  width: max-content;
 }
 
 .node-label {

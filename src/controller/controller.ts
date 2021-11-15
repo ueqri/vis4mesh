@@ -3,6 +3,8 @@ import { DataPortResponse } from "../data/data";
 import { DataToDisplay } from "../display/data";
 import { Display } from "display/display";
 
+export type SignalMap = Map<string, (v: any) => any>;
+
 export interface ControllerModule {
   // callback for outside change events,
   // change event type(e.g. status, selection) maps to `(<type value>) => any`

@@ -60,7 +60,10 @@ export class Grid extends DisplayLayout {
     // SVG
     //
 
-    this.svg = d3.select(this.div).append("svg");
+    this.svg = d3
+      .select(this.div)
+      .append("svg")
+      .attr("transform", `scale(0.6)`);
     this.g = this.svg.append("g");
 
     //
@@ -147,9 +150,7 @@ export class Grid extends DisplayLayout {
     // SVG
     //
 
-    this.svg
-      .attr("viewBox", `0 0 ${svgWidth}, ${svgHeight}`)
-      .attr("transform", `scale(0.5)`);
+    this.svg.attr("viewBox", `0 0 ${svgWidth}, ${svgHeight}`);
 
     //
     // Edges
@@ -268,8 +269,8 @@ export class Grid extends DisplayLayout {
       })
       .on("mousemove", function (event, d) {
         return tooltipEdge
-          .style("top", event.pageY + 16 + "px")
-          .style("left", event.pageX + 16 + "px");
+          .style("top", event.pageY + 2 + "px")
+          .style("left", event.pageX + 2 + "px");
       })
       .on("mouseout", function (event, d) {
         d3.select(this).attr("stroke-width", c.edgeWidth);
@@ -329,8 +330,8 @@ export class Grid extends DisplayLayout {
       })
       .on("mousemove", function (event, d) {
         return tooltipNode
-          .style("top", event.pageY + 16 + "px")
-          .style("left", event.pageX + 16 + "px");
+          .style("top", event.pageY + 2 + "px")
+          .style("left", event.pageX + 2 + "px");
       })
       .on("mouseout", function (event, d) {
         d3.select(this).attr("fill", "#8fbed1");
