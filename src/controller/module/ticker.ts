@@ -98,18 +98,18 @@ export class Ticker implements ControllerModule {
   }
 
   decorateData(ref: DataPortResponse, d: DataToDisplay) {
-    // nothing to do
+    // Nothing to do
   }
 
   invokeController(c: Controller) {
     this.t.tickFunc = () => {
       c.requestDataPort();
 
-      // update time recorder in Controller
+      // Update time recorder in Controller
       if (this.mode === TickerMode.SliceTick) {
         c.startTime = c.endTime;
       } else if (this.mode === TickerMode.RangeTick) {
-        // nothing to do with `c.startTime`
+        // Nothing to do with `c.startTime`
       }
       c.endTime = this.t.next(c.endTime);
     };

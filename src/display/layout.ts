@@ -10,15 +10,15 @@ export abstract class DisplayLayout {
     this.div = div;
   }
 
-  // color platte scheme to map weight
+  // Color platte scheme to map weight
   abstract colorScheme(weight: number | undefined): string;
 
-  // render the specific layout to a new graph
+  // Render the specific layout to a new graph
   abstract render(data: DataToDisplay): void;
 
-  // refresh existed attributes in the old graph
+  // Refresh existed attributes in the old graph
   refresh(data: DataToDisplay) {
-    // render also support refreshing thanks to d3.exit and d3.enter
+    // `render` also support refreshing thanks to d3.join
     this.render(data);
   }
 

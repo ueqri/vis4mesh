@@ -1,42 +1,53 @@
 import * as d3 from "d3";
 
-export type DivSelection = d3.Selection<
+export abstract class Widget {
+  protected div: DetachedDivNode;
+  protected id: string; // id of outer div
+
+  constructor(id?: string, size?: WidgetSize) {
+    this.div = d3.create("div");
+    if (id === undefined) {
+      this.id = generateID(); // assign random ID, but do not apply to HTML
+    } else {
+      this.div.attr("id", id);
+      this.id = id;
+    }
+    if (size != undefined) {
+      if (typeof size.height === "string") {
+        this.div.attr("height", size.height);
+      }
+      if (typeof size.width === "string") {
+        this.div.attr("width", size.width);
+      }
+    }
+  }
+
+  abstract append(item: any): any;
+
+  node(): HTMLElement {
+    return this.div.node()!;
+  }
+}
+
+export type DetachedDivNode = d3.Selection<
   HTMLDivElement,
-  unknown,
+  undefined,
   null,
   undefined
 >;
 
-export interface Widget {
-  name(str: any): this;
-  default(defaultValue: any): this;
-  renderTo(div: HTMLElement): this;
+export type ButtonSelection = d3.Selection<
+  HTMLButtonElement,
+  undefined,
+  null,
+  undefined
+>;
 
-  // Add the events into array if you want or must tag the event callbacks
-  // before the `renderTo` method. Otherwise, you could choose `event` method
-  // directly.
-  storeEvent(handle: (value: any) => any): this;
-
-  // Bind the events with initiated HTML element, so this method must be
-  // called after `renderTo` method. If you want to tag the event callbacks
-  // before rendering the items into target div, you could use `storeEvent`
-  // to add the events into an array and call them eventually.
-  event(handle: ((value: any) => any) | undefined): this;
-
-  element(): HTMLElement;
+export interface WidgetSize {
+  width?: string;
+  height?: string;
 }
 
-export function GroupRenderAsColumns(
-  renderToDiv: HTMLElement,
-  group: Array<Widget>
-) {
-  let row = d3
-    .select(renderToDiv)
-    .append("div")
-    .attr("class", `row g-${group.length}`);
-  group.forEach((v) => {
-    v.renderTo(
-      row.append("div").attr("class", "col-md").node() as HTMLElement
-    ).event(undefined);
-  });
+function generateID() {
+  return "_" + Math.random().toString(36).substr(2, 9);
 }

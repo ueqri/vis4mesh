@@ -6,13 +6,13 @@ import { Display } from "display/display";
 export type SignalMap = Map<string, (v: any) => any>;
 
 export interface ControllerModule {
-  // callback for outside change events,
+  // Callback for outside change events,
   // change event type(e.g. status, selection) maps to `(<type value>) => any`
   signalChange: Map<string, (v: any) => any>;
 
-  // decorate response of data port
+  // Decorate response of data port
   decorateData(ref: DataPortResponse, d: DataToDisplay): void;
-  // entrypoint function of module
+  // Entrypoint function of module
   invokeController(c: Controller): void;
 }
 
@@ -44,7 +44,7 @@ export class Controller {
     this.port.range(this.startTime, this.endTime, (d) => {
       let resp: DataPortResponse = JSON.parse(d);
       let data: DataToDisplay = {
-        // basic data clone
+        // Basic data clone
         meta: resp.meta,
         nodes: resp.nodes,
         edges: resp.edges,

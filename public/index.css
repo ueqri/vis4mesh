@@ -17,8 +17,7 @@
 
 #slider {
   width: 50em; /* must set */
-  margin-left: 1em;
-  margin-right: 1em;
+  margin: 0 0.5em;
 }
 
 svg {
@@ -27,8 +26,9 @@ svg {
   height: 100%;
 }
 
-.single-slider-div {
-  margin-bottom: 0.2em;
+.time-input {
+  width: 11em;
+  margin: 0 0.5em;
 }
 
 .color-box {

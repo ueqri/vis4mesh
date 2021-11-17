@@ -18,15 +18,24 @@
   <nav class="navbar navbar-light bg-light fixed-top" id="navbar">
     <!-- TODO: tooltip for items -->
     <div class="container-fluid">
-      <a class="navbar-brand" style="margin-left: 1rem;" href="#" data-bs-toggle="tooltip" data-bs-placement="bottom"
+      <a class="navbar-brand" style="margin-left: 0.75em;" href="#" data-bs-toggle="tooltip" data-bs-placement="bottom"
         title="metadata: undefined">Vis4Mesh</a>
 
       <!-- Slider -->
       <div id="slider"></div>
 
+      <!-- Time Range Input-->
+
+      <div class="input-group time-input">
+        <input id="start-time" type="text" class="form-control" placeholder="From">
+        <input id="end-time" type="text" class="form-control" placeholder="To">
+      </div>
+
       <!-- Player Status -->
-      <button id="player-status" type="button" class="btn btn-primary btn-sm"><img src="./pause.svg" width="25"
-          height="25"></button>
+      <div id="player-status"></div>
+      <!-- <button id="player-status" type="button" class="btn btn-primary btn-sm" style="margin: 0 0.5em">
+        <img src="./icon/pause.svg" width="25" height="25">
+      </button> -->
 
       <!-- Data Port Status -->
       <div id="dataport-status" class="dropdown">
@@ -53,25 +62,7 @@
 
   <div id="graph"></div>
 
-  <!-- TODO: dynamically generate sidebar -->
-  <div class="collapse" id="sidebar">
-    <div class="accordion">
-      <div class="accordion-item">
-        <h2 class="accordion-header" id="panelsStayOpen-headingOne">
-          <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
-            data-bs-target="#panelsStayOpen-collapseOne" aria-expanded="false"
-            aria-controls="panelsStayOpen-collapseOne">
-            Legend & Focus
-          </button>
-        </h2>
-        <div id="panelsStayOpen-collapseOne" class="accordion-collapse collapse"
-          aria-labelledby="panelsStayOpen-headingOne">
-          <div class="accordion-body" id="div-sidebar-legend">
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
+  <div class="collapse" id="sidebar"></div>
 
   <script type="module" src="../src/index.ts"></script>
 </body>

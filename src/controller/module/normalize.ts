@@ -24,6 +24,6 @@ export class LinearNormalize implements ControllerModule {
   }
 
   invokeController(c: Controller) {
-    // nothing to do
+    // Nothing to do
   }
 }

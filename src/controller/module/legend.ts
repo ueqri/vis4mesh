@@ -28,6 +28,6 @@ export class Legend implements ControllerModule {
   }
 
   invokeController(c: Controller) {
-    // nothing to do
+    // Nothing to do
   }
 }
