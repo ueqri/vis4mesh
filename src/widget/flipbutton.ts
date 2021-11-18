@@ -51,6 +51,7 @@ export class FlipButton extends Widget {
     this.flip.some((v: FlipButtonOptions, idx: number) => {
       if (v.name === to) {
         this.updateButton(v, idx);
+        this.div.select("button").dispatch("click");
         return true;
       }
     });

@@ -4,6 +4,7 @@ import "nouislider/dist/nouislider.css";
 // SmartSlider supports multiple handles and binding input box respectively
 export class SmartSlider {
   protected slider: noUiSlider.API;
+  protected noFireCallbacks: boolean;
 
   constructor(div: HTMLElement, length: number, handlePos: number[]) {
     this.slider = noUiSlider.create(div, {
@@ -21,22 +22,38 @@ export class SmartSlider {
         density: 1,
       },
     });
+
+    this.noFireCallbacks = false;
   }
 
   updateStyle(custom: (s: noUiSlider.API) => void) {
     custom(this.slider);
   }
 
-  bindInput(inputs: HTMLInputElement[]) {
+  protected checkFireCallbacks = () => {
+    return !this.noFireCallbacks;
+  };
+
+  // Due to the tight coupling of noUiSlider and input view box in this version,
+  // we use standalone methods for these two widgets instead of unified abstract
+  // method. `callbacks` are value change event callbacks for each input box.
+  bindInput(inputs: HTMLInputElement[], callbacks: ((v: number) => void)[]) {
     let slider = this.slider;
+    let checkFireCallbacks = this.checkFireCallbacks;
     slider.on("update", function (values, handle) {
-      inputs[handle].value = values[handle] as string;
+      const valInt = parseInt(values[handle] as string);
+      inputs[handle].value = `${valInt}`;
+      if (checkFireCallbacks()) {
+        callbacks[handle](valInt);
+        console.log("slider update event");
+      }
     });
 
     // Listen to keydown events on the input field
     inputs.forEach(function (input, handle) {
       input.addEventListener("change", function () {
         slider.setHandle(handle, this.value);
+        console.log("input change event");
       });
 
       input.addEventListener("keydown", function (e) {
@@ -57,12 +74,8 @@ export class SmartSlider {
         let position;
 
         switch (e.key) {
-          case "Enter":
-            slider.setHandle(handle, this.value);
-            break;
-
-          case "ArrowUp":
-          case "ArrowLeft":
+          case "ArrowDown":
+          case "ArrowRight":
             // Get step to go increase slider value (up)
             position = step[1];
 
@@ -78,8 +91,8 @@ export class SmartSlider {
 
             break;
 
-          case "ArrowDown":
-          case "ArrowRight":
+          case "ArrowUp":
+          case "ArrowLeft":
             position = step[0];
 
             if (position === false) {
@@ -96,11 +109,16 @@ export class SmartSlider {
     });
   }
 
+  // these two methods wouldn't fire callbacks in `update` event of slider
   setLeft(val: number) {
+    this.noFireCallbacks = true;
     this.slider.set([val, null!]);
+    this.noFireCallbacks = false;
   }
 
   setRight(val: number) {
+    this.noFireCallbacks = true;
     this.slider.set([null!, val]);
+    this.noFireCallbacks = false;
   }
 }

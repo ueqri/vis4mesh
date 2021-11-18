@@ -118,6 +118,7 @@ export class Grid extends DisplayLayout {
     let tooltipEdge = this.tooltipEdge;
     let xSize: number = data.meta!["width"];
     let ySize: number = data.meta!["height"];
+    // console.log(`x: ${xSize}, y: ${ySize}`);
 
     const c = this.config;
     const svgWidth = xSize * (c.nodeSize + c.edgeWidth);

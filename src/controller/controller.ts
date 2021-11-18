@@ -6,9 +6,9 @@ import { Display } from "display/display";
 export type SignalMap = Map<string, (v: any) => any>;
 
 export interface ControllerModule {
-  // Callback for outside change events,
-  // change event type(e.g. status, selection) maps to `(<type value>) => any`
-  signalChange: Map<string, (v: any) => any>;
+  // Callback for outside change events, like Interrupt Service Routine (ISR)
+  // event type(e.g. status, selection) maps to `(<type value>) => any`
+  signal: Map<string, (v: any) => any>;
 
   // Decorate response of data port
   decorateData(ref: DataPortResponse, d: DataToDisplay): void;
@@ -26,22 +26,22 @@ export class Controller {
   public startTime: number;
   public endTime: number;
 
-  constructor(ws: string, view: Display) {
+  constructor(port: DataPort, view: Display) {
     this.startTime = this.endTime = 0;
 
-    this.port = new DataPort(ws);
+    this.port = port;
     this.view = view;
     this.modules = new Array<ControllerModule>();
   }
 
-  loadModule(m: ControllerModule): this {
-    this.modules.push(m);
-    m.invokeController(this);
+  loadModules(mods: ControllerModule[]): this {
+    this.modules = [...this.modules, ...mods];
+    mods.forEach((m) => m.invokeController(this));
     return this;
   }
 
-  requestDataPort() {
-    this.port.range(this.startTime, this.endTime, (d) => {
+  requestDataPort(): boolean {
+    return this.port.range(this.startTime, this.endTime, (d) => {
       let resp: DataPortResponse = JSON.parse(d);
       let data: DataToDisplay = {
         // Basic data clone

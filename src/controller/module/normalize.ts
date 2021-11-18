@@ -3,10 +3,10 @@ import { DataToDisplay } from "../../display/data";
 import { DataPortResponse } from "../../data/data";
 
 export class LinearNormalize implements ControllerModule {
-  public signalChange: Map<string, (v: any) => void>;
+  public signal: Map<string, (v: any) => void>;
 
   constructor() {
-    this.signalChange = new Map<string, (v: any) => void>(); // not used
+    this.signal = new Map<string, (v: any) => void>(); // not used
   }
 
   decorateData(ref: DataPortResponse, d: DataToDisplay) {
