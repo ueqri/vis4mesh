@@ -1,6 +1,8 @@
 # Vis4Mesh Visualization Tool
 
-Vis4Mesh tool is designed especially for Network-on-Chip(NoC) traffic research in [Akita project](https://gitlab.com/akita), also able to use in other network visualization tasks.
+Vis4Mesh tool is designed especially for Network-on-Chip(NoC) traffic research in [Akita project](https://gitlab.com/akita), also capable to use in other network to visualize the topology and traffics.
+
+**Notice: This project is still under development, some of the features are not solid. We would update the documents after a new milestone.**
 
 ## Motivation
 
@@ -124,9 +126,9 @@ There is still some minor bugs in our tool, including but not limited to SVG inv
 
 As for follow-up work, we'd implemented these features:
 
-- [ ] Fix the display bugs and replace current _iframe_ scheme with better one.
-- [ ] Implement better legend to support the selection of different traffic types, with more rational color scheme.
-- [ ] Add range slider with two handles, using the awesome [noUiSlider](https://refreshless.com/nouislider/) to enable range dragging.
+- [x] Fix the display bugs and replace current _iframe_ scheme with better one.
+- [x] Implement better legend to support the selection of different traffic types, with more rational color scheme.
+- [x] Add range slider with two handles, using the awesome [noUiSlider](https://refreshless.com/nouislider/) to enable range dragging.
 - [ ] Build the detailed documents about the design and protocols
 - [ ] Implement more layout to support general network dynamic visualization.
 
