@@ -1,8 +1,8 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
+	"log"
 	"math/rand"
 	"time"
 )
@@ -10,11 +10,7 @@ import (
 // Response for init instruction
 func (m *MeshInfo) InstInitiate() []byte {
 	m.CleanEdgeValueInfo()
-	output, err := json.Marshal(m)
-	if err != nil {
-		panic(err)
-	}
-	return output
+	return JSONToBytes(m)
 }
 
 // Response for range [from, to) instruction
@@ -30,11 +26,7 @@ func (m *MeshInfo) InstRange(from, to int64) []byte {
 		m.QueryTimeSliceAndAppend(time)
 	}
 
-	output, err := json.Marshal(m)
-	if err != nil {
-		panic(err)
-	}
-	return output
+	return JSONToBytes(m)
 }
 
 func (m *MeshInfo) InstRandom() []byte {
@@ -47,27 +39,29 @@ func (m *MeshInfo) InstRandom() []byte {
 		m.Edges[i].LinkName = fmt.Sprintf("%d", m.Edges[i].SumValue())
 	}
 
-	output, err := json.Marshal(m)
-	if err != nil {
-		panic(err)
+	return JSONToBytes(m)
+}
+
+func (f *FlatInfo) InstFlat(m *MeshInfo, frameSize int) []byte {
+	f.snapshots = f.snapshots[:0]
+	log.Printf("flat %d start", frameSize)
+	var frameIdx int64
+	var timeElapse int64 = 52
+	var now int64 = 0
+	for ; now < timeElapse; frameIdx++ {
+		f.QuerySnapshotOfFrame(m, now, frameSize, frameIdx)
+		now += int64(frameSize)
 	}
-	return output
+	log.Printf("flat %d done", frameSize)
+	return JSONToBytes(f.snapshots)
 }
 
 // Potential instrcution to get only nodes
 func (m *MeshInfo) InstNodes() []byte {
-	output, err := json.Marshal(m.Nodes)
-	if err != nil {
-		panic(err)
-	}
-	return output
+	return JSONToBytes(m.Nodes)
 }
 
 // Potential instrcution to get only edges
 func (m *MeshInfo) InstEdges() []byte {
-	output, err := json.Marshal(m.Edges)
-	if err != nil {
-		panic(err)
-	}
-	return output
+	return JSONToBytes(m.Edges)
 }

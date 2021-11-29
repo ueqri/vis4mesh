@@ -6,6 +6,7 @@ import { LinearNormalize } from "./controller/module/normalize";
 import { Ticker } from "./timebar/ticker";
 import RenderPlayerButton from "./topbar/playerbutton";
 import DataPort from "./data/dataport";
+import RenderTimebar from "./timebar/timebar";
 
 let divGraph = document.getElementById("graph") as HTMLElement;
 
@@ -21,6 +22,8 @@ port.init().then((meta) => {
   ticker.bindController(c);
   ticker.signal["state"]("still");
 });
+
+RenderTimebar(port);
 
 //
 // Global Event

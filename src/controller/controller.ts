@@ -1,5 +1,5 @@
 import DataPort from "../data/dataport";
-import { DataPortResponse } from "../data/data";
+import { DataPortRangeResponse } from "../data/data";
 import { DataToDisplay } from "../display/data";
 import { Display } from "display/display";
 
@@ -11,7 +11,7 @@ export interface ControllerModule {
   signal: { [type: string]: (v: any) => any };
 
   // Decorate response of data port
-  decorateData(ref: DataPortResponse, d: DataToDisplay): void;
+  decorateData(ref: DataPortRangeResponse, d: DataToDisplay): void;
   // Entrypoint function of module
   invokeController(c: Controller): void;
 }

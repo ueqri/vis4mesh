@@ -1,6 +1,6 @@
 import { SignalMap, ControllerModule } from "../controller";
 import { DataToDisplay } from "../../display/data";
-import { DataPortResponse } from "../../data/data";
+import { DataPortRangeResponse } from "../../data/data";
 
 export class Legend implements ControllerModule {
   public signal: SignalMap; // no used
@@ -9,7 +9,7 @@ export class Legend implements ControllerModule {
     this.signal = {};
   }
 
-  decorateData(ref: DataPortResponse, d: DataToDisplay) {
+  decorateData(ref: DataPortRangeResponse, d: DataToDisplay) {
     d.edges!.forEach((e, idx) => {
       e.source = ref.edges[idx].source;
       e.target = ref.edges[idx].target;

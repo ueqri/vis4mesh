@@ -27,6 +27,23 @@ var queriedMsgTypes = []string{
 	"*vm.TranslationRsp",
 }
 
+var msgTypesGroupMap = map[string]string{
+	"*cache.FlushReq":           "Others",
+	"*cache.FlushRsp":           "Others",
+	"*mem.DataReadyRsp":         "Read",
+	"*mem.ReadReq":              "Read",
+	"*mem.WriteDoneRsp":         "Write",
+	"*mem.WriteReq":             "Write",
+	"*protocol.FlushReq":        "Others",
+	"*protocol.LaunchKernelReq": "Others",
+	"*protocol.MapWGReq":        "Others",
+	"*protocol.MemCopyD2HReq":   "MemCopy",
+	"*protocol.MemCopyH2DReq":   "MemCopy",
+	"*protocol.WGCompletionMsg": "Others",
+	"*vm.TranslationReq":        "Translation",
+	"*vm.TranslationRsp":        "Translation",
+}
+
 var recordEncoder *tracing.NetworkTracingRecordEncoder
 
 type RedisTracerReader struct {

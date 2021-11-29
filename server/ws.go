@@ -61,6 +61,9 @@ func handle(w http.ResponseWriter, r *http.Request) {
 			from := ParseInt64Decimal(msg[1])
 			to := ParseInt64Decimal(msg[2])
 			resp = mesh.InstRange(from, to)
+		case "flat":
+			frameSize := ParseInt64Decimal(msg[1])
+			resp = flat.InstFlat(&mesh, int(frameSize))
 		case "init":
 			resp = mesh.InstInitiate()
 		case "rand":

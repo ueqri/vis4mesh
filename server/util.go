@@ -58,6 +58,14 @@ func StringInt64MapValueAdd(
 	return dst
 }
 
+func JSONToBytes(v interface{}) []byte {
+	output, err := json.Marshal(v)
+	if err != nil {
+		panic(err)
+	}
+	return output
+}
+
 //
 // Functions only used in vis4mesh backend
 //
