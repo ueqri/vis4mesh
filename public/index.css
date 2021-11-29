@@ -15,11 +15,6 @@
   padding-top: 0.02em;
 }
 
-#slider {
-  width: 50em; /* must set */
-  margin: 0 0.5em;
-}
-
 svg {
   overflow: visible;
   width: 100%;

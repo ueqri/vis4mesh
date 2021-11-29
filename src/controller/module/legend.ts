@@ -1,12 +1,12 @@
-import { Controller, ControllerModule } from "../controller";
+import { SignalMap, ControllerModule } from "../controller";
 import { DataToDisplay } from "../../display/data";
 import { DataPortResponse } from "../../data/data";
 
 export class Legend implements ControllerModule {
-  public signal: Map<string, (v: any) => void>;
+  public signal: SignalMap; // no used
 
   constructor() {
-    this.signal = new Map<string, (v: any) => void>(); // not used
+    this.signal = {};
   }
 
   decorateData(ref: DataPortResponse, d: DataToDisplay) {
@@ -27,7 +27,5 @@ export class Legend implements ControllerModule {
     });
   }
 
-  invokeController(c: Controller) {
-    // Nothing to do
-  }
+  invokeController() {} // Nothing to do
 }

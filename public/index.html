@@ -15,32 +15,20 @@
     integrity="sha384-kQtW33rZJAHjgefvhyyzcGF3C5TFyBQBA13V1RKPf4uH+bwyzQxZ6CmMZHmNBEfJ"
     crossorigin="anonymous"></script>
 
-  <nav class="navbar navbar-light bg-light fixed-top" id="navbar">
+  <nav id="navbar" class="fixed-top navbar navbar-light bg-light">
     <!-- TODO: tooltip for items -->
     <div class="container-fluid">
       <a class="navbar-brand" style="margin-left: 0.75em;" href="#" data-bs-toggle="tooltip" data-bs-placement="bottom"
         title="metadata: undefined">Vis4Mesh</a>
 
-      <!-- Slider -->
-      <div id="slider"></div>
-
-      <!-- Time Range Input-->
-
-      <div class="input-group time-input">
-        <input id="start-time" type="text" class="form-control" placeholder="From">
-        <input id="end-time" type="text" class="form-control" placeholder="To">
-      </div>
-
       <!-- Player Status -->
       <div id="player-status"></div>
-      <!-- <button id="player-status" type="button" class="btn btn-primary btn-sm" style="margin: 0 0.5em">
-        <img src="./icon/pause.svg" width="25" height="25">
-      </button> -->
 
       <!-- Data Port Status -->
       <div id="dataport-status" class="dropdown">
-        <a class="nav-link dropdown-toggle" href="#" id="dataport-status-dropdown" role="button"
+        <a id="dataport-status-dropdown" class="nav-link dropdown-toggle" href="#" role="button"
           data-bs-toggle="dropdown" aria-expanded="false">
+          <!-- TODO: add interaction -->
           <img src="./icon/ok.svg" width="35" height="35" data-bs-toggle="tooltip" data-bs-placement="bottom"
             title="Data Port Status">
         </a>
@@ -52,7 +40,7 @@
         </ul>
       </div>
 
-      <!-- Sidebar Config -->
+      <!-- Sidebar Config Toggle -->
       <button class="navbar-toggler ms-auto" type="button" data-bs-toggle="collapse" data-bs-target="#sidebar"
         aria-controls="sidebar" aria-expanded="false" aria-label="Toggle sidebar">
         <span class="navbar-toggler-icon"></span>
@@ -62,7 +50,11 @@
 
   <div id="graph"></div>
 
-  <div class="collapse" id="sidebar"></div>
+  <div id="sidebar" class="collapse"></div>
+
+  <div id="timebar" class="fixed-bottom bg-light">
+    <p>example</p>
+  </div>
 
   <script type="module" src="../src/index.ts"></script>
 </body>

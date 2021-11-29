@@ -1,15 +1,14 @@
-import { Controller, ControllerModule } from "../controller";
+import { ControllerModule, SignalMap } from "../controller";
 import { DataToDisplay } from "../../display/data";
-import { DataPortResponse } from "../../data/data";
 
 export class LinearNormalize implements ControllerModule {
-  public signal: Map<string, (v: any) => void>;
+  public signal: SignalMap;
 
   constructor() {
-    this.signal = new Map<string, (v: any) => void>(); // not used
+    this.signal = {};
   }
 
-  decorateData(ref: DataPortResponse, d: DataToDisplay) {
+  decorateData(d: DataToDisplay) {
     let max: number = 0;
     d.edges!.forEach((e) => {
       if (max < e.weight!) {
@@ -23,7 +22,5 @@ export class LinearNormalize implements ControllerModule {
     });
   }
 
-  invokeController(c: Controller) {
-    // Nothing to do
-  }
+  invokeController() {} // Nothing to do
 }

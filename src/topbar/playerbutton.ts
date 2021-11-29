@@ -1,18 +1,8 @@
-import { Ticker } from "../controller/module/ticker";
-
 import * as d3 from "d3";
 import { FlipButton } from "../widget/flipbutton";
-import { Sidebar } from "./sidebar";
+import { Ticker } from "../timebar/ticker";
 
-// NavBar from right to left
-// sidebar :: data port status :: player button :: slider :: brand
-
-// TODO: sidebar
-// TODO: data port status
-
-export default function BindNavbar(t: Ticker) {}
-
-export function RenderPlayerButton(t: Ticker): FlipButton {
+export default function RenderPlayerButton(t: Ticker): FlipButton {
   // TODO: SVG to file
   let flip = new FlipButton("player-button");
   d3.select("#player-status").append(() =>
@@ -35,9 +25,9 @@ export function RenderPlayerButton(t: Ticker): FlipButton {
       ])
       .event((v: string) => {
         if (v === "Play") {
-          t.signal.get("state")!("auto");
+          t.signal["state"]("auto");
         } else if (v === "Pause") {
-          t.signal.get("state")!("pause");
+          t.signal["state"]("pause");
         }
       })
       .node()

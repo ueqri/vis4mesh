@@ -1,14 +1,14 @@
-import { DataPort } from "../data/dataport";
+import DataPort from "../data/dataport";
 import { DataPortResponse } from "../data/data";
 import { DataToDisplay } from "../display/data";
 import { Display } from "display/display";
 
-export type SignalMap = Map<string, (v: any) => any>;
+export type SignalMap = { [type: string]: (v: any) => any };
 
 export interface ControllerModule {
   // Callback for outside change events, like Interrupt Service Routine (ISR)
   // event type(e.g. status, selection) maps to `(<type value>) => any`
-  signal: Map<string, (v: any) => any>;
+  signal: { [type: string]: (v: any) => any };
 
   // Decorate response of data port
   decorateData(ref: DataPortResponse, d: DataToDisplay): void;
@@ -40,19 +40,23 @@ export class Controller {
     return this;
   }
 
-  requestDataPort(): boolean {
-    return this.port.range(this.startTime, this.endTime, (d) => {
-      let resp: DataPortResponse = JSON.parse(d);
-      let data: DataToDisplay = {
-        // Basic data clone
-        meta: resp.meta,
-        nodes: resp.nodes,
-        edges: resp.edges,
-      };
-      this.modules.forEach((m) => {
-        m.decorateData(resp, data);
-      });
-      this.view.renderData(data);
-    });
+  requestDataPort() {
+    this.port.range(this.startTime, this.endTime).then(
+      (resp) => {
+        let data: DataToDisplay = {
+          // Basic data clone
+          meta: resp.meta,
+          nodes: resp.nodes,
+          edges: resp.edges,
+        };
+        this.modules.forEach((m) => {
+          m.decorateData(resp, data);
+        });
+        this.view.renderData(data);
+      },
+      (reason) => {
+        console.error(reason);
+      }
+    );
   }
 }

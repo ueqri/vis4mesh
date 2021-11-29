@@ -1,7 +1,6 @@
-import { Controller, ControllerModule } from "../controller";
-import { DataToDisplay } from "../../display/data";
-import { DataPortResponse } from "../../data/data";
-import { SmartSlider } from "widget/standalone/smartslider";
+import { Controller } from "../controller/controller";
+
+type SignalMap = { [type: string]: (v: any) => any };
 
 class InnerTicker {
   public timeoutHandle: any;
@@ -63,31 +62,28 @@ class InnerTicker {
 enum TickerMode {
   SliceTick, // tick slice, i.e. both `startTime` and `endTime` are ticking
   RangeTick, // tick `timeTo` from input box, i.e `timeFrom` is static
-  // [deprecated] RangeSlider, // set static range from range slider
 }
 
-export class Ticker implements ControllerModule {
+export class Ticker {
+  public signal: SignalMap;
   protected t: InnerTicker;
   protected mode: TickerMode;
-  protected controller!: Controller;
-  protected sliderView: SmartSlider; // display ticker time in slider
-  public signal: Map<string, (v: any) => void>;
 
-  constructor(sliderView: SmartSlider) {
+  constructor() {
+    this.signal = {};
     this.t = new InnerTicker();
     this.mode = TickerMode.SliceTick; // by default
-    this.sliderView = sliderView;
-    this.signal = new Map<string, (v: any) => void>();
+    this.initSignalCallbacks();
   }
 
   protected initSignalCallbacks() {
-    this.signal.set("speed", (v: any) => {
+    this.signal["speed"] = (v) => {
       this.t.updateSpeed(Number(v));
-    });
-    this.signal.set("step", (v: any) => {
+    };
+    this.signal["step"] = (v) => {
       this.t.updateStep(Number(v));
-    });
-    this.signal.set("state", (v: any) => {
+    };
+    this.signal["state"] = (v) => {
       let stat = v as string;
       if (stat === "auto") {
         this.t.auto();
@@ -100,32 +96,13 @@ export class Ticker implements ControllerModule {
       } else {
         console.error(`Unknown state signal ${stat} passed to Ticker`);
       }
-    });
-    this.signal.set("timeStart", (v: any) => {
-      this.t.pause();
-      this.controller.startTime = Number(v);
-      this.t.still();
-    });
-    this.signal.set("timeEnd", (v: any) => {
-      this.t.pause();
-      this.controller.endTime = Number(v);
-      this.t.still();
-    });
+    };
   }
 
-  decorateData(ref: DataPortResponse, d: DataToDisplay) {
-    this.sliderView.setLeft(this.controller.startTime);
-    this.sliderView.setRight(this.controller.endTime);
-  }
-
-  invokeController(c: Controller) {
-    this.controller = c;
-    this.initSignalCallbacks();
+  bindController(c: Controller) {
     this.t.tickFunc = () => {
-      // Send data port request in controller
-      if (c.requestDataPort() === false) {
-        return false;
-      }
+      // Send data port request in controller, TODO: error sets ticker pause
+      c.requestDataPort();
       // Update time recorder in Controller
       if (this.mode === TickerMode.SliceTick) {
         c.startTime = c.endTime;
