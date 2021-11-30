@@ -1,11 +1,13 @@
 import * as d3 from "d3";
 import DataPort from "../data/dataport";
 import { DataPortFlatResponse } from "../data/data";
-import StackedChart, { offsetSeparated } from "../widget/standalone/stackchart";
+import StackedChart from "../widget/standalone/stackchart";
+import { offsetSeparated } from "../widget/standalone/stackchart";
+import { StackBarOptions } from "../widget/standalone/stackchart";
 
 const width = 1200;
-const focusHeight = 400;
-const numMsgGroup = 5;
+const focusHeight = 300;
+const numMsgGroup = 4;
 
 interface FormattedDataForChart {
   id: string;
@@ -32,9 +34,10 @@ function handleFlatResponse(
 }
 
 export default function RenderTimebar(port: DataPort) {
-  port.flat(1).then((data) => {
-    console.log(handleFlatResponse(data));
-    const chart = new StackedChart(handleFlatResponse(data), {
+  port.flat(1).then((resp) => {
+    const data = handleFlatResponse(resp);
+    console.log(data);
+    let opt: StackBarOptions = {
       x: (d) => d.id,
       y: (d) => d.count,
       z: (d) => d.group,
@@ -43,14 +46,22 @@ export default function RenderTimebar(port: DataPort) {
       offset: d3.stackOffsetNone,
       yLabel: "Count",
       colors: d3.schemeSpectral[numMsgGroup],
-    });
-    d3.select("#timebar")
-      .append(() => chart.area())
-      .attr("id", "chart-area")
-      .style("display", "none");
+    };
+    const chart = new StackedChart(data, opt);
 
-    d3.select("#timebar")
-      .append(() => chart.bar())
-      .attr("id", "chart-bar");
+    opt.offset = offsetSeparated;
+    const separated = new StackedChart(data, opt);
+
+    const svg = chart.axis();
+    const areaChart = chart.area(svg);
+    const barChart = chart.bar(svg);
+    const areaSeparated = separated.area(svg);
+    const barSeparated = separated.bar(svg);
+    areaChart.style("display", "none");
+    // barChart.style("display", "none");
+    areaSeparated.style("display", "none");
+    barSeparated.style("display", "none");
+    chart.brush(svg);
+    d3.select("#timebar").append(() => chart.node(svg));
   });
 }

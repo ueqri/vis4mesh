@@ -1,5 +1,19 @@
 import * as d3 from "d3";
 
+export type SVGSelection = d3.Selection<
+  SVGSVGElement,
+  undefined,
+  null,
+  undefined
+>;
+
+export type SVGGroupSelection = d3.Selection<
+  SVGGElement,
+  undefined,
+  null,
+  undefined
+>;
+
 // Function to offset each layer by the maximum of the previous layer, borrowed
 // from: https://observablehq.com/@mkfreeman/separated-bar-chart
 export function offsetSeparated(
@@ -120,7 +134,7 @@ export default class StackedChart {
       .map((s) =>
         s.map((d) => Object.assign(d, { i: (d.data[1] as any).get(s.key) }))
       );
-    console.log(series);
+    // console.log(series);
 
     // Compute the default y-domain. Note: diverging stacks can be negative.
     let yDomain: [number, number];
@@ -178,12 +192,7 @@ export default class StackedChart {
     this.title = title;
   }
 
-  protected buildSVG(): d3.Selection<
-    SVGSVGElement,
-    undefined,
-    null,
-    undefined
-  > {
+  axis(): SVGSelection {
     const svg = d3
       .create("svg")
       .attr("width", this.width)
@@ -221,12 +230,14 @@ export default class StackedChart {
     return svg;
   }
 
-  bar(): any {
+  bar(onAxis: SVGSelection, groupId?: string): SVGGroupSelection {
     const xScale = this.xScale;
     const yScale = this.yScale;
-    const svg = this.buildSVG();
+    const svg = onAxis;
     const bar = svg
       .append("g")
+      .attr("id", groupId === undefined ? "bar" : groupId);
+    const item = bar
       .selectAll("g")
       .data(this.series)
       .join("g")
@@ -239,16 +250,19 @@ export default class StackedChart {
       .attr("height", ([y1, y2]) => Math.abs(yScale(y1) - yScale(y2)))
       .attr("width", xScale.bandwidth());
 
-    if (this.title) bar.append("title").text(({ i }) => this.title(i));
+    if (this.title)
+      item
+        .append("title")
+        .text(({ i }) => this.title(i))
+        .attr("style");
 
-    const color = this.color;
-    return Object.assign(svg.node(), { scales: { color } });
+    return bar;
   }
 
-  area() {
+  area(onAxis: SVGSelection, groupId?: string): SVGGroupSelection {
     const xScale = this.xScale;
     const yScale = this.yScale;
-    const svg = this.buildSVG();
+    const svg = onAxis;
     const areaGenerator = d3
       .area()
       .x((d, i) => xScale(this.X[i])! + 0.5 * xScale.bandwidth())
@@ -257,13 +271,71 @@ export default class StackedChart {
 
     const area = svg
       .append("g")
+      .attr("id", groupId === undefined ? "area" : groupId);
+    area
       .selectAll("path")
       .data(this.series)
       .join("path")
       .style("fill", ([{ i }]) => this.color(this.Z[i]) as string)
       .attr("d", areaGenerator as any);
 
+    return area;
+  }
+
+  brush(onAxis: SVGSelection) {
+    const xScale = this.xScale;
+    const snappedSelection = ([min, max]: [number, number]) => [
+      xScale(this.X[min]),
+      xScale(this.X[max - 1]) + xScale.bandwidth(), // min & max won't be same
+    ];
+    const brush = d3
+      .brushX()
+      .extent([
+        [this.marginLeft, this.marginTop],
+        [this.width - this.marginRight, this.height - this.marginBottom],
+      ])
+      .on("start brush end", function (event) {
+        // only transition after input
+        if (!event.sourceEvent && !event.selection) return;
+
+        const s0 = event.selection
+          ? event.selection
+          : [1, 2].fill(event.sourceEvent.offsetX);
+        const d0 = invert(xScale, s0[0], s0[1]);
+
+        if (event.sourceEvent && event.type === "end") {
+          const snap = snappedSelection(d0);
+          d3.select(this).transition().call(event.target.move, snap);
+          d3.select(this).select("title").text(`TODO: [${d0[0]}, ${d0[1]})`);
+        }
+      });
+    onAxis
+      .append("g")
+      .attr("class", "brush")
+      .call(brush as any)
+      .append("title");
+  }
+
+  node(svg: SVGSelection) {
     const color = this.color;
     return Object.assign(svg.node(), { scales: { color } });
   }
+}
+
+function invert(scale: any, min: number, max: number): [number, number] {
+  const step: number = scale.step();
+  let dif: number = scale.range()[0] + scale.paddingOuter(),
+    iMin = min - dif < 0 ? 0 : Math.round((min - dif) / step),
+    iMax = Math.round((max - dif) / step);
+  if (iMax == iMin) {
+    // it happens with empty selections, not care the right boundary
+    if (iMin == 0) ++iMax;
+    else --iMin;
+  }
+  return [iMin, iMax];
+}
+
+function filterDomain(scale: any, min: number, max: number) {
+  const [iMin, iMax] = invert(scale, min, max);
+  return scale.domain().slice(iMin, iMax);
 }
