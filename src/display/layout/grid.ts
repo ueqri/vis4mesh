@@ -3,6 +3,7 @@ import invert from "invert-color";
 import { DisplayConfig } from "../config";
 import { DataToDisplay, EdgeDisplay, DisplayStyle } from "../data";
 import { DisplayLayout, MappedLocation } from "../layout";
+import { EdgeTooltip } from "../tooltip";
 
 export class GridConfig extends DisplayConfig {
   mapRatio: number;
@@ -263,9 +264,14 @@ export class Grid extends DisplayLayout {
             invert(rgbToHex(edgeColor), { black: "#3a3a3a", white: "#fafafa" })
           )
           .html(
-            `${coordNode(d.source)} -> ${coordNode(d.target)}<br>` +
-              `Weight: ${d.weight}<br>` +
-              `Detail: ${d.detail}`
+            new EdgeTooltip()
+              .use({
+                src: coordNode(d.source),
+                dst: coordNode(d.target),
+                weight: d.weight?.toString(),
+                detail: d.detail,
+              })
+              .node()
           );
       })
       .on("mousemove", function (event, d) {

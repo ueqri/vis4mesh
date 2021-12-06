@@ -80,10 +80,11 @@ export default class StackedChart {
 
   protected xAxis: d3.Axis<d3.AxisDomain>;
   protected yAxis: d3.Axis<d3.AxisDomain>;
-  protected xScale: any;
-  protected yScale: any;
   protected yLabel: string;
   protected title: any;
+
+  public xScale: any;
+  public yScale: any;
 
   protected series: (d3.SeriesPoint<{
     [key: string]: number;
@@ -282,7 +283,7 @@ export default class StackedChart {
     return area;
   }
 
-  brush(onAxis: SVGSelection) {
+  brush(onAxis: SVGSelection, callback: (l: number, r: number) => void) {
     const xScale = this.xScale;
     const snappedSelection = ([min, max]: [number, number]) => [
       xScale(this.X[min]),
@@ -307,6 +308,7 @@ export default class StackedChart {
           const snap = snappedSelection(d0);
           d3.select(this).transition().call(event.target.move, snap);
           d3.select(this).select("title").text(`TODO: [${d0[0]}, ${d0[1]})`);
+          callback(d0[0], d0[1]);
         }
       });
     onAxis
@@ -314,6 +316,7 @@ export default class StackedChart {
       .attr("class", "brush")
       .call(brush as any)
       .append("title");
+    return brush;
   }
 
   node(svg: SVGSelection) {
@@ -324,9 +327,17 @@ export default class StackedChart {
 
 function invert(scale: any, min: number, max: number): [number, number] {
   const step: number = scale.step();
-  let dif: number = scale.range()[0] + scale.paddingOuter(),
-    iMin = min - dif < 0 ? 0 : Math.round((min - dif) / step),
+  let dif: number = scale.range()[0] + scale.paddingOuter();
+  let iMin: number, iMax: number;
+  if (min == max) {
+    // single click in band
+    iMin = min - dif < 0 ? 0 : Math.ceil((min - dif) / step);
+    iMax = Math.ceil((max - dif) / step);
+  } else {
+    // range brush
+    iMin = min - dif < 0 ? 0 : Math.round((min - dif) / step);
     iMax = Math.round((max - dif) / step);
+  }
   if (iMax == iMin) {
     // it happens with empty selections, not care the right boundary
     if (iMin == 0) ++iMax;

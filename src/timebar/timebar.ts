@@ -2,12 +2,33 @@ import * as d3 from "d3";
 import DataPort from "../data/dataport";
 import { DataPortFlatResponse } from "../data/data";
 import StackedChart from "../widget/standalone/stackchart";
-import { offsetSeparated } from "../widget/standalone/stackchart";
+import { offsetSeparated, SVGSelection } from "../widget/standalone/stackchart";
 import { StackBarOptions } from "../widget/standalone/stackchart";
+import RegisterResizerEvent from "./resizer";
+import { Ticker } from "./ticker";
+import { Controller } from "../controller/controller";
+import { swatches } from "../widget/standalone/legend";
 
-const width = 1200;
-const focusHeight = 300;
+const timebar = d3.select("#timebar");
 const numMsgGroup = 4;
+
+let opt: StackBarOptions = {
+  x: (d) => d.id,
+  y: (d) => d.count,
+  z: (d) => d.group,
+  width: 0,
+  height: 0,
+  offset: d3.stackOffsetNone,
+  yLabel: "Count",
+  zDomain: ["Translation", "Read", "Write", "Others"],
+  colors: d3.schemeSpectral[numMsgGroup],
+};
+
+let controller: Controller;
+let ticker: Ticker;
+let chart: StackedChart;
+let svg: SVGSelection;
+let brush: d3.BrushBehavior<unknown>;
 
 interface FormattedDataForChart {
   id: string;
@@ -33,35 +54,60 @@ function handleFlatResponse(
   });
 }
 
-export default function RenderTimebar(port: DataPort) {
+function renderResizer(callback: () => any) {
+  const resizer = timebar.select(".resizer");
+  RegisterResizerEvent(timebar, resizer, callback);
+}
+
+function renderChart(data: FormattedDataForChart[]) {
+  timebar.selectAll("svg").remove();
+
+  opt.width = (timebar.node() as Element).getBoundingClientRect().width;
+  opt.height = (timebar.node() as Element).getBoundingClientRect().height;
+
+  chart = new StackedChart(data, opt);
+  svg = chart.axis();
+  chart.bar(svg);
+  brush = chart.brush(svg, (l, r) => {
+    ticker.signal["state"]("pause");
+    controller.startTime = l;
+    controller.endTime = r;
+    controller.requestDataPort();
+  });
+
+  timebar.append(() => chart.node(svg));
+}
+
+export default function RenderTimebar(
+  port: DataPort,
+  c: Controller,
+  t: Ticker
+) {
+  timebar
+    .append("div")
+    .html(
+      swatches(
+        d3.scaleOrdinal(
+          ["Translation", "Read", "Write", "Others"],
+          d3.schemeSpectral[numMsgGroup]
+        )
+      )
+    );
+
+  controller = c;
+  ticker = t;
   port.flat(1).then((resp) => {
     const data = handleFlatResponse(resp);
-    console.log(data);
-    let opt: StackBarOptions = {
-      x: (d) => d.id,
-      y: (d) => d.count,
-      z: (d) => d.group,
-      width: width,
-      height: focusHeight,
-      offset: d3.stackOffsetNone,
-      yLabel: "Count",
-      colors: d3.schemeSpectral[numMsgGroup],
-    };
-    const chart = new StackedChart(data, opt);
 
-    opt.offset = offsetSeparated;
-    const separated = new StackedChart(data, opt);
+    renderResizer(() => renderChart(data));
+    d3.select(window).on("resize", () => renderChart(data));
 
-    const svg = chart.axis();
-    const areaChart = chart.area(svg);
-    const barChart = chart.bar(svg);
-    const areaSeparated = separated.area(svg);
-    const barSeparated = separated.bar(svg);
-    areaChart.style("display", "none");
-    // barChart.style("display", "none");
-    areaSeparated.style("display", "none");
-    barSeparated.style("display", "none");
-    chart.brush(svg);
-    d3.select("#timebar").append(() => chart.node(svg));
+    ticker.setCast((l, r) => {
+      const padding: number = chart.xScale.step() - chart.xScale.bandwidth();
+      const mapL: number = chart.xScale(`${l}`);
+      const mapR: number = chart.xScale(`${r}`) - padding;
+      // console.log(mapL, mapR);
+      svg.select(".brush").call(brush.move as any, [mapL, mapR]);
+    });
   });
 }

@@ -68,11 +68,17 @@ export class Ticker {
   public signal: SignalMap;
   protected t: InnerTicker;
   protected mode: TickerMode;
+  protected cast: (l: number, r: number) => any;
+  protected running: boolean;
+  protected statusChangeCallback: (running: boolean) => any;
 
   constructor() {
     this.signal = {};
     this.t = new InnerTicker();
     this.mode = TickerMode.SliceTick; // by default
+    this.cast = () => {};
+    this.running = false;
+    this.statusChangeCallback = () => {};
     this.initSignalCallbacks();
   }
 
@@ -85,22 +91,50 @@ export class Ticker {
     };
     this.signal["state"] = (v) => {
       let stat = v as string;
+      let next: boolean = this.running;
       if (stat === "auto") {
         this.t.auto();
+        next = true;
       } else if (stat === "pause") {
         this.t.pause();
+        next = false;
       } else if (stat === "manual") {
         this.t.manual();
+        next = false;
       } else if (stat === "still") {
+        console.warn("`[state] still` signal is deprecated");
         this.t.still();
+        next = false;
       } else {
         console.error(`Unknown state signal ${stat} passed to Ticker`);
+      }
+      if (next != this.running) {
+        console.log(`change from ${this.running}->${next}`);
+        this.running = next;
+        this.statusChangeCallback(this.running);
+      }
+    };
+    this.signal["mode"] = (v) => {
+      this.t.pause();
+      let m = v as string;
+      if (m === "slice") {
+        this.mode = TickerMode.SliceTick;
+      } else if (m === "range") {
+        this.mode = TickerMode.RangeTick;
+      } else {
+        console.error(`Unknown mode signal ${m} passed to Ticker`);
       }
     };
   }
 
+  setCast(f: (l: number, r: number) => any) {
+    this.cast = f;
+  }
+
   bindController(c: Controller) {
     this.t.tickFunc = () => {
+      // Cast the left and right value
+      this.cast(c.startTime, c.endTime);
       // Send data port request in controller, TODO: error sets ticker pause
       c.requestDataPort();
       // Update time recorder in Controller
@@ -112,5 +146,9 @@ export class Ticker {
       c.endTime = this.t.next(c.endTime);
       return true;
     };
+  }
+
+  setStatusChangeCallback(f: (running: boolean) => any) {
+    this.statusChangeCallback = f;
   }
 }

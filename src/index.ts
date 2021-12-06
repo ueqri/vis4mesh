@@ -16,14 +16,19 @@ let ticker = new Ticker();
 let playerBtn = RenderPlayerButton(ticker);
 
 port.init().then((meta) => {
-  console.log(meta);
   let c = new Controller(port, new Display(divGraph, Grid));
   c.loadModules([new Legend(), new LinearNormalize()]);
   ticker.bindController(c);
-  ticker.signal["state"]("still");
+  ticker.setStatusChangeCallback((running) => {
+    if (running) {
+      playerBtn.static("Pause");
+    } else {
+      playerBtn.static("Play");
+    }
+  });
+  c.requestDataPort();
+  RenderTimebar(port, c, ticker);
 });
-
-RenderTimebar(port);
 
 //
 // Global Event
@@ -40,7 +45,7 @@ let flipCall = [
 
 let flipIndex: number = 0;
 document.addEventListener("keydown", function (event) {
-  if (event.key === " ") {
+  if (event.key === "p") {
     flipCall[flipIndex]();
     flipIndex = (flipIndex + 1) % flipCall.length;
   }

@@ -47,14 +47,29 @@ export class FlipButton extends Widget {
     return this;
   }
 
-  switch(to: string): this {
+  protected display(what: string): boolean {
+    let exist = false;
     this.flip.some((v: FlipButtonOptions, idx: number) => {
-      if (v.name === to) {
+      if (v.name === what) {
         this.updateButton(v, idx);
-        this.div.select("button").dispatch("click");
+        exist = true;
         return true;
       }
     });
+    return exist;
+  }
+
+  static(what: string): this {
+    this.display(what);
+    return this;
+  }
+
+  switch(to: string): this {
+    // if switch to `Play`, display icon |> first and then dispatch click event
+    // to play with icon || in the button
+    if (this.display(to) === true) {
+      this.div.select("button").dispatch("click");
+    }
     return this;
   }
 

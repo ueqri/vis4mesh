@@ -56,3 +56,12 @@ svg {
   font-size: 0.75em;
   font-weight: bold;
 }
+
+.resizer {
+  position: absolute;
+  top: -5px;
+  cursor: row-resize;
+  height: 5px;
+  left: 0;
+  width: 100%;
+}
