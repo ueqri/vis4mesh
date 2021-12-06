@@ -36,15 +36,18 @@ export function swatches(
         }
       </style>
       <div style="width: 100%; columns: ${columns};">
-        ${color.domain().map((value: any) => {
-          const label = format(value);
-          return `<div class="${id}-item">
+        ${color
+          .domain()
+          .map((value: any) => {
+            const label = format(value);
+            return `<div class="${id}-item">
             <div class="${id}-swatch" style="background:${color(value)};"></div>
             <div class="${id}-label" title="${label.replace(/["&]/g, entity)}">
               ${label}
             </div>
           </div>`;
-        })}
+          })
+          .join("")}
       </div>
     </div>`;
   } else {
@@ -67,12 +70,15 @@ export function swatches(
       }
     </style>
     <div>
-      ${color.domain().map(
-        (value: any) =>
-          `<span class="${id}" style="--color: ${color(value)}"
+      ${color
+        .domain()
+        .map(
+          (value: any) =>
+            `<span class="${id}" style="--color: ${color(value)}"
               >${format(value)}</span
             >`
-      )}
+        )
+        .join("")}
     </div>
   </div>`;
   }

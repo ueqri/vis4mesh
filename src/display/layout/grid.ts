@@ -283,7 +283,7 @@ export class Grid extends DisplayLayout {
         d3.select(this).attr("stroke-width", c.edgeWidth);
         return tooltipEdge.style("visibility", "hidden");
       })
-      .transition()
+      // .transition()
 
       // edge color
       .attr("stroke", function (d) {

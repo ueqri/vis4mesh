@@ -83,7 +83,7 @@ export default function RenderTimebar(
   c: Controller,
   t: Ticker
 ) {
-  timebar
+  d3.select("#filterbar")
     .append("div")
     .html(
       swatches(
