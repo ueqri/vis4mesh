@@ -46,7 +46,7 @@ func (f *FlatInfo) InstFlat(m *MeshInfo, frameSize int) []byte {
 	f.snapshots = f.snapshots[:0]
 	log.Printf("flat %d start", frameSize)
 	var frameIdx int64
-	var timeElapse int64 = 52
+	var timeElapse int64 = *elapse
 	var now int64 = 0
 	for ; now < timeElapse; frameIdx++ {
 		f.QuerySnapshotOfFrame(m, now, frameSize, frameIdx)

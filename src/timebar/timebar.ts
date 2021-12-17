@@ -7,10 +7,10 @@ import { StackBarOptions } from "../widget/standalone/stackchart";
 import RegisterResizerEvent from "./resizer";
 import { Ticker } from "./ticker";
 import { Controller } from "../controller/controller";
-import { swatches } from "../widget/standalone/legend";
+import { MsgGroupsDomain, NumMsgGroups } from "../data/classification";
+import { FilterEventListener } from "../filterbar/filterbar";
 
-const timebar = d3.select("#timebar");
-const numMsgGroup = 4;
+const div = d3.select("#timebar");
 
 let opt: StackBarOptions = {
   x: (d) => d.id,
@@ -20,15 +20,9 @@ let opt: StackBarOptions = {
   height: 0,
   offset: d3.stackOffsetNone,
   yLabel: "Count",
-  zDomain: ["Translation", "Read", "Write", "Others"],
-  colors: d3.schemeSpectral[numMsgGroup],
+  zDomain: MsgGroupsDomain,
+  colors: d3.schemeSpectral[NumMsgGroups],
 };
-
-let controller: Controller;
-let ticker: Ticker;
-let chart: StackedChart;
-let svg: SVGSelection;
-let brush: d3.BrushBehavior<unknown>;
 
 interface FormattedDataForChart {
   id: string;
@@ -54,60 +48,73 @@ function handleFlatResponse(
   });
 }
 
-function renderResizer(callback: () => any) {
-  const resizer = timebar.select(".resizer");
-  RegisterResizerEvent(timebar, resizer, callback);
-}
-
-function renderChart(data: FormattedDataForChart[]) {
-  timebar.selectAll("svg").remove();
-
-  opt.width = (timebar.node() as Element).getBoundingClientRect().width;
-  opt.height = (timebar.node() as Element).getBoundingClientRect().height;
-
-  chart = new StackedChart(data, opt);
-  svg = chart.axis();
-  chart.bar(svg);
-  brush = chart.brush(svg, (l, r) => {
-    ticker.signal["state"]("pause");
-    controller.startTime = l;
-    controller.endTime = r;
-    controller.requestDataPort();
-  });
-
-  timebar.append(() => chart.node(svg));
-}
-
-export default function RenderTimebar(
+export function RenderTimebar(
   port: DataPort,
   c: Controller,
-  t: Ticker
+  t: Ticker,
+  f: FilterEventListener
 ) {
-  d3.select("#filterbar")
-    .append("div")
-    .html(
-      swatches(
-        d3.scaleOrdinal(
-          ["Translation", "Read", "Write", "Others"],
-          d3.schemeSpectral[numMsgGroup]
-        )
-      )
-    );
-
-  controller = c;
-  ticker = t;
   port.flat(1).then((resp) => {
-    const data = handleFlatResponse(resp);
+    const timebar = new Timebar(c, t, handleFlatResponse(resp));
 
-    renderResizer(() => renderChart(data));
-    d3.select(window).on("resize", () => renderChart(data));
+    const resizer = div.select(".resizer");
+    RegisterResizerEvent(div, resizer, () => timebar.render());
+    d3.select(window).on("resize", () => timebar.render());
 
-    ticker.setCast((l, r) => {
-      const padding: number = chart.xScale.step() - chart.xScale.bandwidth();
-      const mapL: number = chart.xScale(`${l}`);
-      const mapR: number = chart.xScale(`${r}`) - padding;
-      // console.log(mapL, mapR);
-      svg.select(".brush").call(brush.move as any, [mapL, mapR]);
-    });
+    t.setCast((l, r) => timebar.moveBrush(l, r));
+
+    f.AppendForMsgGroup(timebar.updateMsgGroupDomain);
   });
+}
+
+export class Timebar {
+  protected controller: Controller;
+  protected ticker: Ticker;
+  protected chart!: StackedChart;
+  protected svg!: SVGSelection;
+  protected brush!: d3.BrushBehavior<unknown>;
+  protected data: FormattedDataForChart[];
+
+  constructor(c: Controller, t: Ticker, d: FormattedDataForChart[]) {
+    this.controller = c;
+    this.ticker = t;
+    this.data = d;
+  }
+
+  updateMsgGroupDomain(domain: string[]) {
+    opt.zDomain = domain;
+    this.render();
+  }
+
+  render() {
+    div.selectAll("svg").remove();
+
+    opt.width = (div.node() as Element).getBoundingClientRect().width;
+    opt.height = (div.node() as Element).getBoundingClientRect().height;
+
+    let chart = new StackedChart(this.data, opt);
+    let svg = chart.axis();
+    chart.bar(svg);
+    let brush = chart.brush(svg, (l, r) => {
+      this.ticker.signal["state"]("pause");
+      this.controller.startTime = l;
+      this.controller.endTime = r;
+      this.controller.requestDataPort();
+    });
+
+    div.append(() => chart.node(svg));
+
+    this.chart = chart;
+    this.svg = svg;
+    this.brush = brush;
+  }
+
+  moveBrush(left: number, right: number) {
+    const chart = this.chart;
+    const padding: number = chart.xScale.step() - chart.xScale.bandwidth();
+    const mapL: number = chart.xScale(`${left}`);
+    const mapR: number = chart.xScale(`${right}`) - padding;
+    // console.log(mapL, mapR);
+    this.svg.select(".brush").call(this.brush.move as any, [mapL, mapR]);
+  }
 }

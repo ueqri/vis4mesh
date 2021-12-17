@@ -6,8 +6,10 @@ import { LinearNormalize } from "./controller/module/normalize";
 import { Ticker } from "./timebar/ticker";
 import RenderPlayerButton from "./topbar/playerbutton";
 import DataPort from "./data/dataport";
-import RenderTimebar from "./timebar/timebar";
-
+import { RenderTimebar } from "./timebar/timebar";
+import { ColoredCheckbox } from "./widget/colorcheckbox";
+import * as d3 from "d3";
+import { RenderFilterBar, FilterEventListener } from "./filterbar/filterbar";
 let divGraph = document.getElementById("graph") as HTMLElement;
 
 let port = new DataPort("ws://127.0.0.1:8080/");
@@ -19,6 +21,7 @@ port.init().then((meta) => {
   let c = new Controller(port, new Display(divGraph, Grid));
   c.loadModules([new Legend(), new LinearNormalize()]);
   ticker.bindController(c);
+  ticker.signal["step"](10);
   ticker.setStatusChangeCallback((running) => {
     if (running) {
       playerBtn.static("Pause");
@@ -27,7 +30,12 @@ port.init().then((meta) => {
     }
   });
   c.requestDataPort();
-  RenderTimebar(port, c, ticker);
+
+  let filterEvents = new FilterEventListener();
+
+  RenderTimebar(port, c, ticker, filterEvents);
+
+  RenderFilterBar(filterEvents);
 });
 
 //

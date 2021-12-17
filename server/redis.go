@@ -20,8 +20,8 @@ var queriedMsgTypes = []string{
 	"*protocol.FlushReq",
 	"*protocol.LaunchKernelReq",
 	"*protocol.MapWGReq",
-	"*protocol.MemCopyD2HReq",
-	"*protocol.MemCopyH2DReq",
+	// "*protocol.MemCopyD2HReq",
+	// "*protocol.MemCopyH2DReq",
 	"*protocol.WGCompletionMsg",
 	"*vm.TranslationReq",
 	"*vm.TranslationRsp",
@@ -30,18 +30,18 @@ var queriedMsgTypes = []string{
 var msgTypesGroupMap = map[string]string{
 	"*cache.FlushReq":           "Others",
 	"*cache.FlushRsp":           "Others",
-	"*mem.DataReadyRsp":         "Read",
-	"*mem.ReadReq":              "Read",
-	"*mem.WriteDoneRsp":         "Write",
-	"*mem.WriteReq":             "Write",
+	"*mem.DataReadyRsp":         "Read",  // d
+	"*mem.ReadReq":              "Read",  // cmd
+	"*mem.WriteDoneRsp":         "Write", //cmd
+	"*mem.WriteReq":             "Write", //d
 	"*protocol.FlushReq":        "Others",
 	"*protocol.LaunchKernelReq": "Others",
 	"*protocol.MapWGReq":        "Others",
-	"*protocol.MemCopyD2HReq":   "Others",
-	"*protocol.MemCopyH2DReq":   "Others",
+	// "*protocol.MemCopyD2HReq":   "Others",
+	// "*protocol.MemCopyH2DReq":   "Others",
 	"*protocol.WGCompletionMsg": "Others",
-	"*vm.TranslationReq":        "Translation",
-	"*vm.TranslationRsp":        "Translation",
+	"*vm.TranslationReq":        "Translation", //cmd
+	"*vm.TranslationRsp":        "Translation", //d
 }
 
 var recordEncoder *tracing.NetworkTracingRecordEncoder
