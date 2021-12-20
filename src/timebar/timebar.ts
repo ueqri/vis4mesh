@@ -11,6 +11,12 @@ import { MsgGroupsDomain, NumMsgGroups } from "../data/classification";
 import { FilterEventListener } from "../filterbar/filterbar";
 
 const div = d3.select("#timebar");
+const colorScheme = d3.schemeSpectral;
+// mapping from group to color, e.g. { "Translations": "red" }
+const fixGroupColor = MsgGroupsDomain.reduce(
+  (a, g, i) => ({ ...a, [g]: colorScheme[NumMsgGroups][i] }),
+  {}
+);
 
 let opt: StackBarOptions = {
   x: (d) => d.id,
@@ -21,7 +27,7 @@ let opt: StackBarOptions = {
   offset: d3.stackOffsetNone,
   yLabel: "Count",
   zDomain: MsgGroupsDomain,
-  colors: d3.schemeSpectral[NumMsgGroups],
+  colors: colorScheme[NumMsgGroups],
 };
 
 interface FormattedDataForChart {
@@ -63,7 +69,7 @@ export function RenderTimebar(
 
     t.setCast((l, r) => timebar.moveBrush(l, r));
 
-    f.AppendForMsgGroup(timebar.updateMsgGroupDomain);
+    f.AppendForMsgGroup((g) => timebar.updateMsgGroupDomain(g));
   });
 }
 
@@ -83,6 +89,7 @@ export class Timebar {
 
   updateMsgGroupDomain(domain: string[]) {
     opt.zDomain = domain;
+    opt.colors = domain.map((d) => fixGroupColor[d]);
     this.render();
   }
 

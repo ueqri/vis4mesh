@@ -12,15 +12,17 @@ export class ColoredCheckbox extends Widget {
 
   constructor(id?: string) {
     super(id);
-    this.div.style("margin", "0.25rem");
+    this.div
+      .style("margin", "0.25rem")
+      .style("display", "inline-block")
+      .style("font-size", "0.85em");
   }
 
   append(opt: CheckBoxOptions): this {
     this.color = opt.color === undefined ? "blue" : opt.color;
-    const size = opt.boxSize === undefined ? 25 : opt.boxSize;
+    const size = opt.boxSize === undefined ? 21 : opt.boxSize;
 
-    let out = this.div.append("div");
-    let svg = out
+    let svg = this.div
       .append("svg")
       .attr("width", size)
       .attr("height", size)
@@ -44,7 +46,7 @@ export class ColoredCheckbox extends Widget {
     //   .attr("stroke-width", 4)
     //   .attr("fill", "none");
 
-    out
+    this.div
       .append("label")
       .text(opt.label)
       .style("margin", "0.25em")
@@ -68,6 +70,23 @@ export class ColoredCheckbox extends Widget {
         handle(false);
       }
     });
+    return this;
+  }
+
+  static(checked: boolean): this {
+    const rect = this.div.select("rect");
+    if (checked) {
+      rect.property("checked", true).transition().attr("fill", this.color);
+    } else {
+      rect.property("checked", false).transition().attr("fill", "none");
+    }
+    return this;
+  }
+
+  switch(checked: boolean): this {
+    // change to last state, then click it to current state
+    this.static(!checked);
+    this.div.select("svg").dispatch("click");
     return this;
   }
 }

@@ -130,3 +130,38 @@ func (t *RedisTracerReader) Query(
 
 	return count
 }
+
+func (t *RedisTracerReader) getKeySliceFromRegex(pattern string) []string {
+	result, err := t.rdb.Do(t.ctx, "keys", pattern).StringSlice()
+	if err != nil {
+		panic(err)
+	}
+	return result
+}
+
+func (t *RedisTracerReader) GetMaxTimeSlice() int64 {
+	// Assume `0@*` is always existed, i.e., number of time slice must be >= 1
+	// Use exponential backoff method
+	var iter int64 = 1
+	for {
+		if len(t.getKeySliceFromRegex(fmt.Sprintf("%d@*", iter))) == 0 {
+			break
+		} else {
+			iter *= 2
+		}
+	}
+
+	// Binary Search in range [ iter/2+1, iter )
+	l, r := iter/2+1, iter-1
+	for l < r {
+		mid := (l + r) / 2
+		// l ≤ mid < r
+		if len(t.getKeySliceFromRegex(fmt.Sprintf("%d@*", mid))) == 0 {
+			r = mid // preserves f(r) == false
+		} else {
+			l = mid + 1 // preserves f(l-1) == true
+		}
+	}
+	// l == r, f(l-1) == true, and f(r) = f(l) == false  =>  answer is l.
+	return l
+}

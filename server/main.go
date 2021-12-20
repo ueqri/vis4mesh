@@ -11,13 +11,16 @@ var flat FlatInfo
 var redisReader RedisTracerReader
 
 var addr = flag.String("addr", ":8080", "http service address")
-var elapse = flag.Int64("n", 423, "number of slice to vis")
+var elapse int64
 
 func main() {
 	// log.SetFlags(0)
 	flag.Parse()
-	mesh.Init(8, 8, 0.0000010, *elapse)
 	redisReader.Init()
+	elapse = redisReader.GetMaxTimeSlice()
+	log.Println("Total number of time slice: ", elapse)
+	elapse += 1 // append an empty bar in the end
+	mesh.Init(8, 8, 0.0000010, elapse)
 
 	http.HandleFunc("/echo", echo)
 	http.HandleFunc("/", handle)

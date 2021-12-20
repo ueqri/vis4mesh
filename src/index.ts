@@ -7,8 +7,6 @@ import { Ticker } from "./timebar/ticker";
 import RenderPlayerButton from "./topbar/playerbutton";
 import DataPort from "./data/dataport";
 import { RenderTimebar } from "./timebar/timebar";
-import { ColoredCheckbox } from "./widget/colorcheckbox";
-import * as d3 from "d3";
 import { RenderFilterBar, FilterEventListener } from "./filterbar/filterbar";
 let divGraph = document.getElementById("graph") as HTMLElement;
 
@@ -21,7 +19,7 @@ port.init().then((meta) => {
   let c = new Controller(port, new Display(divGraph, Grid));
   c.loadModules([new Legend(), new LinearNormalize()]);
   ticker.bindController(c);
-  ticker.signal["step"](10);
+  ticker.signal["step"](1);
   ticker.setStatusChangeCallback((running) => {
     if (running) {
       playerBtn.static("Pause");

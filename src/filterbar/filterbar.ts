@@ -46,15 +46,16 @@ class FilterBar {
           label: group,
           color: d3.schemeSpectral[NumMsgGroups][i],
         })
-        .event((val) => this.updateMsgGroup(group, val));
+        .event((val) => this.updateMsgGroup(group, val))
+        .static(true);
       div.append(() => box.node());
-      console.log(box.node());
     });
   }
 
   updateMsgGroup(group: string, checked: boolean) {
     SelectedMsgGroup[group] = checked;
     let groups = MsgGroupsDomain.filter((g) => SelectedMsgGroup[g]);
+    console.log(groups);
     this.ev.FireEventForMsgGroup(groups);
   }
 }
