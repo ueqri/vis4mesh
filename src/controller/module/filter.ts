@@ -2,7 +2,7 @@ import { SignalMap, ControllerModule } from "../controller";
 import { DataToDisplay } from "../../display/data";
 import { DataPortRangeResponse } from "../../data/data";
 
-export class Legend implements ControllerModule {
+export class Filter implements ControllerModule {
   public signal: SignalMap; // no used
 
   constructor() {

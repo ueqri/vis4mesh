@@ -65,7 +65,7 @@ export default class StackedChart {
   protected width: number;
   protected height: number;
   protected marginTop = 30; // top margin, in pixels
-  protected marginRight = 0; // right margin, in pixels
+  protected marginRight = 5; // right margin, in pixels
   protected marginBottom = 30; // bottom margin, in pixels
   protected marginLeft = 40; // left margin, in pixels
   protected xPadding = 0.1; // amount of x-range to reserve to separate bars
@@ -162,7 +162,17 @@ export default class StackedChart {
     const xScale = d3.scaleBand(xDomain, xRange).paddingInner(this.xPadding);
     const yScale = yType(yDomain, yRange);
     const color = d3.scaleOrdinal(zDomain, opt.colors);
-    const xAxis = d3.axisBottom(xScale as any).tickSizeOuter(0);
+    const xAxis = d3
+      .axisBottom(xScale as any)
+      .tickSizeOuter(0)
+      .tickValues(
+        xScale.domain().filter(function (d, i) {
+          const realWidth = document.body.clientWidth;
+          // console.log(realWidth);
+          const numTicks = Math.floor(realWidth / 40); // 25px => 1cm
+          return !(i % Math.floor(xScale.domain().length / numTicks));
+        }) as any
+      );
     const yAxis = d3.axisLeft(yScale).ticks(opt.height / 60, opt.yFormat);
 
     // Compute titles.

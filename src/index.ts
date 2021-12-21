@@ -1,7 +1,7 @@
 import { Controller } from "./controller/controller";
 import { Grid } from "./display/layout/grid";
 import { Display } from "./display/display";
-import { Legend } from "./controller/module/legend";
+import { Filter } from "./controller/module/filter";
 import { LinearNormalize } from "./controller/module/normalize";
 import { Ticker } from "./timebar/ticker";
 import RenderPlayerButton from "./topbar/playerbutton";
@@ -17,7 +17,7 @@ let playerBtn = RenderPlayerButton(ticker);
 
 port.init().then((meta) => {
   let c = new Controller(port, new Display(divGraph, Grid));
-  c.loadModules([new Legend(), new LinearNormalize()]);
+  c.loadModules([new Filter(), new LinearNormalize()]);
   ticker.bindController(c);
   ticker.signal["step"](1);
   ticker.setStatusChangeCallback((running) => {
