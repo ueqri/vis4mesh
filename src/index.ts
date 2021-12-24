@@ -1,14 +1,14 @@
-import { Controller } from "./controller/controller";
-import { Grid } from "./display/layout/grid";
-import { Display } from "./display/display";
-import { Filter } from "./controller/module/filter";
-import { LinearNormalize } from "./controller/module/normalize";
-import { Ticker } from "./timebar/ticker";
+import Controller from "./controller/controller";
+import Grid from "./display/layout/grid";
+import Display from "./display/display";
+import Filter from "./controller/module/filter";
+import LinearNormalize from "./controller/module/normalize";
+import Ticker from "./timebar/ticker";
+import DataPort from "./data/dataport";
 import RenderPlayerButton from "./topbar/playerbutton";
 import RenderAccordionSetting from "./topbar/setting";
-import DataPort from "./data/dataport";
-import { RenderTimebar } from "./timebar/timebar";
-import { RenderFilterBar, FilterEventListener } from "./filterbar/filterbar";
+import RenderTimebar from "./timebar/timebar";
+import RenderFilterBar, { FilterEventListener } from "./filterbar/filterbar";
 
 let divGraph = document.getElementById("graph") as HTMLElement;
 
@@ -21,17 +21,16 @@ port.init().then((meta) => {
   let playerBtn = RenderPlayerButton(ticker);
   let filterEvents = new FilterEventListener(ticker);
 
-  let c = new Controller(port, new Display(divGraph, Grid));
-  c.loadModules([new Filter(filterEvents), new LinearNormalize()]);
-  ticker.bindController(c);
-  ticker.setStatusChangeCallback((running) => {
-    if (running) {
-      playerBtn.static("Pause");
-    } else {
-      playerBtn.static("Play");
-    }
+  let c = new Controller(port, new Display(divGraph, Grid)).loadModules([
+    new Filter(filterEvents),
+    new LinearNormalize(),
+  ]);
+
+  ticker.bindController(c).setStatusChangeCallback((running) => {
+    playerBtn.static(running ? "Pause" : "Play");
   });
-  c.requestDataPort();
+
+  c.requestDataPort(); // render initial view
 
   RenderTimebar(port, c, ticker, filterEvents);
 

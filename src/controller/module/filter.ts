@@ -7,7 +7,7 @@ import {
   MsgGroupsReverseMap,
 } from "../../data/classification";
 
-export class Filter implements ControllerModule {
+export default class Filter implements ControllerModule {
   public signal: SignalMap; // no used
   protected domain: string[];
 

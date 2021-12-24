@@ -25,7 +25,7 @@ export class GridConfig extends DisplayConfig {
   }
 }
 
-export class Grid extends DisplayLayout {
+export default class Grid extends DisplayLayout {
   config: GridConfig;
 
   svg: d3.Selection<SVGSVGElement, unknown, null, undefined>;

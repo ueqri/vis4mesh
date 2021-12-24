@@ -1,7 +1,7 @@
 import * as d3 from "d3";
 import { ColoredCheckbox } from "../widget/colorcheckbox";
 import { MsgGroupsDomain, NumMsgGroups } from "../data/classification";
-import { Ticker } from "../timebar/ticker";
+import Ticker from "../timebar/ticker";
 
 const div = d3.select("#filterbar");
 let SelectedMsgGroup = MsgGroupsDomain.reduce(
@@ -31,7 +31,7 @@ export class FilterEventListener {
   }
 }
 
-export function RenderFilterBar(ev: FilterEventListener) {
+export default function RenderFilterBar(ev: FilterEventListener) {
   let f = new FilterBar(ev);
   f.renderFilterMsgGroup();
 }

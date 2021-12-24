@@ -1,7 +1,7 @@
 import DataPort from "../data/dataport";
 import { DataPortRangeResponse } from "../data/data";
+import Display from "display/display";
 import { DataToDisplay } from "../display/data";
-import { Display } from "display/display";
 
 export type SignalMap = { [type: string]: (v: any) => any };
 
@@ -16,7 +16,7 @@ export interface ControllerModule {
   invokeController(c: Controller): void;
 }
 
-export class Controller {
+export default class Controller {
   // Controller components
   protected port: DataPort;
   protected view: Display;

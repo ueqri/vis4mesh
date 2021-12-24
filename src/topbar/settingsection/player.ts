@@ -1,7 +1,7 @@
 import { InputBoxWithFloatingLabel } from "../../widget/input";
 import { LabelBox } from "../../widget/labelbox";
 import { RadioButtonGroup } from "../../widget/radiobutton";
-import { Ticker } from "../../timebar/ticker";
+import Ticker from "../../timebar/ticker";
 
 export default function RenderSettingPlayerSection(t: Ticker) {
   return new LabelBox("player-setting").append([

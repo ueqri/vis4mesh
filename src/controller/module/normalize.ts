@@ -1,7 +1,7 @@
 import { ControllerModule, SignalMap } from "../controller";
 import { DataToDisplay } from "../../display/data";
 
-export class LinearNormalize implements ControllerModule {
+export default class LinearNormalize implements ControllerModule {
   public signal: SignalMap;
 
   constructor() {

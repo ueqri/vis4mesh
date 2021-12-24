@@ -1,7 +1,7 @@
 import { DataToDisplay } from "./data";
 import { DisplayLayout } from "./layout";
 
-export class Display {
+export default class Display {
   // protected div: HTMLElement;
   protected layout: DisplayLayout;
 

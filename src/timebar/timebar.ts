@@ -5,8 +5,8 @@ import StackedChart from "../widget/standalone/stackchart";
 import { offsetSeparated, SVGSelection } from "../widget/standalone/stackchart";
 import { StackBarOptions } from "../widget/standalone/stackchart";
 import RegisterResizerEvent from "./resizer";
-import { Ticker } from "./ticker";
-import { Controller } from "../controller/controller";
+import Ticker from "./ticker";
+import Controller from "../controller/controller";
 import { MsgGroupsDomain, NumMsgGroups } from "../data/classification";
 import { FilterEventListener } from "../filterbar/filterbar";
 
@@ -54,7 +54,7 @@ function handleFlatResponse(
   });
 }
 
-export function RenderTimebar(
+export default function RenderTimebar(
   port: DataPort,
   c: Controller,
   t: Ticker,
@@ -74,7 +74,7 @@ export function RenderTimebar(
   });
 }
 
-export class Timebar {
+class Timebar {
   protected controller: Controller;
   protected ticker: Ticker;
   protected chart!: StackedChart;

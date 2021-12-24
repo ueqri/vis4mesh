@@ -1,6 +1,6 @@
 import * as d3 from "d3";
 import { FlipButton } from "../widget/flipbutton";
-import { Ticker } from "../timebar/ticker";
+import Ticker from "../timebar/ticker";
 
 export default function RenderPlayerButton(t: Ticker): FlipButton {
   // TODO: SVG to file

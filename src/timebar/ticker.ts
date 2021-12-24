@@ -1,4 +1,4 @@
-import { Controller } from "../controller/controller";
+import Controller from "../controller/controller";
 
 type SignalMap = { [type: string]: (v: any) => any };
 
@@ -64,7 +64,7 @@ enum TickerMode {
   RangeTick, // tick `timeTo` from input box, i.e `timeFrom` is static
 }
 
-export class Ticker {
+export default class Ticker {
   public signal: SignalMap;
   protected t: InnerTicker;
   protected mode: TickerMode;
@@ -129,11 +129,12 @@ export class Ticker {
     };
   }
 
-  setCast(f: (l: number, r: number) => any) {
+  setCast(f: (l: number, r: number) => any): this {
     this.cast = f;
+    return this;
   }
 
-  bindController(c: Controller) {
+  bindController(c: Controller): this {
     this.t.tickFunc = () => {
       // Set time recorder in Controller first
       if (this.mode === TickerMode.SliceTick) {
@@ -152,7 +153,6 @@ export class Ticker {
         c.endTime = this.t.next(c.endTime);
       }
 
-      console.log(c.startTime, c.endTime);
       // Cast the left and right value
       this.cast(c.startTime, c.endTime);
       // Send data port request in controller, TODO: error sets ticker pause
@@ -160,9 +160,12 @@ export class Ticker {
 
       return true; // continue ticking
     };
+
+    return this;
   }
 
-  setStatusChangeCallback(f: (running: boolean) => any) {
+  setStatusChangeCallback(f: (running: boolean) => any): this {
     this.statusChangeCallback = f;
+    return this;
   }
 }

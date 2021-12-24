@@ -1,4 +1,4 @@
-import { Controller, ControllerModule, SignalMap } from "../controller";
+import Controller, { ControllerModule, SignalMap } from "../controller";
 
 export class TimeRecorder implements ControllerModule {
   protected controller!: Controller;
