@@ -1,6 +1,7 @@
 import * as d3 from "d3";
 import { ColoredCheckbox } from "../widget/colorcheckbox";
 import { MsgGroupsDomain, NumMsgGroups } from "../data/classification";
+import { Ticker } from "../timebar/ticker";
 
 const div = d3.select("#filterbar");
 let SelectedMsgGroup = MsgGroupsDomain.reduce(
@@ -10,9 +11,11 @@ let SelectedMsgGroup = MsgGroupsDomain.reduce(
 
 export class FilterEventListener {
   protected updaterMsgGroup: Array<(g: string[]) => any>;
+  protected ticker: Ticker;
 
-  constructor() {
+  constructor(ticker: Ticker) {
     this.updaterMsgGroup = new Array<(g: string[]) => any>();
+    this.ticker = ticker; // use signal `pause` and `still` of ticker
   }
 
   AppendForMsgGroup(updater: (g: string[]) => any) {
@@ -20,9 +23,11 @@ export class FilterEventListener {
   }
 
   FireEventForMsgGroup(g: string[]) {
+    this.ticker.signal["state"]("pause");
     this.updaterMsgGroup.forEach((updater) => {
       updater(g);
     });
+    this.ticker.signal["state"]("still");
   }
 }
 

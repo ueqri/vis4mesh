@@ -19,6 +19,20 @@ export const MsgGroupsMap: Object = {
 export const MsgTypes = Object.keys(MsgGroupsMap);
 export const NumMsgTypes = MsgTypes.length;
 
+function reverseObject(obj: Object): Object {
+  const rev = {};
+  Object.keys(obj).forEach((key) => {
+    if (rev[obj[key]]) {
+      rev[obj[key]].push(key);
+    } else {
+      rev[obj[key]] = [key];
+    }
+  });
+  return rev;
+}
+
+export const MsgGroupsReverseMap = reverseObject(MsgGroupsMap);
+
 export const DataOrCommandMap: Object = {
   "*cache.FlushReq": "C",
   "*cache.FlushRsp": "C",

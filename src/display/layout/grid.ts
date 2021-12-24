@@ -276,8 +276,8 @@ export class Grid extends DisplayLayout {
       })
       .on("mousemove", function (event, d) {
         return tooltipEdge
-          .style("top", event.pageY + 2 + "px")
-          .style("left", event.pageX + 2 + "px");
+          .style("top", event.pageY + 1 + "px")
+          .style("left", event.pageX + 1 + "px");
       })
       .on("mouseout", function (event, d) {
         d3.select(this).attr("stroke-width", c.edgeWidth);
@@ -337,8 +337,8 @@ export class Grid extends DisplayLayout {
       })
       .on("mousemove", function (event, d) {
         return tooltipNode
-          .style("top", event.pageY + 2 + "px")
-          .style("left", event.pageX + 2 + "px");
+          .style("top", event.pageY + 1 + "px")
+          .style("left", event.pageX + 1 + "px");
       })
       .on("mouseout", function (event, d) {
         d3.select(this).attr("fill", "#8fbed1");

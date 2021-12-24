@@ -1,35 +1,50 @@
-#navbar {
-  position: relative;
+$setting-separate: 84vw;
+
+body {
+  overflow: hidden;
+
+  #navbar {
+    position: relative;
+  }
+
+  #filterbar {
+    width: $setting-separate;
+  }
+
+  #graph {
+    z-index: 5;
+    position: absolute;
+
+    svg {
+      overflow: visible;
+      width: 100%;
+      height: 100%;
+    }
+  }
+
+  #setting {
+    width: 100vw - $setting-separate;
+    z-index: 15;
+    position: relative;
+    float: right;
+    padding-top: 0.02em;
+  }
+
+  #timebar {
+    height: 20vh;
+
+    .resizer {
+      position: absolute;
+      top: -5px;
+      cursor: row-resize;
+      height: 5px;
+      left: 0;
+      width: 100%;
+    }
+  }
 }
 
-#graph {
-  z-index: 5;
-  position: absolute;
-}
-
-#sidebar {
-  width: 15vw; /* possibly use max-content */
-  z-index: 15;
-  position: relative;
-  float: right;
-  padding-top: 0.02em;
-}
-
-#graph svg {
-  overflow: visible;
-  width: 100%;
-  height: 100%;
-}
-
-.time-input {
-  width: 11em;
-  margin: 0 0.5em;
-}
-
-.color-box {
-  width: 1em;
-  height: 1em;
-}
+// Style for Widgets
 
 .node-tooltip,
 .edge-tooltip {
@@ -55,13 +70,4 @@
   text-anchor: middle;
   font-size: 0.75em;
   font-weight: bold;
-}
-
-.resizer {
-  position: absolute;
-  top: -5px;
-  cursor: row-resize;
-  height: 5px;
-  left: 0;
-  width: 100%;
 }

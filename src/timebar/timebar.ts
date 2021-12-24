@@ -62,6 +62,7 @@ export function RenderTimebar(
 ) {
   port.flat(1).then((resp) => {
     const timebar = new Timebar(c, t, handleFlatResponse(resp));
+    timebar.render();
 
     const resizer = div.select(".resizer");
     RegisterResizerEvent(div, resizer, () => timebar.render());
@@ -117,11 +118,19 @@ export class Timebar {
   }
 
   moveBrush(left: number, right: number) {
+    if (right < 1) {
+      console.error("Right position of brush cannot be less than 1");
+      return;
+    } else if (left > right) {
+      console.error("Left position of brush cannot be greater than right");
+      return;
+    }
     const chart = this.chart;
-    const padding: number = chart.xScale.step() - chart.xScale.bandwidth();
     const mapL: number = chart.xScale(`${left}`);
-    const mapR: number = chart.xScale(`${right}`) - padding;
-    // console.log(mapL, mapR);
+    // To avoid position out of right bound, use last bar + band width,
+    // and `right` always >= 1
+    const mapR: number =
+      chart.xScale(`${right - 1}`) + chart.xScale.bandwidth();
     this.svg.select(".brush").call(this.brush.move as any, [mapL, mapR]);
   }
 }

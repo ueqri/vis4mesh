@@ -30,14 +30,14 @@ class InnerTicker {
   }
 
   next(now: number): number {
-    return Number(now + this.step);
+    return now + this.step;
   }
 
   auto() {
     if (this.tickFunc() === true) {
       this.timeoutHandle = setTimeout(() => this.auto(), 1000 / this.speed);
     } else {
-      console.error(`Tick function failed in InnerTicker: ${this.tickFunc}`);
+      console.log("Automatic tick finished in InnerTicker");
     }
   }
 
@@ -71,14 +71,17 @@ export class Ticker {
   protected cast: (l: number, r: number) => any;
   protected running: boolean;
   protected statusChangeCallback: (running: boolean) => any;
+  protected maxTime: number;
 
-  constructor() {
+  constructor(maxTime: number) {
     this.signal = {};
     this.t = new InnerTicker();
     this.mode = TickerMode.SliceTick; // by default
     this.cast = () => {};
     this.running = false;
     this.statusChangeCallback = () => {};
+    this.maxTime = maxTime;
+
     this.initSignalCallbacks();
   }
 
@@ -102,14 +105,13 @@ export class Ticker {
         this.t.manual();
         next = false;
       } else if (stat === "still") {
-        console.warn("`[state] still` signal is deprecated");
         this.t.still();
         next = false;
       } else {
         console.error(`Unknown state signal ${stat} passed to Ticker`);
       }
       if (next != this.running) {
-        console.log(`change from ${this.running}->${next}`);
+        console.log(`change from ${this.running} -> ${next}`);
         this.running = next;
         this.statusChangeCallback(this.running);
       }
@@ -133,18 +135,30 @@ export class Ticker {
 
   bindController(c: Controller) {
     this.t.tickFunc = () => {
+      // Set time recorder in Controller first
+      if (this.mode === TickerMode.SliceTick) {
+        if (this.t.next(0) != 0) {
+          // if this.t.step not equals to 0, i.e., not in `still` mode
+          c.startTime = c.endTime;
+        }
+      } else if (this.mode === TickerMode.RangeTick) {
+        // Nothing to do with `c.startTime`
+      }
+      if (c.endTime === this.maxTime) {
+        this.running = false;
+        this.statusChangeCallback(false);
+        return false; // exit ticking
+      } else {
+        c.endTime = this.t.next(c.endTime);
+      }
+
+      console.log(c.startTime, c.endTime);
       // Cast the left and right value
       this.cast(c.startTime, c.endTime);
       // Send data port request in controller, TODO: error sets ticker pause
       c.requestDataPort();
-      // Update time recorder in Controller
-      if (this.mode === TickerMode.SliceTick) {
-        c.startTime = c.endTime;
-      } else if (this.mode === TickerMode.RangeTick) {
-        // Nothing to do with `c.startTime`
-      }
-      c.endTime = this.t.next(c.endTime);
-      return true;
+
+      return true; // continue ticking
     };
   }
 

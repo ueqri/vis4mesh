@@ -1,12 +1,20 @@
 import { SignalMap, ControllerModule } from "../controller";
 import { DataToDisplay } from "../../display/data";
 import { DataPortRangeResponse } from "../../data/data";
+import { FilterEventListener } from "../../filterbar/filterbar";
+import {
+  MsgGroupsDomain,
+  MsgGroupsReverseMap,
+} from "../../data/classification";
 
 export class Filter implements ControllerModule {
   public signal: SignalMap; // no used
+  protected domain: string[];
 
-  constructor() {
+  constructor(f: FilterEventListener) {
     this.signal = {};
+    this.domain = MsgGroupsDomain;
+    f.AppendForMsgGroup((g) => this.updateMsgGroupDomain(g));
   }
 
   decorateData(ref: DataPortRangeResponse, d: DataToDisplay) {
@@ -17,10 +25,16 @@ export class Filter implements ControllerModule {
 
       // weight
       e.weight = 0;
-      for (const key in ref.edges[idx].value) {
-        e.detail += `${key}: ${ref.edges[idx].value[key]}<br>`;
-        e.weight += ref.edges[idx].value[key];
-      }
+      this.domain.forEach((g) => {
+        (MsgGroupsReverseMap[g] as string[]).forEach((key) => {
+          const val: number = ref.edges[idx].value[key];
+          // console.log(g, key, val);
+          if (val > 0) {
+            e.detail += `<br>${key}: ${val}`;
+            e.weight += ref.edges[idx].value[key];
+          }
+        });
+      });
       // label
       e.label = e.weight === 0 ? "" : `${e.weight}`;
       // TODO: style
@@ -28,4 +42,8 @@ export class Filter implements ControllerModule {
   }
 
   invokeController() {} // Nothing to do
+
+  updateMsgGroupDomain(domain: string[]) {
+    this.domain = domain;
+  }
 }
