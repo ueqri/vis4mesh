@@ -21,8 +21,9 @@ port.init().then((meta) => {
   let playerBtn = RenderPlayerButton(ticker);
   let filterEvents = new FilterEventListener(ticker);
 
+  let filterModule = new Filter(filterEvents);
   let c = new Controller(port, new Display(divGraph, Grid)).loadModules([
-    new Filter(filterEvents),
+    filterModule,
     new LinearNormalize(),
   ]);
 
@@ -34,9 +35,13 @@ port.init().then((meta) => {
 
   RenderTimebar(port, c, ticker, filterEvents);
 
-  RenderFilterBar(filterEvents);
+  let filterBar = RenderFilterBar(filterEvents);
 
-  RenderAccordionSetting({ ticker: ticker });
+  RenderAccordionSetting({
+    ticker: ticker,
+    filterBar: filterBar,
+    filterModule: filterModule,
+  });
 
   //
   // Global Event

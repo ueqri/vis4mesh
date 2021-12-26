@@ -33,6 +33,19 @@ function reverseObject(obj: Object): Object {
 
 export const MsgGroupsReverseMap = reverseObject(MsgGroupsMap);
 
+export const DataOrCommandDomain = ["D", "C"];
+export const NumDataOrCommand = DataOrCommandDomain.length;
+export const DataOrCommandDomainNameExtend = (v: string) => {
+  if (v === "D") {
+    return "Data";
+  } else if (v === "C") {
+    return "Command";
+  } else {
+    console.error("Invalid input in DataOrCommandDomainNameExtend");
+    return "Invalid";
+  }
+};
+
 export const DataOrCommandMap: Object = {
   "*cache.FlushReq": "C",
   "*cache.FlushRsp": "C",
@@ -47,3 +60,5 @@ export const DataOrCommandMap: Object = {
   "*vm.TranslationReq": "C",
   "*vm.TranslationRsp": "D",
 };
+
+export const DataOrCommandReverseMap = reverseObject(DataOrCommandMap);

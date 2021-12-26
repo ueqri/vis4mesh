@@ -22,6 +22,7 @@ export interface SnapShotData {
   id: number; // frame ID
   type: string; // message type
   group: string; // group of the certain message type, e.g. Read, Write
+  doc: string; // data or command message, e.g. D, C
   count: number; // count of the certain message type during this frame
 }
 

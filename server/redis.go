@@ -30,18 +30,31 @@ var queriedMsgTypes = []string{
 var msgTypesGroupMap = map[string]string{
 	"*cache.FlushReq":           "Others",
 	"*cache.FlushRsp":           "Others",
-	"*mem.DataReadyRsp":         "Read",  // d
-	"*mem.ReadReq":              "Read",  // cmd
-	"*mem.WriteDoneRsp":         "Write", //cmd
-	"*mem.WriteReq":             "Write", //d
+	"*mem.DataReadyRsp":         "Read",
+	"*mem.ReadReq":              "Read",
+	"*mem.WriteDoneRsp":         "Write",
+	"*mem.WriteReq":             "Write",
 	"*protocol.FlushReq":        "Others",
 	"*protocol.LaunchKernelReq": "Others",
 	"*protocol.MapWGReq":        "Others",
-	// "*protocol.MemCopyD2HReq":   "Others",
-	// "*protocol.MemCopyH2DReq":   "Others",
 	"*protocol.WGCompletionMsg": "Others",
-	"*vm.TranslationReq":        "Translation", //cmd
-	"*vm.TranslationRsp":        "Translation", //d
+	"*vm.TranslationReq":        "Translation",
+	"*vm.TranslationRsp":        "Translation",
+}
+
+var msgDataOrCommandMap = map[string]string{
+	"*cache.FlushReq":           "C",
+	"*cache.FlushRsp":           "C",
+	"*mem.DataReadyRsp":         "D",
+	"*mem.ReadReq":              "C",
+	"*mem.WriteDoneRsp":         "C",
+	"*mem.WriteReq":             "D",
+	"*protocol.FlushReq":        "C",
+	"*protocol.LaunchKernelReq": "C",
+	"*protocol.MapWGReq":        "C",
+	"*protocol.WGCompletionMsg": "C",
+	"*vm.TranslationReq":        "C",
+	"*vm.TranslationRsp":        "D",
 }
 
 var recordEncoder *tracing.NetworkTracingRecordEncoder

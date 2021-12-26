@@ -233,10 +233,12 @@ export default class StackedChart {
           .text(this.yLabel)
       );
 
-    svg
-      .append("g")
-      .attr("transform", `translate(0,${this.yScale(0)})`)
-      .call(this.xAxis);
+    let dy: number = this.yScale(0);
+    // yScale(0) is NaN when zDomain is empty
+    if (Number.isNaN(dy)) {
+      dy = this.height - this.marginBottom;
+    }
+    svg.append("g").attr("transform", `translate(0,${dy})`).call(this.xAxis);
 
     return svg;
   }
@@ -261,11 +263,7 @@ export default class StackedChart {
       .attr("height", ([y1, y2]) => Math.abs(yScale(y1) - yScale(y2)))
       .attr("width", xScale.bandwidth());
 
-    if (this.title)
-      item
-        .append("title")
-        .text(({ i }) => this.title(i))
-        .attr("style");
+    if (this.title) item.append("title").text(({ i }) => this.title(i));
 
     return bar;
   }

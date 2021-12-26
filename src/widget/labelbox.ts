@@ -16,7 +16,7 @@ export class LabelBox extends Widget {
       this.div
         .append("label")
         .style("display", "block")
-        .style("margin", "0.1em")
+        .style("margin", "0.25em")
         .text(v.label);
       if (v.widgets === undefined) {
         console.warn("append empty LabelBox");

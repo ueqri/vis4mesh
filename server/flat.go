@@ -1,10 +1,11 @@
 package main
 
 type Snapshot struct {
-	FrameIdx     int64  `json:"id"`
-	MsgExactType string `json:"type"`
-	MsgTypeGroup string `json:"group"`
-	Count        int64  `json:"count"`
+	FrameIdx         int64  `json:"id"`
+	MsgExactType     string `json:"type"`
+	MsgTypeGroup     string `json:"group"`
+	MsgDataOrCommand string `json:"doc"`
+	Count            int64  `json:"count"`
 }
 
 type FlatInfo struct {
@@ -18,10 +19,11 @@ func (f *FlatInfo) QuerySnapshotOfFrame(
 	snapshots := make(map[string]*Snapshot, len(queriedMsgTypes))
 	for _, msgType := range queriedMsgTypes {
 		snapshots[msgType] = &Snapshot{
-			FrameIdx:     frameIdx,
-			MsgExactType: msgType,
-			MsgTypeGroup: msgTypesGroupMap[msgType],
-			Count:        0,
+			FrameIdx:         frameIdx,
+			MsgExactType:     msgType,
+			MsgTypeGroup:     msgTypesGroupMap[msgType],
+			MsgDataOrCommand: msgDataOrCommandMap[msgType],
+			Count:            0,
 		}
 	}
 
