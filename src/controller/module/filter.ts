@@ -76,7 +76,6 @@ export default class Filter implements ControllerModule {
       }
       // label
       e.label = e.weight === 0 ? "" : `${e.weight}`;
-      // TODO: style
     });
   }
 

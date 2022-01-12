@@ -89,4 +89,9 @@ export class ColoredCheckbox extends Widget {
     this.div.select("svg").dispatch("click");
     return this;
   }
+
+  rename(label: string): this {
+    this.div.select("label").text(label);
+    return this;
+  }
 }

@@ -4,10 +4,10 @@ import { Widget } from "./widget";
   d3.select("div").append(() =>
     new RadioButtonGroup("radio-test")
       .append(["1X", "2X", "4X", "8X"])
-      .switch("2X")
       .event((v) => {
         console.log(`Select: ${v}`);
       })
+      .switch("2X")
       .node()
   );
 */
@@ -15,16 +15,21 @@ import { Widget } from "./widget";
 export class RadioButtonGroup extends Widget {
   protected numButtons: number;
   protected items: Array<string>; // items of radio button group
+  protected ev: (value: any) => any; // store event handler for `switch` method
 
   constructor(id?: string) {
     super(id);
     this.numButtons = 0;
     this.items = new Array<string>();
+    this.ev = () => {
+      console.log("errorerror");
+    };
     this.div
       .attr("class", "btn-group")
       .attr("role", "group")
       .attr("aria-label", "Radio toggle button group")
-      .style("margin", "0.25em");
+      .style("margin", "0.25em")
+      .style("display", "block");
   }
 
   protected radioID(index: number): string {
@@ -55,6 +60,7 @@ export class RadioButtonGroup extends Widget {
   }
 
   event(handle: (value: any) => any): this {
+    this.ev = handle;
     this.div.selectAll("input").on("change", function () {
       let name: string;
       if ((this as any).checked === true) {
@@ -62,8 +68,19 @@ export class RadioButtonGroup extends Widget {
       } else {
         return;
       }
-      // console.log(name);
       handle(name);
+    });
+    return this;
+  }
+
+  // Difference between `static` and `switch`: the former doesn't trigger event
+  static(to: string): this {
+    this.items.some((v: string, idx: number) => {
+      if (v === to) {
+        let radio = this.radioID(idx);
+        this.div.select(`#${radio}`).property("checked", true);
+        return true;
+      }
     });
     return this;
   }
@@ -73,6 +90,7 @@ export class RadioButtonGroup extends Widget {
       if (v === to) {
         let radio = this.radioID(idx);
         this.div.select(`#${radio}`).property("checked", true);
+        this.ev(to);
         return true;
       }
     });

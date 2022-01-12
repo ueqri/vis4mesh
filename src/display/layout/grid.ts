@@ -374,7 +374,7 @@ export default class Grid extends DisplayLayout {
       .attr("y", function (d) {
         return mapNode(d.id).Y + c.nodeSize * 0.8;
       })
-      .transition()
+      // .transition()
       .text(function (d) {
         if (d.label === undefined) {
           return "";
@@ -436,8 +436,14 @@ export default class Grid extends DisplayLayout {
       .attr("y", function (d) {
         return labelY(d);
       })
-      .transition()
+      // .transition()
       .text(function (d) {
+        if (
+          d.style === DisplayStyle.Translucent ||
+          d.style === DisplayStyle.Hidden
+        ) {
+          return "";
+        }
         return d.label === undefined ? "" : d.label;
       });
   }

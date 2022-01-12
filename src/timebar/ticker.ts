@@ -145,12 +145,10 @@ export default class Ticker {
       } else if (this.mode === TickerMode.RangeTick) {
         // Nothing to do with `c.startTime`
       }
-      if (c.endTime === this.maxTime) {
-        this.running = false;
-        this.statusChangeCallback(false);
-        return false; // exit ticking
-      } else {
-        c.endTime = this.t.next(c.endTime);
+      c.endTime = this.t.next(c.endTime);
+
+      if (c.endTime > this.maxTime) {
+        c.endTime = this.maxTime; // consider step is not normally 1
       }
 
       // Cast the left and right value
@@ -158,7 +156,14 @@ export default class Ticker {
       // Send data port request in controller, TODO: error sets ticker pause
       c.requestDataPort();
 
-      return true; // continue ticking
+      if (c.endTime === this.maxTime) {
+        this.running = false;
+        this.statusChangeCallback(false);
+        this.cast(c.startTime, c.endTime);
+        return false; // exit ticking
+      } else {
+        return true; // continue ticking
+      }
     };
 
     return this;

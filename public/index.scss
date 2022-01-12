@@ -7,7 +7,7 @@ body {
     position: relative;
   }
 
-  #filterbar {
+  #filterbar-edge {
     width: $setting-separate;
   }
 
@@ -40,6 +40,12 @@ body {
       height: 5px;
       left: 0;
       width: 100%;
+    }
+
+    #filterbar-group {
+      position: absolute;
+      top: -4px;
+      right: 15px;
     }
   }
 }

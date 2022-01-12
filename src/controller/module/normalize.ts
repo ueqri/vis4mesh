@@ -1,11 +1,25 @@
 import { ControllerModule, SignalMap } from "../controller";
 import { DataToDisplay } from "../../display/data";
+import { FilterEventListener } from "../../filterbar/filterbar";
+import { DisplayStyle } from "../../display/data";
+import { RenameTrafficFilterCheckboxes } from "../../filterbar/filterbar";
+import Config from "../../global";
+
+const NumLevels = Config.EdgeTrafficLegendLevel;
+interface TrafficInterval {
+  lower: number;
+  upper: number;
+}
 
 export default class LinearNormalize implements ControllerModule {
   public signal: SignalMap;
+  // lists of traffic checkbox which is activated by user
+  protected checked: number[];
 
-  constructor() {
+  constructor(f: FilterEventListener) {
     this.signal = {};
+    this.checked = Array.from(Array(NumLevels).keys());
+    f.AppendForEdgeTrafficCheckbox((lv) => this.updateTrafficCheckbox(lv));
   }
 
   decorateData(d: DataToDisplay) {
@@ -15,12 +29,42 @@ export default class LinearNormalize implements ControllerModule {
         max = e.weight!;
       }
     });
+
+    // lists of traffic interval determined by current time
+    let traffic: Array<TrafficInterval> = new Array<TrafficInterval>();
+    for (let i = 0; i < NumLevels; i++) {
+      traffic.push({ lower: max, upper: 0 });
+    }
+
+    let checkedMap: boolean[] = Array<boolean>(NumLevels).fill(false);
+    this.checked.forEach((c) => (checkedMap[c] = true));
+
     d.edges!.forEach((e) => {
+      let w: number = 0;
       if (max != 0) {
-        e.weight = Math.round((e.weight! * 9) / max);
+        w = Math.round((e.weight! * 9) / max);
+      }
+      if (e.weight! > traffic[w].upper) {
+        traffic[w].upper = e.weight!;
+      }
+      if (e.weight! < traffic[w].lower) {
+        traffic[w].lower = e.weight!;
+      }
+      e.weight = w;
+
+      if (checkedMap[w] === true) {
+        e.style = DisplayStyle.Normal;
+      } else {
+        e.style = DisplayStyle.Translucent;
       }
     });
+
+    RenameTrafficFilterCheckboxes(traffic);
   }
 
   invokeController() {} // Nothing to do
+
+  updateTrafficCheckbox(lv: number[]) {
+    this.checked = lv;
+  }
 }

@@ -24,7 +24,7 @@ port.init().then((meta) => {
   let filterModule = new Filter(filterEvents);
   let c = new Controller(port, new Display(divGraph, Grid)).loadModules([
     filterModule,
-    new LinearNormalize(),
+    new LinearNormalize(filterEvents),
   ]);
 
   ticker.bindController(c).setStatusChangeCallback((running) => {

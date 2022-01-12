@@ -56,7 +56,7 @@ function handleFlatResponseByMsgGroups(
 ): FormattedDataForChartByMsgGroups[] {
   const reduce = d3.flatRollup(
     data,
-    (v) => Math.log2(Number(d3.sum(v, (v) => v.count)) + 1),
+    (v) => Number(d3.sum(v, (v) => v.count)),
     (d) => String(d.id),
     (d) => d.group
   );
@@ -74,7 +74,7 @@ function handleFlatResponseByDoC(
 ): FormattedDataForChartByDoC[] {
   const reduce = d3.flatRollup(
     data,
-    (v) => Math.log2(Number(d3.sum(v, (v) => v.count)) + 1),
+    (v) => Number(d3.sum(v, (v) => v.count)),
     (d) => String(d.id),
     (d) => d.doc
   );
@@ -143,13 +143,15 @@ class Timebar {
   }
 
   render() {
-    div.selectAll("svg").remove();
+    div.select("#stacked-chart").remove();
+    // div.selectAll("svg").remove();
 
     opt.width = (div.node() as Element).getBoundingClientRect().width;
     opt.height = (div.node() as Element).getBoundingClientRect().height;
 
     let chart = new StackedChart(this.data, opt);
     let svg = chart.axis();
+    svg.attr("id", "stacked-chart");
     chart.bar(svg);
     let brush = chart.brush(svg, (l, r) => {
       this.ticker.signal["state"]("pause");

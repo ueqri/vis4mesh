@@ -7,30 +7,40 @@ import {
   NumMsgGroups,
   DataOrCommandDomainNameExtend,
 } from "../data/classification";
+import Config from "../global";
 
 type SignalMap = { [type: string]: (v: any) => any };
 
-const div = d3.select("#filterbar");
+interface TrafficInterval {
+  lower: number;
+  upper: number;
+}
+
+const divE = d3.select("#filterbar-edge");
+const divG = d3.select("#filterbar-group");
 const msgDiv = {
-  MsgGroup: div
+  MsgGroup: divG
     .append("div")
     .attr("id", "filter-msg-group")
     .style("display", "none"),
-  DataOrCommand: div
+  DataOrCommand: divG
     .append("div")
     .attr("id", "filter-data-or-command")
     .style("display", "none"),
 };
 const edgeDiv = {
-  LessOptions: div
+  Checkboxes: divE
     .append("div")
-    .attr("id", "filter-edge-less")
+    .attr("id", "filter-edge-checkbox")
     .style("display", "none"),
-  MoreOptions: div
+  Slider: divE
     .append("div")
-    .attr("id", "filter-edge-more")
+    .attr("id", "filter-edge-slider")
     .style("display", "none"),
 };
+
+const NumLevels = Config.EdgeTrafficLegendLevel;
+const TrafficLevelDomain = Array.from(Array(NumLevels).keys());
 
 let SelectedMsgGroup = MsgGroupsDomain.reduce(
   (a, group) => ({ ...a, [group]: true }),
@@ -42,14 +52,20 @@ let SelectedDataOrCommand = DataOrCommandDomain.reduce(
   {}
 );
 
+let SelectedTrafficCheckbox: boolean[] = Array<boolean>(NumLevels).fill(true);
+
+let trafficCheckboxes: Array<ColoredCheckbox> = new Array<ColoredCheckbox>();
+
 export class FilterEventListener {
   protected updaterMsgGroup: Array<(g: string[]) => any>;
   protected updaterDataOrCommand: Array<(g: string[]) => any>;
+  protected updaterEdgeTrafficCheckbox: Array<(lv: number[]) => any>;
   protected ticker: Ticker;
 
   constructor(ticker: Ticker) {
     this.updaterMsgGroup = new Array<(g: string[]) => any>();
     this.updaterDataOrCommand = new Array<(g: string[]) => any>();
+    this.updaterEdgeTrafficCheckbox = new Array<(lv: number[]) => any>();
     this.ticker = ticker; // use signal `pause` and `still` of ticker
   }
 
@@ -76,13 +92,28 @@ export class FilterEventListener {
     });
     this.ticker.signal["state"]("still");
   }
+
+  AppendForEdgeTrafficCheckbox(updater: (lv: number[]) => any) {
+    this.updaterEdgeTrafficCheckbox.push(updater);
+  }
+
+  FireEventForEdgeTrafficCheckbox(lv: number[]) {
+    this.ticker.signal["state"]("pause");
+    this.updaterEdgeTrafficCheckbox.forEach((updater) => {
+      updater(lv);
+    });
+    this.ticker.signal["state"]("still");
+  }
 }
 
 export default function RenderFilterBar(ev: FilterEventListener): FilterBar {
   let f = new FilterBar(ev);
+
   f.renderFilterMsgGroup();
-  f.signal["msg"]("group");
   f.renderFilterDataOrCommand();
+
+  f.renderFilterTrafficByCheckbox();
+
   return f;
 }
 
@@ -97,6 +128,7 @@ export class FilterBar {
   }
 
   protected initSignalCallbacks() {
+    // Signal to show certain type of filter bar, e.g. msg group, data/command
     this.signal["msg"] = (v) => {
       if (v === "group") {
         msgDiv.DataOrCommand.style("display", "none");
@@ -111,8 +143,17 @@ export class FilterBar {
       }
     };
     this.signal["edge"] = (v) => {
-      if (v === "less") {
-      } else if (v === "more") {
+      if (v === "checkbox") {
+        edgeDiv.Slider.style("display", "none");
+        edgeDiv.Checkboxes.style("display", "inline-block");
+        const now = TrafficLevelDomain.filter(
+          (lv) => SelectedTrafficCheckbox[lv]
+        );
+        this.ev.FireEventForEdgeTrafficCheckbox(now);
+      } else if (v === "slider") {
+        edgeDiv.Slider.style("display", "inline-block");
+        edgeDiv.Checkboxes.style("display", "none");
+        // TODO: slider
       }
     };
   }
@@ -131,7 +172,7 @@ export class FilterBar {
     });
   }
 
-  updateMsgGroup(group: string, checked: boolean) {
+  protected updateMsgGroup(group: string, checked: boolean) {
     SelectedMsgGroup[group] = checked;
     let groups = MsgGroupsDomain.filter((g) => SelectedMsgGroup[g]);
     console.log(groups);
@@ -152,12 +193,43 @@ export class FilterBar {
     });
   }
 
-  updateDataOrCommand(group: string, checked: boolean) {
+  protected updateDataOrCommand(group: string, checked: boolean) {
     SelectedDataOrCommand[group] = checked;
     let groups = DataOrCommandDomain.filter((g) => SelectedDataOrCommand[g]);
     console.log(groups);
     this.ev.FireEventForDataOrCommand(groups);
   }
+
+  // Traffic congestion filter
+  renderFilterTrafficByCheckbox() {
+    TrafficLevelDomain.forEach((lv) => {
+      let box = new ColoredCheckbox()
+        .append({
+          label: `undefined`,
+          color: d3.interpolateRdYlBu((9 - lv) / 9),
+        })
+        .event((val) => this.updateTrafficCheckbox(lv, val))
+        .static(true);
+      edgeDiv.Checkboxes.append(() => box.node());
+      trafficCheckboxes.push(box);
+    });
+  }
+
+  protected updateTrafficCheckbox(lv: number, checked: boolean) {
+    SelectedTrafficCheckbox[lv] = checked;
+    let lvs = TrafficLevelDomain.filter((lv) => SelectedTrafficCheckbox[lv]);
+    this.ev.FireEventForEdgeTrafficCheckbox(lvs);
+  }
 }
 
-// Traffic congestion filter
+export function RenameTrafficFilterCheckboxes(traffic: Array<TrafficInterval>) {
+  traffic.forEach((t, i) => {
+    trafficCheckboxes[i].rename(`${t.lower}-${t.upper}`);
+  });
+}
+
+export function SwitchTrafficFilterCheckboxes(checkedMap: boolean[]) {
+  checkedMap.forEach((checked, i) => {
+    trafficCheckboxes[i].switch(checked);
+  });
+}

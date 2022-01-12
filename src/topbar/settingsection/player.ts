@@ -10,10 +10,9 @@ export default function RenderSettingPlayerSection(t: Ticker) {
       widgets: [
         new RadioButtonGroup("player-speed-radio")
           .append(["1X", "2X", "4X"])
-          .switch("1X")
           .event((v: string) => {
+            console.log("event", v);
             t.signal["state"]("pause");
-            console.log(v);
             if (v === "1X") {
               t.signal["speed"](1);
             } else if (v === "2X") {
@@ -23,7 +22,8 @@ export default function RenderSettingPlayerSection(t: Ticker) {
             } else {
               console.error("internal error in radio for speed setting");
             }
-          }),
+          })
+          .switch("1X"),
       ],
     },
     {
@@ -50,10 +50,8 @@ export default function RenderSettingPlayerSection(t: Ticker) {
       widgets: [
         new RadioButtonGroup("player-mode-radio")
           .append(["Slice Tick", "Range Tick"])
-          .switch("Slice Tick")
           .event((v: string) => {
-            console.log(v);
-
+            console.log("event", v);
             t.signal["state"]("pause");
             if (v === "Slice Tick") {
               t.signal["mode"]("slice");
@@ -62,7 +60,8 @@ export default function RenderSettingPlayerSection(t: Ticker) {
             } else {
               console.error("internal error in radio for mode setting");
             }
-          }),
+          })
+          .switch("Slice Tick"),
       ],
     },
   ]);
