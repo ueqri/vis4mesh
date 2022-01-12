@@ -229,7 +229,19 @@ export function RenameTrafficFilterCheckboxes(traffic: Array<TrafficInterval>) {
 }
 
 export function SwitchTrafficFilterCheckboxes(checkedMap: boolean[]) {
+  SelectedTrafficCheckbox = checkedMap;
   checkedMap.forEach((checked, i) => {
-    trafficCheckboxes[i].switch(checked);
+    // `switch` would trigger the update of SelectedTrafficCheckbox too many
+    // times, so use `static` here.
+    trafficCheckboxes[i].static(checked);
   });
+  trafficCheckboxes[0].switch(checkedMap[0]); // fire events indirectly
+}
+
+export function FlipTrafficFilterCheckboxes() {
+  SelectedTrafficCheckbox.forEach((checked, i) => {
+    SelectedTrafficCheckbox[i] = !checked; // change origin **array** element
+    trafficCheckboxes[i].static(!checked);
+  });
+  trafficCheckboxes[0].switch(SelectedTrafficCheckbox[0]);
 }

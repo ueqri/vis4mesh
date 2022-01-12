@@ -5,6 +5,7 @@ import Filter from "../../controller/module/filter";
 import {
   FilterBar,
   SwitchTrafficFilterCheckboxes,
+  FlipTrafficFilterCheckboxes,
 } from "../../filterbar/filterbar";
 import { NormalButton } from "../../widget/normalbutton";
 import Config from "../../global";
@@ -31,6 +32,13 @@ let btnUnselectAllTrafficBox = new NormalButton("btn-none-edge-cb")
   .event(() =>
     SwitchTrafficFilterCheckboxes(Array<boolean>(NumLevels).fill(false))
   )
+  .hide();
+
+let btnFlipAllTrafficBox = new NormalButton("btn-flip-edge-cb")
+  .append("Flip All")
+  .style("margin-top", "0.4em")
+  .style("margin-bottom", "0.4em")
+  .event(() => FlipTrafficFilterCheckboxes())
   .hide();
 
 export default function RenderSettingFilterSection(
@@ -85,6 +93,7 @@ export default function RenderSettingFilterSection(
           .switch("Checkbox"),
         btnSelectAllTrafficBox,
         btnUnselectAllTrafficBox,
+        btnFlipAllTrafficBox,
       ],
     },
   ]);
@@ -93,9 +102,11 @@ export default function RenderSettingFilterSection(
 function DisplayWidgetsForTrafficCheckbox() {
   btnSelectAllTrafficBox.display("inline-block");
   btnUnselectAllTrafficBox.display("inline-block");
+  btnFlipAllTrafficBox.display("inline-block");
 }
 
 function HideWidgetsForTrafficCheckbox() {
   btnSelectAllTrafficBox.hide();
   btnUnselectAllTrafficBox.hide();
+  btnFlipAllTrafficBox.hide();
 }
