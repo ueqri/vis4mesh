@@ -8,7 +8,7 @@
     "noImplicitAny": true,
     "removeComments": true,
     "preserveConstEnums": true,
-    "sourceMap": false,
+    "sourceMap": true,
     "noLib": false,
     "allowJs": true,
     "suppressImplicitAnyIndexErrors": true,

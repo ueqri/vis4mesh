@@ -6,9 +6,13 @@ import LinearNormalize from "./controller/module/normalize";
 import Ticker from "./timebar/ticker";
 import DataPort from "./data/dataport";
 import RenderPlayerButton from "./topbar/playerbutton";
+import RenderDataPortStatus from "./topbar/status";
 import RenderAccordionSetting from "./topbar/setting";
 import RenderTimebar from "./timebar/timebar";
 import RenderFilterBar, { FilterEventListener } from "./filterbar/filterbar";
+import "../public/index.scss";
+
+RenderDataPortStatus();
 
 let divGraph = document.getElementById("graph") as HTMLElement;
 
