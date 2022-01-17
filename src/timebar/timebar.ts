@@ -1,18 +1,20 @@
 import * as d3 from "d3";
-import DataPort from "../data/dataport";
-import { DataPortFlatResponse } from "../data/data";
-import StackedChart from "../widget/standalone/stackchart";
-import { offsetSeparated, SVGSelection } from "../widget/standalone/stackchart";
-import { StackBarOptions } from "../widget/standalone/stackchart";
+import { DataPortFlatResponse } from "data/data";
+import StackedChart from "widget/standalone/stackchart";
+import { SVGSelection, StackBarOptions } from "widget/standalone/stackchart";
 import RegisterResizerEvent from "./resizer";
-import Ticker from "./ticker";
-import Controller from "../controller/controller";
 import {
   DataOrCommandDomain,
   MsgGroupsDomain,
   NumMsgGroups,
-} from "../data/classification";
-import { FilterEventListener } from "../filterbar/filterbar";
+} from "data/classification";
+import { Component, Element, Module } from "global";
+import Event from "event";
+
+const ev = {
+  MsgGroup: "FilterMsgGroup",
+  DataOrCommand: "FilterDoC",
+};
 
 const div = d3.select("#timebar");
 const colorScheme = d3.schemeSpectral;
@@ -34,7 +36,7 @@ let opt: StackBarOptions = {
   width: 0,
   height: 0,
   offset: d3.stackOffsetNone,
-  yLabel: "Count",
+  yLabel: "Message Count",
   zDomain: MsgGroupsDomain,
   colors: colorScheme[NumMsgGroups],
 };
@@ -87,43 +89,45 @@ function handleFlatResponseByDoC(
   });
 }
 
-export default function RenderTimebar(
-  port: DataPort,
-  c: Controller,
-  t: Ticker,
-  f: FilterEventListener
-) {
-  port.flat(1).then((resp) => {
-    const timebar = new Timebar(c, t, resp);
+export function RenderTimebar() {
+  Component.port.flat(1).then((resp) => {
+    const timebar = Element.timebar.loadFlatResponse(resp);
     timebar.render();
 
     const resizer = div.select(".resizer");
     RegisterResizerEvent(div, resizer, () => timebar.render());
     d3.select(window).on("resize", () => timebar.render());
 
-    t.setCast((l, r) => timebar.moveBrush(l, r));
+    Component.ticker.setCast((l, r) => timebar.moveBrush(l, r));
 
-    f.AppendForMsgGroup((g) => timebar.updateMsgGroupDomain(g));
-    f.AppendForDataOrCommand((doc) => timebar.updateDataOrCommandDomain(doc));
+    Event.AddStepListener(ev.MsgGroup, (g: string[]) =>
+      timebar.updateMsgGroupDomain(g)
+    );
+    Event.AddStepListener(ev.DataOrCommand, (doc: string[]) =>
+      timebar.updateDataOrCommandDomain(doc)
+    );
   });
 }
 
-class Timebar {
-  protected controller: Controller;
-  protected ticker: Ticker;
+export default class Timebar {
   protected chart!: StackedChart;
   protected svg!: SVGSelection;
   protected brush!: d3.BrushBehavior<unknown>;
   protected data!: Object;
-  protected dataForMsgGroups: FormattedDataForChartByMsgGroups[];
-  protected dataForDoC: FormattedDataForChartByDoC[];
+  protected dataForMsgGroups!: FormattedDataForChartByMsgGroups[];
+  protected dataForDoC!: FormattedDataForChartByDoC[];
 
-  constructor(c: Controller, t: Ticker, d: DataPortFlatResponse) {
-    this.controller = c;
-    this.ticker = t;
+  constructor(d?: DataPortFlatResponse) {
+    if (d !== undefined) {
+      this.loadFlatResponse(d);
+    }
+  }
+
+  loadFlatResponse(d: DataPortFlatResponse): this {
     this.dataForMsgGroups = handleFlatResponseByMsgGroups(d);
     this.dataForDoC = handleFlatResponseByDoC(d);
     this.data = this.dataForMsgGroups; // filter message groups by default
+    return this;
   }
 
   updateMsgGroupDomain(domain: string[]) {
@@ -154,10 +158,10 @@ class Timebar {
     svg.attr("id", "stacked-chart");
     chart.bar(svg);
     let brush = chart.brush(svg, (l, r) => {
-      this.ticker.signal["state"]("pause");
-      this.controller.startTime = l;
-      this.controller.endTime = r;
-      this.controller.requestDataPort();
+      Component.ticker.signal["state"]("pause");
+      Module.setTime.signal["start"](l);
+      Module.setTime.signal["end"](r);
+      Module.setTime.signal["refresh"](undefined);
     });
 
     div.append(() => chart.node(svg));

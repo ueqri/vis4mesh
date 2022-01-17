@@ -1,6 +1,4 @@
-import Controller from "../controller/controller";
-
-type SignalMap = { [type: string]: (v: any) => any };
+import Controller, { SignalMap } from "./controller";
 
 class InnerTicker {
   public timeoutHandle: any;
@@ -64,6 +62,8 @@ enum TickerMode {
   RangeTick, // tick `timeTo` from input box, i.e `timeFrom` is static
 }
 
+// Ticker doesn't record the start time or end time, it serves as the automatic
+// device to move the controller clockwise, with certain speed and step.
 export default class Ticker {
   public signal: SignalMap;
   protected t: InnerTicker;
@@ -73,14 +73,14 @@ export default class Ticker {
   protected statusChangeCallback: (running: boolean) => any;
   protected maxTime: number;
 
-  constructor(maxTime: number) {
+  constructor(maxTime?: number) {
     this.signal = {};
     this.t = new InnerTicker();
     this.mode = TickerMode.SliceTick; // by default
     this.cast = () => {};
     this.running = false;
     this.statusChangeCallback = () => {};
-    this.maxTime = maxTime;
+    this.maxTime = maxTime === undefined ? 0 : maxTime;
 
     this.initSignalCallbacks();
   }
@@ -94,26 +94,20 @@ export default class Ticker {
     };
     this.signal["state"] = (v) => {
       let stat = v as string;
-      let next: boolean = this.running;
       if (stat === "auto") {
+        this.checkStatusFlip(true);
         this.t.auto();
-        next = true;
       } else if (stat === "pause") {
+        this.checkStatusFlip(false);
         this.t.pause();
-        next = false;
       } else if (stat === "manual") {
+        this.checkStatusFlip(false);
         this.t.manual();
-        next = false;
       } else if (stat === "still") {
+        this.checkStatusFlip(false);
         this.t.still();
-        next = false;
       } else {
         console.error(`Unknown state signal ${stat} passed to Ticker`);
-      }
-      if (next != this.running) {
-        console.log(`change from ${this.running} -> ${next}`);
-        this.running = next;
-        this.statusChangeCallback(this.running);
       }
     };
     this.signal["mode"] = (v) => {
@@ -129,13 +123,32 @@ export default class Ticker {
     };
   }
 
+  protected checkStatusFlip(next: boolean) {
+    if (next !== this.running) {
+      console.log(`status ${this.running} -> ${next}`);
+      this.running = next;
+      this.statusChangeCallback(next);
+    }
+  }
+
   setCast(f: (l: number, r: number) => any): this {
     this.cast = f;
     return this;
   }
 
+  setMaxTime(t: number): this {
+    this.maxTime = t;
+    return this;
+  }
+
   bindController(c: Controller): this {
     this.t.tickFunc = () => {
+      // Exit ticking when end handle touched the border
+      if (c.endTime === this.maxTime) {
+        this.checkStatusFlip(false);
+        return false; // exit ticking
+      }
+
       // Set time recorder in Controller first
       if (this.mode === TickerMode.SliceTick) {
         if (this.t.next(0) != 0) {
@@ -156,14 +169,7 @@ export default class Ticker {
       // Send data port request in controller, TODO: error sets ticker pause
       c.requestDataPort();
 
-      if (c.endTime === this.maxTime) {
-        this.running = false;
-        this.statusChangeCallback(false);
-        this.cast(c.startTime, c.endTime);
-        return false; // exit ticking
-      } else {
-        return true; // continue ticking
-      }
+      return true; // continue ticking
     };
 
     return this;

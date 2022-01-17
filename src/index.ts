@@ -1,70 +1,26 @@
-import Controller from "./controller/controller";
-import Grid from "./display/layout/grid";
-import Display from "./display/display";
-import Filter from "./controller/module/filter";
-import LinearNormalize from "./controller/module/normalize";
-import Ticker from "./timebar/ticker";
-import DataPort from "./data/dataport";
-import RenderPlayerButton from "./topbar/playerbutton";
-import RenderDataPortStatus from "./topbar/status";
-import RenderAccordionSetting from "./topbar/setting";
-import RenderTimebar from "./timebar/timebar";
-import RenderFilterBar, { FilterEventListener } from "./filterbar/filterbar";
 import "../public/index.scss";
+import Controller from "controller/controller";
+import { Component, Module } from "global";
 
-RenderDataPortStatus();
+import { RenderTimebar } from "./timebar/timebar";
+import { RenderFilterbar } from "./filterbar/filterbar";
+import { RenderTopbar } from "topbar/topbar";
 
-let divGraph = document.getElementById("graph") as HTMLElement;
-
-let port = new DataPort("ws://127.0.0.1:8080/");
-
+const port = Component.port;
 port.init().then((meta) => {
   console.log(meta);
 
-  let ticker = new Ticker(+meta["elapse"]);
-  let playerBtn = RenderPlayerButton(ticker);
-  let filterEvents = new FilterEventListener(ticker);
-
-  let filterModule = new Filter(filterEvents);
-  let c = new Controller(port, new Display(divGraph, Grid)).loadModules([
-    filterModule,
-    new LinearNormalize(filterEvents),
+  let c = new Controller(port, Component.view).loadModules([
+    Module.filterMsg,
+    Module.normalize,
+    Module.setTime,
   ]);
 
-  ticker.bindController(c).setStatusChangeCallback((running) => {
-    playerBtn.static(running ? "Pause" : "Play");
-  });
+  Component.ticker.setMaxTime(+meta["elapse"]).bindController(c);
 
   c.requestDataPort(); // render initial view
 
-  RenderTimebar(port, c, ticker, filterEvents);
-
-  let filterBar = RenderFilterBar(filterEvents);
-
-  RenderAccordionSetting({
-    ticker: ticker,
-    filterBar: filterBar,
-    filterModule: filterModule,
-  });
-
-  //
-  // Global Event
-  //
-
-  let flipCall = [
-    function () {
-      playerBtn.switch("Play");
-    },
-    function () {
-      playerBtn.switch("Pause");
-    },
-  ];
-
-  let flipIndex: number = 0;
-  document.addEventListener("keydown", function (event) {
-    if (event.key === "p") {
-      flipCall[flipIndex]();
-      flipIndex = (flipIndex + 1) % flipCall.length;
-    }
-  });
+  RenderTopbar();
+  RenderTimebar();
+  RenderFilterbar();
 });

@@ -1,13 +1,13 @@
 import * as d3 from "d3";
-import { ColoredCheckbox } from "../widget/colorcheckbox";
-import Ticker from "../timebar/ticker";
+import Event from "event";
+import { Component, Element } from "global";
+import { ColoredCheckbox } from "widget/colorcheckbox";
 import {
   DataOrCommandDomain,
   MsgGroupsDomain,
   NumMsgGroups,
   DataOrCommandDomainNameExtend,
-} from "../data/classification";
-import Config from "../global";
+} from "data/classification";
 
 type SignalMap = { [type: string]: (v: any) => any };
 
@@ -39,7 +39,7 @@ const edgeDiv = {
     .style("display", "none"),
 };
 
-const NumLevels = Config.EdgeTrafficLegendLevel;
+const NumLevels = 10;
 const TrafficLevelDomain = Array.from(Array(NumLevels).keys());
 
 let SelectedMsgGroup = MsgGroupsDomain.reduce(
@@ -56,74 +56,33 @@ let SelectedTrafficCheckbox: boolean[] = Array<boolean>(NumLevels).fill(true);
 
 let trafficCheckboxes: Array<ColoredCheckbox> = new Array<ColoredCheckbox>();
 
-export class FilterEventListener {
-  protected updaterMsgGroup: Array<(g: string[]) => any>;
-  protected updaterDataOrCommand: Array<(g: string[]) => any>;
-  protected updaterEdgeTrafficCheckbox: Array<(lv: number[]) => any>;
-  protected ticker: Ticker;
+const ev = {
+  MsgGroup: "FilterMsgGroup",
+  DataOrCommand: "FilterDoC",
+  EdgeTraffic: "FilterEdgeTraffic",
+};
 
-  constructor(ticker: Ticker) {
-    this.updaterMsgGroup = new Array<(g: string[]) => any>();
-    this.updaterDataOrCommand = new Array<(g: string[]) => any>();
-    this.updaterEdgeTrafficCheckbox = new Array<(lv: number[]) => any>();
-    this.ticker = ticker; // use signal `pause` and `still` of ticker
-  }
-
-  AppendForMsgGroup(updater: (g: string[]) => any) {
-    this.updaterMsgGroup.push(updater);
-  }
-
-  FireEventForMsgGroup(g: string[]) {
-    this.ticker.signal["state"]("pause");
-    this.updaterMsgGroup.forEach((updater) => {
-      updater(g);
-    });
-    this.ticker.signal["state"]("still");
-  }
-
-  AppendForDataOrCommand(updater: (g: string[]) => any) {
-    this.updaterDataOrCommand.push(updater);
-  }
-
-  FireEventForDataOrCommand(g: string[]) {
-    this.ticker.signal["state"]("pause");
-    this.updaterDataOrCommand.forEach((updater) => {
-      updater(g);
-    });
-    this.ticker.signal["state"]("still");
-  }
-
-  AppendForEdgeTrafficCheckbox(updater: (lv: number[]) => any) {
-    this.updaterEdgeTrafficCheckbox.push(updater);
-  }
-
-  FireEventForEdgeTrafficCheckbox(lv: number[]) {
-    this.ticker.signal["state"]("pause");
-    this.updaterEdgeTrafficCheckbox.forEach((updater) => {
-      updater(lv);
-    });
-    this.ticker.signal["state"]("still");
+function InitFilterEvent() {
+  const t = Component.ticker;
+  for (const key in ev) {
+    Event.AddStartListener(ev[key], () => t.signal["state"]("pause"));
+    Event.AddEndListener(ev[key], () => t.signal["state"]("still"));
   }
 }
 
-export default function RenderFilterBar(ev: FilterEventListener): FilterBar {
-  let f = new FilterBar(ev);
-
+export function RenderFilterbar() {
+  InitFilterEvent();
+  const f = Element.filterbar;
   f.renderFilterMsgGroup();
   f.renderFilterDataOrCommand();
-
   f.renderFilterTrafficByCheckbox();
-
-  return f;
 }
 
-export class FilterBar {
+export default class Filterbar {
   public signal: SignalMap;
-  protected ev: FilterEventListener;
 
-  constructor(ev: FilterEventListener) {
+  constructor() {
     this.signal = {};
-    this.ev = ev;
     this.initSignalCallbacks();
   }
 
@@ -134,12 +93,12 @@ export class FilterBar {
         msgDiv.DataOrCommand.style("display", "none");
         msgDiv.MsgGroup.style("display", "inline-block");
         const now = MsgGroupsDomain.filter((g) => SelectedMsgGroup[g]);
-        this.ev.FireEventForMsgGroup(now);
+        Event.FireEvent(ev.MsgGroup, now);
       } else if (v === "doc") {
         msgDiv.DataOrCommand.style("display", "inline-block");
         msgDiv.MsgGroup.style("display", "none");
         const now = DataOrCommandDomain.filter((g) => SelectedDataOrCommand[g]);
-        this.ev.FireEventForDataOrCommand(now);
+        Event.FireEvent(ev.DataOrCommand, now);
       }
     };
     this.signal["edge"] = (v) => {
@@ -149,7 +108,7 @@ export class FilterBar {
         const now = TrafficLevelDomain.filter(
           (lv) => SelectedTrafficCheckbox[lv]
         );
-        this.ev.FireEventForEdgeTrafficCheckbox(now);
+        Event.FireEvent(ev.EdgeTraffic, now);
       } else if (v === "slider") {
         edgeDiv.Slider.style("display", "inline-block");
         edgeDiv.Checkboxes.style("display", "none");
@@ -175,8 +134,7 @@ export class FilterBar {
   protected updateMsgGroup(group: string, checked: boolean) {
     SelectedMsgGroup[group] = checked;
     let groups = MsgGroupsDomain.filter((g) => SelectedMsgGroup[g]);
-    console.log(groups);
-    this.ev.FireEventForMsgGroup(groups);
+    Event.FireEvent(ev.MsgGroup, groups);
   }
 
   // Data/Command filter
@@ -196,8 +154,7 @@ export class FilterBar {
   protected updateDataOrCommand(group: string, checked: boolean) {
     SelectedDataOrCommand[group] = checked;
     let groups = DataOrCommandDomain.filter((g) => SelectedDataOrCommand[g]);
-    console.log(groups);
-    this.ev.FireEventForDataOrCommand(groups);
+    Event.FireEvent(ev.DataOrCommand, groups);
   }
 
   // Traffic congestion filter
@@ -218,7 +175,7 @@ export class FilterBar {
   protected updateTrafficCheckbox(lv: number, checked: boolean) {
     SelectedTrafficCheckbox[lv] = checked;
     let lvs = TrafficLevelDomain.filter((lv) => SelectedTrafficCheckbox[lv]);
-    this.ev.FireEventForEdgeTrafficCheckbox(lvs);
+    Event.FireEvent(ev.EdgeTraffic, lvs);
   }
 }
 

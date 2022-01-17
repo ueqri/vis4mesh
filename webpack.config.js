@@ -11,6 +11,7 @@ module.exports = {
   devtool: "inline-source-map",
   devServer: {
     static: "./dist",
+    port: 1234,
   },
   module: {
     rules: [
@@ -39,6 +40,12 @@ module.exports = {
       controller: path.resolve(__dirname, "./src/controller"),
       data: path.resolve(__dirname, "./src/data"),
       display: path.resolve(__dirname, "./src/display"),
+      widget: path.resolve(__dirname, "./src/widget"),
+      global: path.resolve(__dirname, "./src/global"),
+      event: path.resolve(__dirname, "./src/event"),
+      topbar: path.resolve(__dirname, "./src/topbar"),
+      timebar: path.resolve(__dirname, "./src/timebar"),
+      filterbar: path.resolve(__dirname, "./src/filterbar"),
     },
   },
   output: {

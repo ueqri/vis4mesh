@@ -1,9 +1,10 @@
-import { InputBoxWithFloatingLabel } from "../../widget/input";
-import { LabelBox } from "../../widget/labelbox";
-import { RadioButtonGroup } from "../../widget/radiobutton";
-import Ticker from "../../timebar/ticker";
+import { InputBoxWithFloatingLabel } from "widget/input";
+import { LabelBox } from "widget/labelbox";
+import { RadioButtonGroup } from "widget/radiobutton";
+import { Component } from "global";
 
-export default function RenderSettingPlayerSection(t: Ticker) {
+export default function RenderSettingPlayerSection() {
+  const t = Component.ticker;
   return new LabelBox("player-setting").append([
     {
       label: "Speed: rate of ticks per second",

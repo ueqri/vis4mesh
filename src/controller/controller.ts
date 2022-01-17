@@ -1,7 +1,7 @@
-import DataPort from "../data/dataport";
-import { DataPortRangeResponse } from "../data/data";
+import DataPort from "data/dataport";
+import { DataPortRangeResponse } from "data/data";
 import Display from "display/display";
-import { DataToDisplay } from "../display/data";
+import { DataToDisplay } from "display/data";
 
 export type SignalMap = { [type: string]: (v: any) => any };
 

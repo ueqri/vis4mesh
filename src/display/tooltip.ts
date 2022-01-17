@@ -1,5 +1,5 @@
 import * as d3 from "d3";
-import StackedChart from "../widget/standalone/stackchart";
+import StackedChart from "widget/standalone/stackchart";
 
 export interface EdgeTooltipOptions {
   src?: string;

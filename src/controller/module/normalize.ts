@@ -1,11 +1,13 @@
 import { ControllerModule, SignalMap } from "../controller";
-import { DataToDisplay } from "../../display/data";
-import { FilterEventListener } from "../../filterbar/filterbar";
-import { DisplayStyle } from "../../display/data";
-import { RenameTrafficFilterCheckboxes } from "../../filterbar/filterbar";
-import Config from "../../global";
+import { DataToDisplay, DisplayStyle } from "display/data";
+import { RenameTrafficFilterCheckboxes } from "filterbar/filterbar";
+import Event from "event";
 
-const NumLevels = Config.EdgeTrafficLegendLevel;
+const ev = {
+  EdgeTraffic: "FilterEdgeTraffic",
+};
+
+const NumLevels = 10;
 interface TrafficInterval {
   lower: number;
   upper: number;
@@ -16,10 +18,12 @@ export default class LinearNormalize implements ControllerModule {
   // lists of traffic checkbox which is activated by user
   protected checked: number[];
 
-  constructor(f: FilterEventListener) {
+  constructor() {
     this.signal = {};
     this.checked = Array.from(Array(NumLevels).keys());
-    f.AppendForEdgeTrafficCheckbox((lv) => this.updateTrafficCheckbox(lv));
+    Event.AddStepListener(ev.EdgeTraffic, (lv: number[]) =>
+      this.updateTrafficCheckbox(lv)
+    );
   }
 
   decorateData(d: DataToDisplay) {

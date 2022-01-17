@@ -1,6 +1,6 @@
 import Controller, { ControllerModule, SignalMap } from "../controller";
 
-export class TimeRecorder implements ControllerModule {
+export default class SetTime implements ControllerModule {
   protected controller!: Controller;
   public signal: SignalMap;
 
@@ -9,11 +9,14 @@ export class TimeRecorder implements ControllerModule {
   }
 
   protected initSignalCallbacks() {
-    this.signal["timeStart"] = (v: any) => {
+    this.signal["start"] = (v: any) => {
       this.controller.startTime = Number(v);
     };
-    this.signal["timeEnd"] = (v: any) => {
+    this.signal["end"] = (v: any) => {
       this.controller.endTime = Number(v);
+    };
+    this.signal["refresh"] = () => {
+      this.controller.requestDataPort();
     };
   }
 

@@ -1,16 +1,13 @@
-import { LabelBox } from "../../widget/labelbox";
-import { RadioButtonGroup } from "../../widget/radiobutton";
-import Ticker from "../../timebar/ticker";
-import Filter from "../../controller/module/filter";
+import { LabelBox } from "widget/labelbox";
+import { RadioButtonGroup } from "widget/radiobutton";
+import { NormalButton } from "widget/normalbutton";
+import { Module, Element } from "global";
 import {
-  FilterBar,
   SwitchTrafficFilterCheckboxes,
   FlipTrafficFilterCheckboxes,
-} from "../../filterbar/filterbar";
-import { NormalButton } from "../../widget/normalbutton";
-import Config from "../../global";
+} from "filterbar/filterbar";
 
-const NumLevels = Config.EdgeTrafficLegendLevel;
+const NumLevels = 10;
 
 // These widgets must be generated before certain controlling radio group,
 // otherwise the `display: inline-block` won't work at all on a nonexistent
@@ -41,11 +38,7 @@ let btnFlipAllTrafficBox = new NormalButton("btn-flip-edge-cb")
   .event(() => FlipTrafficFilterCheckboxes())
   .hide();
 
-export default function RenderSettingFilterSection(
-  t: Ticker,
-  filterBar: FilterBar,
-  filterModule: Filter
-) {
+export default function RenderSettingFilterSection() {
   return new LabelBox("filter-setting").append([
     {
       label: "Message Filter",
@@ -53,14 +46,13 @@ export default function RenderSettingFilterSection(
         new RadioButtonGroup("filter-msg-radio")
           .append(["Groups", "Data/Command"])
           .event((v: string) => {
-            t.signal["state"]("pause");
             console.log("event", v);
             if (v === "Groups") {
-              filterModule.signal["msg"]("group");
-              filterBar.signal["msg"]("group");
+              Module.filterMsg.signal["msg"]("group");
+              Element.filterbar.signal["msg"]("group");
             } else if (v === "Data/Command") {
-              filterModule.signal["msg"]("doc");
-              filterBar.signal["msg"]("doc");
+              Module.filterMsg.signal["msg"]("doc");
+              Element.filterbar.signal["msg"]("doc");
             } else {
               console.error(
                 "internal error in radio for message filter setting"
@@ -77,12 +69,11 @@ export default function RenderSettingFilterSection(
           .append(["Checkbox", "Slider"])
           .event((v: string) => {
             console.log("event", v);
-            t.signal["state"]("pause");
             if (v === "Checkbox") {
-              filterBar.signal["edge"]("checkbox");
+              Element.filterbar.signal["edge"]("checkbox");
               DisplayWidgetsForTrafficCheckbox();
             } else if (v === "Slider") {
-              filterBar.signal["edge"]("slider");
+              Element.filterbar.signal["edge"]("slider");
               HideWidgetsForTrafficCheckbox();
             } else {
               console.error(
