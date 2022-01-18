@@ -77,7 +77,7 @@ export default class Grid extends DisplayLayout {
       .scaleExtent([0.1, 20])
       .on("zoom", (e) => {
         this.g.attr("transform", (transform = e.transform));
-        this.g.style("stroke-width", 3 / Math.sqrt(transform.k));
+        // this.g.style("stroke-width", 1000 / Math.sqrt(transform.k));
         // zoom other components
       });
     this.svg.call(zoom as any);
@@ -283,6 +283,7 @@ export default class Grid extends DisplayLayout {
         d3.select(this).attr("stroke-width", c.edgeWidth);
         return tooltipEdge.style("visibility", "hidden");
       })
+      .on("click", function (event, d) {})
       // .transition()
 
       // edge color

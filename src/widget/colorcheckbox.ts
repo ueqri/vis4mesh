@@ -4,7 +4,9 @@ import * as d3 from "d3";
 export interface CheckBoxOptions {
   label: string;
   color?: string;
-  boxSize?: number; // px
+  boxWidth?: number; // px
+  boxHeight?: number; // px
+  labelAlign?: "middle" | "top" | "bottom";
 }
 
 export class ColoredCheckbox extends Widget {
@@ -20,18 +22,20 @@ export class ColoredCheckbox extends Widget {
 
   append(opt: CheckBoxOptions): this {
     this.color = opt.color === undefined ? "blue" : opt.color;
-    const size = opt.boxSize === undefined ? 21 : opt.boxSize;
+    const width = opt.boxWidth === undefined ? 21 : opt.boxWidth;
+    const height = opt.boxHeight === undefined ? 21 : opt.boxHeight;
+    const labelAlign = opt.labelAlign === undefined ? "middle" : opt.labelAlign;
 
     let svg = this.div
       .append("svg")
-      .attr("width", size)
-      .attr("height", size)
+      .attr("width", width)
+      .attr("height", height)
       .style("margin", "0.25em");
 
     svg
       .append("rect")
-      .attr("width", size)
-      .attr("height", size)
+      .attr("width", width)
+      .attr("height", height)
       .attr("stroke", "grey")
       .attr("stroke-width", 3)
       .attr("fill", "none")
@@ -46,11 +50,19 @@ export class ColoredCheckbox extends Widget {
     //   .attr("stroke-width", 4)
     //   .attr("fill", "none");
 
-    this.div
+    const label = this.div
       .append("label")
       .text(opt.label)
       .style("margin", "0.25em")
+      .style("position", "relative")
       .style("vertical-align", "initial");
+    if (labelAlign === "middle") {
+      // by default
+    } else if (labelAlign === "bottom") {
+      label.style("top", `${height / 2.0}px`);
+    } else if (labelAlign === "top") {
+      label.style("bottom", `${height / 2.0}px`);
+    }
 
     return this;
   }

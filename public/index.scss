@@ -8,12 +8,19 @@ body {
   }
 
   #filterbar-edge {
-    width: $setting-separate;
+    svg {
+      overflow: visible;
+      z-index: 10;
+      height: 15vh;
+      position: relative;
+      left: 3vw;
+    }
   }
 
   #graph {
     z-index: 5;
     position: absolute;
+    left: 10vw;
 
     svg {
       overflow: visible;
@@ -22,9 +29,17 @@ body {
     }
   }
 
+  #sidecanvas {
+    position: absolute;
+    z-index: 15;
+    visibility: hidden;
+    border: 1px solid #ccc !important;
+    border-radius: 5px;
+  }
+
   #setting {
     width: 100vw - $setting-separate;
-    z-index: 15;
+    z-index: 20;
     position: relative;
     float: right;
     padding-top: 0.02em;
@@ -75,5 +90,12 @@ body {
 .edge-label {
   text-anchor: middle;
   font-size: 0.75em;
+  font-weight: bold;
+}
+
+.legend-label {
+  text-anchor: start;
+  fill: black;
+  font-size: 10px;
   font-weight: bold;
 }

@@ -2,10 +2,7 @@ import { LabelBox } from "widget/labelbox";
 import { RadioButtonGroup } from "widget/radiobutton";
 import { NormalButton } from "widget/normalbutton";
 import { Module, Element } from "global";
-import {
-  SwitchTrafficFilterCheckboxes,
-  FlipTrafficFilterCheckboxes,
-} from "filterbar/filterbar";
+import EdgeTrafficCheckboxes from "filterbar/edgecheckbox";
 
 const NumLevels = 10;
 
@@ -18,7 +15,7 @@ let btnSelectAllTrafficBox = new NormalButton("btn-all-edge-cb")
   .style("margin-top", "0.4em")
   .style("margin-bottom", "0.4em")
   .event(() =>
-    SwitchTrafficFilterCheckboxes(Array<boolean>(NumLevels).fill(true))
+    EdgeTrafficCheckboxes.switch(Array<boolean>(NumLevels).fill(true))
   )
   .hide();
 
@@ -27,7 +24,7 @@ let btnUnselectAllTrafficBox = new NormalButton("btn-none-edge-cb")
   .style("margin-top", "0.4em")
   .style("margin-bottom", "0.4em")
   .event(() =>
-    SwitchTrafficFilterCheckboxes(Array<boolean>(NumLevels).fill(false))
+    EdgeTrafficCheckboxes.switch(Array<boolean>(NumLevels).fill(false))
   )
   .hide();
 
@@ -35,7 +32,7 @@ let btnFlipAllTrafficBox = new NormalButton("btn-flip-edge-cb")
   .append("Flip All")
   .style("margin-top", "0.4em")
   .style("margin-bottom", "0.4em")
-  .event(() => FlipTrafficFilterCheckboxes())
+  .event(() => EdgeTrafficCheckboxes.flip())
   .hide();
 
 export default function RenderSettingFilterSection() {

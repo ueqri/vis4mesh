@@ -1,17 +1,13 @@
 import { ControllerModule, SignalMap } from "../controller";
 import { DataToDisplay, DisplayStyle } from "display/data";
-import { RenameTrafficFilterCheckboxes } from "filterbar/filterbar";
+import EdgeTrafficCheckboxes from "filterbar/edgecheckbox";
 import Event from "event";
 
 const ev = {
-  EdgeTraffic: "FilterEdgeTraffic",
+  EdgeTraffic: "FilterETCheckbox",
 };
 
 const NumLevels = 10;
-interface TrafficInterval {
-  lower: number;
-  upper: number;
-}
 
 export default class LinearNormalize implements ControllerModule {
   public signal: SignalMap;
@@ -34,25 +30,18 @@ export default class LinearNormalize implements ControllerModule {
       }
     });
 
-    // lists of traffic interval determined by current time
-    let traffic: Array<TrafficInterval> = new Array<TrafficInterval>();
-    for (let i = 0; i < NumLevels; i++) {
-      traffic.push({ lower: max, upper: 0 });
-    }
-
+    // lists of upper bound of each level at the current time slice
+    let uppers: Array<number> = new Array<number>(NumLevels).fill(0);
     let checkedMap: boolean[] = Array<boolean>(NumLevels).fill(false);
     this.checked.forEach((c) => (checkedMap[c] = true));
 
     d.edges!.forEach((e) => {
       let w: number = 0;
       if (max != 0) {
-        w = Math.round((e.weight! * 9) / max);
+        w = Math.floor((e.weight! * 9) / max);
       }
-      if (e.weight! > traffic[w].upper) {
-        traffic[w].upper = e.weight!;
-      }
-      if (e.weight! < traffic[w].lower) {
-        traffic[w].lower = e.weight!;
+      if (e.weight! > uppers[w]) {
+        uppers[w] = e.weight!;
       }
       e.weight = w;
 
@@ -63,7 +52,12 @@ export default class LinearNormalize implements ControllerModule {
       }
     });
 
-    RenameTrafficFilterCheckboxes(traffic);
+    uppers.forEach((u, i) => {
+      if (u === 0) {
+        uppers[i] = Math.floor(((i + 1) * max) / 10);
+      }
+    });
+    EdgeTrafficCheckboxes.applyUpperBound(uppers);
   }
 
   invokeController() {} // Nothing to do

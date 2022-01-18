@@ -8,13 +8,9 @@ import {
   NumMsgGroups,
   DataOrCommandDomainNameExtend,
 } from "data/classification";
+import EdgeTrafficCheckboxes from "./edgecheckbox";
 
 type SignalMap = { [type: string]: (v: any) => any };
-
-interface TrafficInterval {
-  lower: number;
-  upper: number;
-}
 
 const divE = d3.select("#filterbar-edge");
 const divG = d3.select("#filterbar-group");
@@ -39,9 +35,6 @@ const edgeDiv = {
     .style("display", "none"),
 };
 
-const NumLevels = 10;
-const TrafficLevelDomain = Array.from(Array(NumLevels).keys());
-
 let SelectedMsgGroup = MsgGroupsDomain.reduce(
   (a, group) => ({ ...a, [group]: true }),
   {}
@@ -52,14 +45,10 @@ let SelectedDataOrCommand = DataOrCommandDomain.reduce(
   {}
 );
 
-let SelectedTrafficCheckbox: boolean[] = Array<boolean>(NumLevels).fill(true);
-
-let trafficCheckboxes: Array<ColoredCheckbox> = new Array<ColoredCheckbox>();
-
 const ev = {
   MsgGroup: "FilterMsgGroup",
   DataOrCommand: "FilterDoC",
-  EdgeTraffic: "FilterEdgeTraffic",
+  EdgeTrafficCheckbox: "FilterETCheckbox",
 };
 
 function InitFilterEvent() {
@@ -105,10 +94,8 @@ export default class Filterbar {
       if (v === "checkbox") {
         edgeDiv.Slider.style("display", "none");
         edgeDiv.Checkboxes.style("display", "inline-block");
-        const now = TrafficLevelDomain.filter(
-          (lv) => SelectedTrafficCheckbox[lv]
-        );
-        Event.FireEvent(ev.EdgeTraffic, now);
+        const now = EdgeTrafficCheckboxes.selected();
+        Event.FireEvent(ev.EdgeTrafficCheckbox, now);
       } else if (v === "slider") {
         edgeDiv.Slider.style("display", "inline-block");
         edgeDiv.Checkboxes.style("display", "none");
@@ -159,46 +146,6 @@ export default class Filterbar {
 
   // Traffic congestion filter
   renderFilterTrafficByCheckbox() {
-    TrafficLevelDomain.forEach((lv) => {
-      let box = new ColoredCheckbox()
-        .append({
-          label: `undefined`,
-          color: d3.interpolateRdYlBu((9 - lv) / 9),
-        })
-        .event((val) => this.updateTrafficCheckbox(lv, val))
-        .static(true);
-      edgeDiv.Checkboxes.append(() => box.node());
-      trafficCheckboxes.push(box);
-    });
+    edgeDiv.Checkboxes.append(() => EdgeTrafficCheckboxes.node());
   }
-
-  protected updateTrafficCheckbox(lv: number, checked: boolean) {
-    SelectedTrafficCheckbox[lv] = checked;
-    let lvs = TrafficLevelDomain.filter((lv) => SelectedTrafficCheckbox[lv]);
-    Event.FireEvent(ev.EdgeTraffic, lvs);
-  }
-}
-
-export function RenameTrafficFilterCheckboxes(traffic: Array<TrafficInterval>) {
-  traffic.forEach((t, i) => {
-    trafficCheckboxes[i].rename(`${t.lower}-${t.upper}`);
-  });
-}
-
-export function SwitchTrafficFilterCheckboxes(checkedMap: boolean[]) {
-  SelectedTrafficCheckbox = checkedMap;
-  checkedMap.forEach((checked, i) => {
-    // `switch` would trigger the update of SelectedTrafficCheckbox too many
-    // times, so use `static` here.
-    trafficCheckboxes[i].static(checked);
-  });
-  trafficCheckboxes[0].switch(checkedMap[0]); // fire events indirectly
-}
-
-export function FlipTrafficFilterCheckboxes() {
-  SelectedTrafficCheckbox.forEach((checked, i) => {
-    SelectedTrafficCheckbox[i] = !checked; // change origin **array** element
-    trafficCheckboxes[i].static(!checked);
-  });
-  trafficCheckboxes[0].switch(SelectedTrafficCheckbox[0]);
 }
