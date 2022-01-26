@@ -11,7 +11,7 @@ body {
     svg {
       overflow: visible;
       z-index: 10;
-      height: 15vh;
+      height: 20vh;
       position: relative;
       left: 3vw;
     }
@@ -20,8 +20,10 @@ body {
   #graph {
     z-index: 5;
     position: absolute;
-    left: 10vw;
-
+    left: 0vw;
+    right: 0vw;
+    top: 0vh;
+    bottom: 0vh;
     svg {
       overflow: visible;
       width: 100%;
@@ -82,14 +84,14 @@ body {
 
 .node-label {
   text-anchor: middle;
-  fill: #b94629;
-  font-size: 1em;
+  fill: #b93a29;
+  font-size: 0.5em;
   font-weight: bold;
 }
 
 .edge-label {
   text-anchor: middle;
-  font-size: 0.75em;
+  font-size: 0.45em;
   font-weight: bold;
 }
 

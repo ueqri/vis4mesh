@@ -12,7 +12,6 @@ port.init().then((meta) => {
 
   let c = new Controller(port, Component.view).loadModules([
     Module.filterMsg,
-    Module.normalize,
     Module.setTime,
   ]);
 

@@ -1,10 +1,3 @@
-export enum DisplayStyle {
-  Normal, // by default
-  Hidden,
-  Highlight,
-  Translucent,
-}
-
 export interface NodeDisplay {
   id: string;
   label?: string;
@@ -17,7 +10,6 @@ export interface EdgeDisplay {
   weight?: number;
   label?: string;
   detail: string;
-  style?: DisplayStyle;
 }
 
 export interface DataToDisplay {

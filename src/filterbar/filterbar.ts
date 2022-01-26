@@ -55,7 +55,9 @@ function InitFilterEvent() {
   const t = Component.ticker;
   for (const key in ev) {
     Event.AddStartListener(ev[key], () => t.signal["state"]("pause"));
-    Event.AddEndListener(ev[key], () => t.signal["state"]("still"));
+    if (key !== "EdgeTrafficCheckbox") {
+      Event.AddEndListener(ev[key], () => t.signal["state"]("still"));
+    }
   }
 }
 

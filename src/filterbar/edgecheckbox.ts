@@ -30,8 +30,7 @@ const svg = d3
   .attr(
     "viewBox",
     `0 0 ${c.boxWidth * 1.5} ${c.boxHeight * NumLevels + 2 * c.yPadding}`
-  )
-  .attr("transform", `scale(2.2)`);
+  );
 
 const g = svg.append("g");
 
