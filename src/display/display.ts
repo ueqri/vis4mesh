@@ -1,4 +1,4 @@
-import { PackNodes, RedirectLinkAfterPack } from "display/abstractnode";
+import { PackNodes, UnpackNode, ReestablishLinks } from "display/abstractnode";
 import AbstractNode from "display/abstractnode";
 import { DataToDisplay, NodeDisplay } from "./data";
 import RenderEngine from "./engine/engine";
@@ -37,19 +37,22 @@ function GenerateSVG(data: DataToDisplay) {
   data.edges!.forEach((edge) => {
     const src = Number(edge.source);
     const dst = Number(edge.target);
-    nodeMap[src].link.push({
+    nodeMap[src].AppendBaseLink({
       dst: dst,
       weight: edge.weight === undefined ? 0 : edge.weight,
       label: edge.label === undefined ? "" : edge.label,
     });
   });
+  Object.values(nodeMap).forEach((d) => d.CloneBaseLink());
 
   // Pack nodes, tested example:
   // PackNodesWithIDs(nodeMap, [13, 21, 14, 15, 22, 23]);
   // PackNodesWithIDs(nodeMap, [29, 30, 31]);
-  GenerateBlockLists(2, 8).forEach((blk) => {
-    PackNodesWithIDs(nodeMap, blk);
-  });
+  // GenerateBlockLists(4, 8).forEach((blk) => {
+  //   PackNodesWithIDs(nodeMap, blk);
+  // });
+
+  // UnpackNodeWithID(nodeMap, 13);
 
   // Turn on RenderEngine
   RenderEngine.join(Object.values(nodeMap));
@@ -71,7 +74,14 @@ function PackNodesWithIDs(
   });
   let g = PackNodes(nodes);
   nodeMap[g.id] = g;
-  RedirectLinkAfterPack(Object.values(nodeMap));
+  ReestablishLinks(Object.values(nodeMap));
+}
+
+function UnpackNodeWithID(nodeMap: { [id: number]: AbstractNode }, id: number) {
+  let target = nodeMap[id];
+  delete nodeMap[id];
+  UnpackNode(target).forEach((d) => (nodeMap[d.id] = d));
+  ReestablishLinks(Object.values(nodeMap));
 }
 
 function GenerateBlockLists(

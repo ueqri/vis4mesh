@@ -34,7 +34,7 @@ export default class FilterMsg implements ControllerModule {
     Event.AddStepListener(ev.MsgGroup, (g: string[]) =>
       this.updateMsgGroupDomain(g)
     );
-    Event.AddStepListener(ev.MsgGroup, (doc: string[]) =>
+    Event.AddStepListener(ev.DataOrCommand, (doc: string[]) =>
       this.updateDataOrCommandDomain(doc)
     );
 

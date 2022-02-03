@@ -39,12 +39,21 @@ g.append("svg:defs")
 // Zoom & Drag
 //
 
+let prevTransform: number = 1;
 const zoom = d3
   .zoom()
   .scaleExtent([0.1, 25])
   .on("zoom", (e) => {
     g.attr("transform", e.transform);
-    // console.log(e.transform);
+    const k = e.transform.k;
+    if (k == prevTransform) {
+      // drag only
+    } else if (k < prevTransform) {
+      console.log("smaller");
+    } else {
+      console.log("bigger");
+    }
+    prevTransform = e.transform.k;
   });
 svg.call(zoom as any);
 
@@ -76,9 +85,9 @@ class RenderEngine {
     // TODO
     data.sort((a, b) => a.id - b.id);
     data.forEach((d) => grid.yield(d.id, d.allocX, d.allocY));
-    console.log(grid.grid);
-    grid.deflate(2);
-    console.log(grid.grid);
+    // console.log(grid.grid);
+    // grid.deflate(4);
+    // console.log(grid.grid);
     data.forEach((d) => {
       const border = grid.nodeBorder(d.id);
       nodes.push(GenerateRENode(d, border));
@@ -88,6 +97,8 @@ class RenderEngine {
     SetEdgeOpacity(edges);
     this.render();
   }
+
+  placeNodesOnGrid() {}
 
   protected render() {
     //

@@ -39,6 +39,7 @@ let opt: StackBarOptions = {
   yLabel: "Message Count",
   zDomain: MsgGroupsDomain,
   colors: colorScheme[NumMsgGroups],
+  yFormat: "~s", // SI prefix and trims insignificant trailing zeros
 };
 
 interface FormattedDataForChartByMsgGroups {
