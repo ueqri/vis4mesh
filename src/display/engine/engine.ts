@@ -1,13 +1,14 @@
 import * as d3 from "d3";
 import { RenderEngineNode, RenderEngineEdge } from "./data";
 import { Direction, GridBoard, NodeBorder } from "./grid";
-import AbstractNode, { ReestablishLinks } from "display/abstractnode";
+import AbstractNode from "display/abstractnode";
 import Event from "event";
 import EdgeTrafficCheckboxes from "filterbar/edgecheckbox";
 import RenderSVG, { RemoveElementInsideSVGGroup } from "./render";
 import {
   PackNodesWithIDs,
-  GenerateBlockListsFromBaseNodes,
+  UnpackNodeWithID,
+  GenerateBlockListsFromNonBaseNodes,
 } from "display/abstractnode";
 
 const ev = {
@@ -84,19 +85,16 @@ class RenderEngine {
   edges: RenderEngineEdge[];
   checked: boolean[];
   nodeMap: { [id: number]: AbstractNode };
-  // Origin data passed from Display, preserved for zoom transform
-  originData: { [id: number]: AbstractNode };
 
   gridDim!: number;
-  zoomDim: number;
+  zoomDim!: number;
 
   constructor() {
     this.nodes = new Array<RenderEngineNode>();
     this.edges = new Array<RenderEngineEdge>();
     this.checked = Array<boolean>(10).fill(true); // edge traffic checkbox
     this.nodeMap = {};
-    this.originData = {};
-    this.zoomDim = 4;
+    this.zoomDim = 8;
 
     Event.AddStepListener(ev.EdgeTraffic, (levels: number[]) => {
       this.checked = Array<boolean>(10).fill(false);
@@ -116,10 +114,11 @@ class RenderEngine {
   }
 
   join(nodeMap: { [id: number]: AbstractNode }, zoomToDim?: number) {
-    this.originData = nodeMap;
+    this.nodeMap = nodeMap;
 
     if (zoomToDim === undefined) {
       zoomToDim = this.zoomDim;
+      this.zoomDim = this.gridDim;
     }
     this.zoomTransform(zoomToDim); // transform `nodeMap` with zoom dimension
 
@@ -169,23 +168,44 @@ class RenderEngine {
       return;
     }
 
-    this.nodeMap = Object.assign({}, this.originData);
-
     if (this.gridDim % zoomToDim !== 0) {
       console.warn("RenderEngine only support dimension of the power of 2");
       return;
     }
 
-    const blockDim = Math.round(this.gridDim / zoomToDim);
-    if (blockDim > 1) {
-      GenerateBlockListsFromBaseNodes(blockDim, this.gridDim).forEach((blk) => {
-        PackNodesWithIDs(this.nodeMap, blk, this.gridDim);
-      });
-    } else {
-      // Reestablishing is needed to clone base links to update link information
-      // when zoomed to full dimension.
-      ReestablishLinks(Object.values(this.nodeMap));
+    if (this.zoomDim < zoomToDim) {
+      // Unpack nodes
+      const times = Math.log2(zoomToDim / this.zoomDim);
+      for (let i = 0; i < times; i++) {
+        const ids = Object.keys(this.nodeMap);
+        ids.forEach((id) => UnpackNodeWithID(this.nodeMap, Number(id)));
+      }
+    } else if (this.zoomDim > zoomToDim) {
+      // Pack nodes
+      const times = Math.log2(this.zoomDim / zoomToDim);
+      for (let i = 0; i < times; i++) {
+        GenerateBlockListsFromNonBaseNodes(
+          2,
+          this.zoomDim,
+          this.gridDim
+        ).forEach((blk) => {
+          PackNodesWithIDs(this.nodeMap, blk, this.gridDim);
+        });
+        this.zoomDim /= 2;
+      }
     }
+
+    // this.nodeMap = Object.assign({}, this.originData);
+    // const blockDim = Math.round(this.gridDim / zoomToDim);
+    // if (blockDim > 1) {
+    //   GenerateBlockListsFromBaseNodes(blockDim, this.gridDim).forEach((blk) => {
+    //     PackNodesWithIDs(this.nodeMap, blk, this.gridDim);
+    //   });
+    // } else {
+    //   // Reestablishing is needed to clone base links to update link information
+    //   // when zoomed to full dimension.
+    //   ReestablishLinks(Object.values(this.nodeMap));
+    // }
 
     this.zoomDim = zoomToDim;
   }
@@ -193,14 +213,14 @@ class RenderEngine {
   zoomIn() {
     if (this.zoomDim < this.gridDim) {
       RemoveElementInsideSVGGroup(g);
-      this.join(this.originData, this.zoomDim * 2);
+      this.join(this.nodeMap, this.zoomDim * 2);
     }
   }
 
   zoomOut() {
     if (this.zoomDim > 1) {
       RemoveElementInsideSVGGroup(g);
-      this.join(this.originData, Math.round(this.zoomDim / 2));
+      this.join(this.nodeMap, Math.round(this.zoomDim / 2));
     }
   }
 }

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"strconv"
+	"time"
 
 	"github.com/go-redis/redis/v8"
 	"gitlab.com/akita/util/v2/tracing"
@@ -108,6 +109,9 @@ func (t *RedisTracerReader) connect() {
 		Addr:     fmt.Sprintf("%s:%d", t.ipAddress, t.port),
 		Password: t.password,
 		DB:       t.dbNameInInt, // set 0 then use default DB
+		// MinIdleConns: 5,
+		DialTimeout: 30 * time.Second,
+		ReadTimeout: 30 * time.Second,
 	})
 	t.ctx = context.Background()
 }

@@ -41,10 +41,12 @@ export default class AbstractNode {
     // Remove interior links of a packed node
     if (this.include.length !== 0) {
       let inside: { [id: number]: boolean } = {};
-      this.include.forEach((d) => {
+      const length = this.include.length;
+      for (let idx = 0; idx < length; idx++) {
+        const d = this.include[idx];
         inside[d.id] = true;
         this.baseLink = [...this.baseLink, ...d.GetBaseLink()];
-      });
+      }
       this.baseLink = this.baseLink.filter((lk) => inside[lk.dst] !== true);
     }
   }
@@ -108,13 +110,14 @@ export function UnpackNode(node: AbstractNode): AbstractNode[] {
 
 export function ReestablishLinks(nodes: AbstractNode[]) {
   let locate: { [id: number]: number } = {};
-  nodes.forEach((d) => {
+
+  const length = nodes.length;
+  for (let idx = 0; idx < length; idx++) {
+    const d = nodes[idx];
     d.record.forEach((rec) => {
       locate[rec] = d.id; // the deep nodes would be added recursively
     });
-  });
 
-  nodes.forEach((d) => {
     let count: { [dst: number]: number } = {};
     let linkMap: { [dst: number]: NodeLink } = {};
     // Use full information to squash links, especially after **unpacking**
@@ -138,7 +141,7 @@ export function ReestablishLinks(nodes: AbstractNode[]) {
     d.link.forEach((lk) => {
       lk.weight = Math.round(lk.weight / count[lk.dst]); // average weight
     });
-  });
+  }
 }
 
 function MergeTwoNodeLinkLabel(labelA: string, labelB: string): string {
@@ -163,6 +166,7 @@ export function PackNodesWithIDs(
   });
   let g = PackNodes(nodes, gridDim);
   nodeMap[g.id] = g;
+  // console.log(nodeMap);
   ReestablishLinks(Object.values(nodeMap));
 }
 
@@ -193,14 +197,16 @@ export function GenerateBlockListsFromBaseNodes(
   for (let i = 0; i < dim; i++) {
     for (let j = 0; j < dim; j++) {
       const leftTopID = i * blockRowSize + j * blockDim;
-      grid.push(GenerateSingleBlockByLeftTopID(leftTopID, blockDim, gridDim));
+      grid.push(
+        GenerateSingleBlockOfBaseNodesByLeftTopID(leftTopID, blockDim, gridDim)
+      );
     }
   }
   return grid;
 }
 
 // Notice: only for block generation from base nodes
-function GenerateSingleBlockByLeftTopID(
+function GenerateSingleBlockOfBaseNodesByLeftTopID(
   id: number,
   blockDim: number,
   gridDim: number
@@ -210,6 +216,57 @@ function GenerateSingleBlockByLeftTopID(
     const rowBegin = id + i * gridDim;
     for (let j = 0; j < blockDim; j++) {
       block.push(rowBegin + j);
+    }
+  }
+  return block;
+}
+
+export function GenerateBlockListsFromNonBaseNodes(
+  blockDim: number,
+  deflatedGridDim: number,
+  largeGridDim: number
+): Array<Array<number>> {
+  if (blockDim === 0) {
+    console.error("Zero is not a valid block dimension");
+    return [[]];
+  }
+  let grid = new Array<Array<number>>();
+  // 1 for base node
+  const deflatedBlockDim = largeGridDim / deflatedGridDim;
+  // gridDim for base node
+  const deflatedBlockRowSize = deflatedBlockDim * largeGridDim;
+  // gridDim * blockDim for base node
+  const realBlockRowSize = deflatedBlockDim * largeGridDim * blockDim;
+  // blockDim for base node
+  const realBlockDim = blockDim * deflatedBlockDim;
+  const dim = deflatedGridDim / blockDim;
+  for (let i = 0; i < dim; i++) {
+    for (let j = 0; j < dim; j++) {
+      const leftTopID = i * realBlockRowSize + j * realBlockDim;
+      grid.push(
+        GenerateSingleBlockOfNonBaseNodesByLeftTopID(
+          leftTopID,
+          blockDim,
+          deflatedBlockRowSize,
+          deflatedBlockDim
+        )
+      );
+    }
+  }
+  return grid;
+}
+
+function GenerateSingleBlockOfNonBaseNodesByLeftTopID(
+  id: number,
+  blockDim: number,
+  rowSize: number,
+  deflatedBlockDim: number
+): number[] {
+  let block = new Array<number>();
+  for (let i = 0; i < blockDim; i++) {
+    const rowBegin = id + i * rowSize;
+    for (let j = 0; j < blockDim; j++) {
+      block.push(rowBegin + j * deflatedBlockDim);
     }
   }
   return block;
