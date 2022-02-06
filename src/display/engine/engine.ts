@@ -1,10 +1,14 @@
 import * as d3 from "d3";
 import { RenderEngineNode, RenderEngineEdge } from "./data";
 import { Direction, GridBoard, NodeBorder } from "./grid";
-import AbstractNode from "display/abstractnode";
+import AbstractNode, { ReestablishLinks } from "display/abstractnode";
 import Event from "event";
 import EdgeTrafficCheckboxes from "filterbar/edgecheckbox";
-import RenderSVG from "./render";
+import RenderSVG, { RemoveElementInsideSVGGroup } from "./render";
+import {
+  PackNodesWithIDs,
+  GenerateBlockListsFromBaseNodes,
+} from "display/abstractnode";
 
 const ev = {
   EdgeTraffic: "FilterETCheckbox",
@@ -15,6 +19,7 @@ const ev = {
 const edgeWidth = 5;
 const edgeOffset = edgeWidth / 2 + 2;
 const arrowWidth = edgeWidth / 3.8;
+const zoomStep = 4;
 
 //
 // SVG
@@ -43,21 +48,30 @@ g.append("svg:defs")
 //
 
 let prevTransform: number = 1;
-let zoomLevel: number = 0;
+let zoomIn: number = 0;
+let zoomOut: number = 0;
 const zoom = d3
   .zoom()
   .scaleExtent([0.1, 25])
   .on("zoom", (e) => {
-    g.attr("transform", e.transform);
     const k = e.transform.k;
+    g.attr("transform", e.transform);
     if (k == prevTransform) {
       // Drag only
     } else if (k < prevTransform) {
-      console.log("smaller");
-      zoomLevel--;
+      zoomOut++;
+      zoomIn = 0;
+      if (Math.abs(zoomOut % zoomStep) === 0) {
+        console.log("smaller");
+        Event.FireEvent(ev.ZoomOut, undefined);
+      }
     } else {
-      console.log("bigger");
-      zoomLevel++;
+      zoomIn++;
+      zoomOut = 0;
+      if (Math.abs(zoomIn % zoomStep) === 0) {
+        console.log("bigger");
+        Event.FireEvent(ev.ZoomIn, undefined);
+      }
     }
     prevTransform = e.transform.k;
   });
@@ -65,64 +79,129 @@ const zoom = d3
 svg.call(zoom as any).on("dblclick.zoom", null);
 
 class RenderEngine {
-  data: AbstractNode[];
   grid!: GridBoard;
   nodes: RenderEngineNode[];
   edges: RenderEngineEdge[];
   checked: boolean[];
   nodeMap: { [id: number]: AbstractNode };
+  // Origin data passed from Display, preserved for zoom transform
+  originData: { [id: number]: AbstractNode };
+
+  gridDim!: number;
+  zoomDim: number;
 
   constructor() {
-    this.data = [];
     this.nodes = new Array<RenderEngineNode>();
     this.edges = new Array<RenderEngineEdge>();
     this.checked = Array<boolean>(10).fill(true); // edge traffic checkbox
     this.nodeMap = {};
+    this.originData = {};
+    this.zoomDim = 4;
 
     Event.AddStepListener(ev.EdgeTraffic, (levels: number[]) => {
       this.checked = Array<boolean>(10).fill(false);
       levels.forEach((lv) => (this.checked[lv] = true));
       SetEdgeOpacity(this.edges, this.checked);
-      this.render();
+      RenderSVG(g, this.nodes, this.edges, this.nodeMap);
     });
+    Event.AddStepListener(ev.ZoomIn, () => this.zoomIn());
+    Event.AddStepListener(ev.ZoomOut, () => this.zoomOut());
   }
 
   resize(dim: number) {
     this.grid = new GridBoard(dim);
+    this.gridDim = dim;
     // const span = grid.span();
     // svg.attr("viewBox", `0 0 ${span} ${span}`);
   }
 
-  join(data: AbstractNode[]) {
-    this.data = data;
+  join(nodeMap: { [id: number]: AbstractNode }, zoomToDim?: number) {
+    this.originData = nodeMap;
 
-    this.grid.clear();
-    this.nodes = new Array<RenderEngineNode>();
-    this.edges = new Array<RenderEngineEdge>();
+    if (zoomToDim === undefined) {
+      zoomToDim = this.zoomDim;
+    }
+    this.zoomTransform(zoomToDim); // transform `nodeMap` with zoom dimension
 
-    this.data.sort((a, b) => a.id - b.id);
-    this.data.forEach((d) => this.grid.yield(d.id, d.allocX, d.allocY));
+    const data = Object.values(this.nodeMap);
 
-    // GenerateREDataAndRender();
-    this.data.forEach((d) => {
-      const border = this.grid.nodeBorder(d.id);
-      this.nodes.push(GenerateRENode(d, border));
-      this.edges = [...this.edges, ...GenerateREEdge(d, border, this.grid)];
-      this.nodeMap[d.id] = d;
-    });
-    LinearNormalize(this.edges);
-    SetEdgeOpacity(this.edges, this.checked);
-    this.render();
-  }
+    this.clear();
 
-  placeNodesOnGrid() {}
+    this.yieldBlockOnGrid(data);
+    this.grid.deflate(Math.round(this.gridDim / this.zoomDim));
+    // console.log(this.grid.span());
 
-  protected render() {
-    RenderSVG(g, this.nodes, this.edges, this.nodeMap);
+    this.generateREDataAndRender(data);
   }
 
   node(): SVGSVGElement {
     return svg.node()!;
+  }
+
+  clear() {
+    // this.grid.clear();
+    this.grid = new GridBoard(this.gridDim);
+    this.nodes = new Array<RenderEngineNode>();
+    this.edges = new Array<RenderEngineEdge>();
+  }
+
+  yieldBlockOnGrid(data: AbstractNode[]) {
+    data.sort((a, b) => a.id - b.id);
+    data.forEach((d) => this.grid.yield(d.id, d.allocX, d.allocY));
+  }
+
+  generateREDataAndRender(data: AbstractNode[]) {
+    data.forEach((d) => {
+      const border = this.grid.nodeBorder(d.id);
+      this.nodes.push(GenerateRENode(d, border));
+      this.edges = [...this.edges, ...GenerateREEdge(d, border, this.grid)];
+    });
+    LinearNormalize(this.edges);
+    SetEdgeOpacity(this.edges, this.checked);
+    RenderSVG(g, this.nodes, this.edges, this.nodeMap);
+  }
+
+  zoomTransform(zoomToDim: number) {
+    // Pack nodes of origin data (passed from Display) to produce intermediate
+    // nodes to generate RenderEngine data and render zoomed graph.
+    if (zoomToDim > this.gridDim) {
+      console.error("RenderEngine cannot zoom in further than grid size");
+      return;
+    }
+
+    this.nodeMap = Object.assign({}, this.originData);
+
+    if (this.gridDim % zoomToDim !== 0) {
+      console.warn("RenderEngine only support dimension of the power of 2");
+      return;
+    }
+
+    const blockDim = Math.round(this.gridDim / zoomToDim);
+    if (blockDim > 1) {
+      GenerateBlockListsFromBaseNodes(blockDim, this.gridDim).forEach((blk) => {
+        PackNodesWithIDs(this.nodeMap, blk, this.gridDim);
+      });
+    } else {
+      // Reestablishing is needed to clone base links to update link information
+      // when zoomed to full dimension.
+      ReestablishLinks(Object.values(this.nodeMap));
+    }
+
+    this.zoomDim = zoomToDim;
+  }
+
+  zoomIn() {
+    if (this.zoomDim < this.gridDim) {
+      RemoveElementInsideSVGGroup(g);
+      this.join(this.originData, this.zoomDim * 2);
+    }
+  }
+
+  zoomOut() {
+    if (this.zoomDim > 1) {
+      RemoveElementInsideSVGGroup(g);
+      this.join(this.originData, Math.round(this.zoomDim / 2));
+    }
   }
 }
 
@@ -257,6 +336,17 @@ function SetEdgeOpacity(data: RenderEngineEdge[], checked: boolean[]) {
   data.forEach((e) => {
     e.opacity = checked[e.level] === true ? 1 : 0.02;
   });
+}
+
+function GetCenterPositionOfSVG(): [number, number] {
+  let rootSize = (svg.node() as Element).getBoundingClientRect();
+  let groupSize = (g.node() as Element).getBoundingClientRect();
+
+  let x = rootSize.x - groupSize.x + (rootSize.width - groupSize.width) / 2;
+  let y = rootSize.y - groupSize.y + (rootSize.height - groupSize.height) / 2;
+
+  console.log(x, y);
+  return [x, y];
 }
 
 export default new RenderEngine();

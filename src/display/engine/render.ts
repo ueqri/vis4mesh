@@ -56,8 +56,8 @@ export default function RenderSVG(
       if (sel.property("checked") !== true) {
         sel.attr("stroke-width", d.width);
         sel.style("cursor", "default");
-        TooltipInteraction.hide();
       }
+      TooltipInteraction.hide();
     })
     .on("click", function (ev, d) {
       const sel = d3.select(this);
@@ -139,8 +139,8 @@ export default function RenderSVG(
       if (sel.property("checked") !== true) {
         sel.attr("fill", d.fill);
         sel.style("cursor", "default");
-        TooltipInteraction.hide();
       }
+      TooltipInteraction.hide();
     })
     .on("click", function (ev, d) {
       const sel = d3.select(this);
@@ -177,6 +177,14 @@ export default function RenderSVG(
     .attr("x", (d) => d.label.posX)
     .attr("y", (d) => d.label.posY)
     .text((d) => d.label.text);
+}
+
+export function RemoveElementInsideSVGGroup(
+  g: d3.Selection<SVGGElement, undefined, null, undefined>
+) {
+  g.selectAll("rect").remove();
+  g.selectAll("line").remove();
+  g.selectAll("text").remove();
 }
 
 export function ColorScheme(lv: number): string {

@@ -1,5 +1,6 @@
 import * as d3 from "d3";
 import AbstractNode from "display/abstractnode";
+import SideCanvas from "./sidecanvas";
 
 class ClickInteraction {
   protected clearLastEvent: () => any;
@@ -12,7 +13,7 @@ class ClickInteraction {
     this.clearLastEvent();
     executeEvent();
 
-    console.log(d.id);
+    SideCanvas.write(`<h2>Node ${d.id}</h2>`);
 
     this.clearLastEvent = clearEvent;
   }
@@ -25,7 +26,7 @@ class ClickInteraction {
     this.clearLastEvent();
     executeEvent();
 
-    console.log(src.id, "->", dst.id);
+    SideCanvas.write(`<h2>Link ${src.id} -> ${dst.id}</h2>`);
 
     this.clearLastEvent = clearEvent;
   }

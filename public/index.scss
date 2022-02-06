@@ -50,6 +50,10 @@ body {
       height: 100%;
       cursor: col-resize;
     }
+
+    #sidecanvas-content {
+      margin: 1em;
+    }
   }
 
   #setting {
@@ -90,7 +94,7 @@ body {
   border-radius: 1em;
   font-weight: bold;
   background-color: gainsboro;
-  width: max-content;
+  width: 15vw;
   opacity: 0.85;
 }
 

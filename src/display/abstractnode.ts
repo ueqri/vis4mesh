@@ -8,7 +8,7 @@ export default class AbstractNode {
   allocX: number;
   allocY: number;
   include: Array<AbstractNode>;
-  record: Array<number>;
+  record: Array<number>; // record IDs of nodes recursively
   label: string;
 
   constructor(id: number, label?: string) {
@@ -40,7 +40,6 @@ export default class AbstractNode {
   RebuildBaseLink() {
     // Remove interior links of a packed node
     if (this.include.length !== 0) {
-      console.log(`${this} is a packed node`);
       let inside: { [id: number]: boolean } = {};
       this.include.forEach((d) => {
         inside[d.id] = true;
@@ -57,7 +56,11 @@ export interface NodeLink {
   label: string;
 }
 
-export function PackNodes(nodes: AbstractNode[], label?: string): AbstractNode {
+export function PackNodes(
+  nodes: AbstractNode[],
+  gridDim: number, // the information is necessary to calculate block size
+  label?: string
+): AbstractNode {
   // Check length of node list
   if (nodes.length <= 1) {
     console.error("PackNodes only accepts node list with length > 1");
@@ -73,28 +76,31 @@ export function PackNodes(nodes: AbstractNode[], label?: string): AbstractNode {
   }
   let g = new AbstractNode(id, label);
 
-  // Calculate block size
-  for (let idx = 1; idx < nodes.length; idx++) {
-    if (nodes[idx].id - nodes[idx - 1].id !== 1) {
-      g.allocY++; // line break is encountered
-      // TODO: support more flexible pack, instead of pack the base node
-    }
-  }
-  g.allocX = nodes.length / g.allocY;
-  console.log(`${g.allocX} * ${g.allocY}`);
-
   // Store nodes and rebuild base links
+  g.record = []; // clear array since it is not empty after class construction
   nodes.forEach((d) => {
     g.include.push(d);
     g.record = [...g.record, ...d.record];
   });
   g.RebuildBaseLink();
 
+  // Calculate block size
+  let inside: { [id: number]: boolean } = {};
+  g.record.forEach((rec) => (inside[rec] = true));
+  for (let row = 1; row <= gridDim; row++) {
+    if (inside[row * gridDim + id] !== true) {
+      g.allocY = row;
+      break;
+    }
+  }
+  g.allocX = g.record.length / g.allocY;
+  console.log(`${g.allocX} * ${g.allocY}`);
+
   return g;
 }
 
 export function UnpackNode(node: AbstractNode): AbstractNode[] {
-  if (node.include.length == 0) {
+  if (node.include.length === 0) {
     console.warn("Unpacking base node is an undefined behavior");
   }
   return node.include;
@@ -138,4 +144,73 @@ export function ReestablishLinks(nodes: AbstractNode[]) {
 function MergeTwoNodeLinkLabel(labelA: string, labelB: string): string {
   let merge = (Number(labelA) + Number(labelB)).toString();
   return merge === "0" ? "" : merge;
+}
+
+//
+// Easy shorthand for packing and unpacking operations
+//
+
+export function PackNodesWithIDs(
+  nodeMap: { [id: number]: AbstractNode },
+  ids: number[],
+  gridDim: number
+) {
+  // Pack nodes
+  let nodes = new Array<AbstractNode>();
+  ids.forEach((id) => {
+    nodes.push(nodeMap[id]);
+    delete nodeMap[id];
+  });
+  let g = PackNodes(nodes, gridDim);
+  nodeMap[g.id] = g;
+  ReestablishLinks(Object.values(nodeMap));
+}
+
+export function UnpackNodeWithID(
+  nodeMap: { [id: number]: AbstractNode },
+  id: number
+) {
+  let target = nodeMap[id];
+  if (target.record.length > 1) {
+    delete nodeMap[id];
+    UnpackNode(target).forEach((d) => (nodeMap[d.id] = d));
+    ReestablishLinks(Object.values(nodeMap));
+  }
+}
+
+// Notice: only for block generation from base nodes
+export function GenerateBlockListsFromBaseNodes(
+  blockDim: number,
+  gridDim: number
+): Array<Array<number>> {
+  if (blockDim === 0) {
+    console.error("Zero is not a valid block dimension");
+    return [[]];
+  }
+  let grid = new Array<Array<number>>();
+  const blockRowSize = blockDim * gridDim;
+  const dim = gridDim / blockDim;
+  for (let i = 0; i < dim; i++) {
+    for (let j = 0; j < dim; j++) {
+      const leftTopID = i * blockRowSize + j * blockDim;
+      grid.push(GenerateSingleBlockByLeftTopID(leftTopID, blockDim, gridDim));
+    }
+  }
+  return grid;
+}
+
+// Notice: only for block generation from base nodes
+function GenerateSingleBlockByLeftTopID(
+  id: number,
+  blockDim: number,
+  gridDim: number
+): number[] {
+  let block = new Array<number>();
+  for (let i = 0; i < blockDim; i++) {
+    const rowBegin = id + i * gridDim;
+    for (let j = 0; j < blockDim; j++) {
+      block.push(rowBegin + j);
+    }
+  }
+  return block;
 }

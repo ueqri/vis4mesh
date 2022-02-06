@@ -30,7 +30,7 @@ class TooltipInteraction {
     } else {
       detail = "squashed edge of<br>";
       links.forEach((lk) => {
-        detail += `       -> ${lk.dst} weighs ${TranslateLabelToCount(
+        detail += `&emsp;&emsp;-> ${lk.dst} weighs ${TranslateLabelToCount(
           lk.label
         )}<br>`;
       });
