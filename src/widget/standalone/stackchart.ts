@@ -291,12 +291,22 @@ export default class StackedChart {
     return area;
   }
 
-  brush(onAxis: SVGSelection, callback: (l: number, r: number) => void) {
+  brush(
+    onAxis: SVGSelection,
+    callback: (l: number, r: number) => void,
+    memoryPrevSel?: [number, number],
+    range?: [number, number] // default range as selection, use axis number
+  ) {
     const xScale = this.xScale;
-    const snappedSelection = ([min, max]: [number, number]) => [
-      xScale(this.X[min]),
-      xScale(this.X[max - 1]) + xScale.bandwidth(), // min & max won't be same
-    ];
+    const snappedSelection = (sel: [number, number]) =>
+      this.XAxisSelectionMapping(sel);
+    const storePrevSelection = (sel: [number, number]) => {
+      if (memoryPrevSel !== undefined) {
+        // Modify property instead of just copying reference to memory values
+        memoryPrevSel[0] = sel[0];
+        memoryPrevSel[1] = sel[1];
+      }
+    };
     const brush = d3
       .brushX()
       .extent([
@@ -314,6 +324,7 @@ export default class StackedChart {
 
         if (event.sourceEvent && event.type === "end") {
           const snap = snappedSelection(d0);
+          storePrevSelection(d0);
           d3.select(this).transition().call(event.target.move, snap);
           d3.select(this).select("title").text(`TODO: [${d0[0]}, ${d0[1]})`);
           if (isNumeric(d0[0]) && isNumeric(d0[1])) {
@@ -326,7 +337,40 @@ export default class StackedChart {
       .attr("class", "brush")
       .call(brush as any)
       .append("title");
+    if (range !== undefined) {
+      this.moveBrush(onAxis, brush, range);
+    } else if (memoryPrevSel !== undefined) {
+      this.moveBrush(onAxis, brush, memoryPrevSel);
+    }
     return brush;
+  }
+
+  moveBrush(
+    onAxis: SVGSelection,
+    brush: d3.BrushBehavior<unknown>,
+    sel: [number, number]
+  ) {
+    const [left, right] = sel;
+    if (right < 1) {
+      // console.error("Right position of brush cannot be less than 1");
+      return;
+    } else if (left > right) {
+      console.error("Left position of brush cannot be greater than right");
+      return;
+    }
+    // To avoid position out of right bound, use last bar + band width,
+    // and `right` always >= 1
+    onAxis
+      .select(".brush")
+      .call(brush.move as any, this.XAxisSelectionMapping(sel));
+  }
+
+  protected XAxisSelectionMapping([min, max]: [number, number]) {
+    const xScale = this.xScale;
+    return [
+      xScale(this.X[min]),
+      xScale(this.X[max - 1]) + xScale.bandwidth(), // min & max won't be same
+    ];
   }
 
   node(svg: SVGSelection) {

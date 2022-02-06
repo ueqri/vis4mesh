@@ -1,4 +1,5 @@
 $setting-separate: 76vw;
+$timebar-default-height: 20vh;
 
 body {
   overflow: hidden;
@@ -14,6 +15,7 @@ body {
       height: 20vh;
       position: relative;
       left: 3vw;
+      top: 3vh;
     }
   }
 
@@ -33,10 +35,21 @@ body {
 
   #sidecanvas {
     position: absolute;
+    width: 17.5vw;
+    top: 0vh;
+    right: 0vw;
+    bottom: $timebar-default-height;
     z-index: 15;
-    visibility: hidden;
-    border: 1px solid #ccc !important;
-    border-radius: 5px;
+
+    background-color: #eeeeee;
+
+    .resizer {
+      position: absolute;
+      left: -5px;
+      width: 5px;
+      height: 100%;
+      cursor: col-resize;
+    }
   }
 
   #setting {
@@ -48,15 +61,14 @@ body {
   }
 
   #timebar {
-    height: 20vh;
+    height: $timebar-default-height;
 
     .resizer {
       position: absolute;
       top: -5px;
-      cursor: row-resize;
       height: 5px;
-      left: 0;
       width: 100%;
+      cursor: row-resize;
     }
 
     #filterbar-group {
@@ -69,8 +81,7 @@ body {
 
 // Style for Widgets
 
-.node-tooltip,
-.edge-tooltip {
+.tooltip {
   position: absolute;
   z-index: 10;
   visibility: hidden;
@@ -80,6 +91,7 @@ body {
   font-weight: bold;
   background-color: gainsboro;
   width: max-content;
+  opacity: 0.85;
 }
 
 .node-label {

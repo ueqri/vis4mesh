@@ -4,9 +4,12 @@ import { Direction, GridBoard, NodeBorder } from "./grid";
 import AbstractNode from "display/abstractnode";
 import Event from "event";
 import EdgeTrafficCheckboxes from "filterbar/edgecheckbox";
+import RenderSVG from "./render";
 
 const ev = {
   EdgeTraffic: "FilterETCheckbox",
+  ZoomIn: "GraphZoomIn",
+  ZoomOut: "GraphZoomOut",
 };
 
 const edgeWidth = 5;
@@ -40,6 +43,7 @@ g.append("svg:defs")
 //
 
 let prevTransform: number = 1;
+let zoomLevel: number = 0;
 const zoom = d3
   .zoom()
   .scaleExtent([0.1, 25])
@@ -47,160 +51,74 @@ const zoom = d3
     g.attr("transform", e.transform);
     const k = e.transform.k;
     if (k == prevTransform) {
-      // drag only
+      // Drag only
     } else if (k < prevTransform) {
       console.log("smaller");
+      zoomLevel--;
     } else {
       console.log("bigger");
+      zoomLevel++;
     }
     prevTransform = e.transform.k;
   });
-svg.call(zoom as any);
 
-let grid: GridBoard;
-let nodes = new Array<RenderEngineNode>();
-let edges = new Array<RenderEngineEdge>();
-let checked = Array<boolean>(10).fill(true); // edge traffic checkbox
+svg.call(zoom as any).on("dblclick.zoom", null);
 
 class RenderEngine {
+  data: AbstractNode[];
+  grid!: GridBoard;
+  nodes: RenderEngineNode[];
+  edges: RenderEngineEdge[];
+  checked: boolean[];
+  nodeMap: { [id: number]: AbstractNode };
+
   constructor() {
+    this.data = [];
+    this.nodes = new Array<RenderEngineNode>();
+    this.edges = new Array<RenderEngineEdge>();
+    this.checked = Array<boolean>(10).fill(true); // edge traffic checkbox
+    this.nodeMap = {};
+
     Event.AddStepListener(ev.EdgeTraffic, (levels: number[]) => {
-      checked = Array<boolean>(10).fill(false);
-      levels.forEach((lv) => (checked[lv] = true));
-      SetEdgeOpacity(edges);
+      this.checked = Array<boolean>(10).fill(false);
+      levels.forEach((lv) => (this.checked[lv] = true));
+      SetEdgeOpacity(this.edges, this.checked);
       this.render();
     });
   }
 
   resize(dim: number) {
-    grid = new GridBoard(dim);
+    this.grid = new GridBoard(dim);
     // const span = grid.span();
     // svg.attr("viewBox", `0 0 ${span} ${span}`);
   }
 
   join(data: AbstractNode[]) {
-    nodes = new Array<RenderEngineNode>();
-    edges = new Array<RenderEngineEdge>();
-    grid.clear();
-    // TODO
-    data.sort((a, b) => a.id - b.id);
-    data.forEach((d) => grid.yield(d.id, d.allocX, d.allocY));
-    // console.log(grid.grid);
-    // grid.deflate(4);
-    // console.log(grid.grid);
-    data.forEach((d) => {
-      const border = grid.nodeBorder(d.id);
-      nodes.push(GenerateRENode(d, border));
-      edges = [...edges, ...GenerateREEdge(d, border)];
+    this.data = data;
+
+    this.grid.clear();
+    this.nodes = new Array<RenderEngineNode>();
+    this.edges = new Array<RenderEngineEdge>();
+
+    this.data.sort((a, b) => a.id - b.id);
+    this.data.forEach((d) => this.grid.yield(d.id, d.allocX, d.allocY));
+
+    // GenerateREDataAndRender();
+    this.data.forEach((d) => {
+      const border = this.grid.nodeBorder(d.id);
+      this.nodes.push(GenerateRENode(d, border));
+      this.edges = [...this.edges, ...GenerateREEdge(d, border, this.grid)];
+      this.nodeMap[d.id] = d;
     });
-    LinearNormalize(edges);
-    SetEdgeOpacity(edges);
+    LinearNormalize(this.edges);
+    SetEdgeOpacity(this.edges, this.checked);
     this.render();
   }
 
   placeNodesOnGrid() {}
 
   protected render() {
-    //
-    // Edges
-    //
-
-    g.selectAll("line")
-      .data(edges)
-      .join(
-        function (enter) {
-          return enter.append("line").attr("marker-end", "url(#end)");
-        },
-        function (update) {
-          return update;
-        },
-        function (exit) {
-          return exit.remove();
-        }
-      )
-      .attr("x1", (d) => d.srcX)
-      .attr("x2", (d) => d.dstX)
-      .attr("y1", (d) => d.srcY)
-      .attr("y2", (d) => d.dstY)
-      .attr("stroke-dasharray", (d) => {
-        if (d.rtl) {
-          return "2,1"; // dash style: bottom -> top / right -> left
-        } else {
-          return "5,0"; // solid style: top -> bottom / left -> right
-        }
-      })
-      .attr("stroke-width", (d) => d.width)
-      .attr("opacity", (d) => d.opacity)
-      .attr("stroke", (d) => ColorScheme(d.level));
-
-    g.selectAll(".edge-label")
-      .data(edges)
-      .join(
-        function (enter) {
-          return enter
-            .append("text")
-            .attr("class", "edge-label")
-            .attr("dy", ".35em")
-            .attr("dominant-baseline", "middle");
-        },
-        function (update) {
-          return update;
-        },
-        function (exit) {
-          return exit.remove();
-        }
-      )
-      .attr("x", (d) => d.label.posX)
-      .attr("y", (d) => d.label.posY)
-      .text((d) => (d.opacity === 1 ? d.label.text : ""));
-
-    //
-    // Nodes
-    //
-
-    g.selectAll("rect")
-      .data(nodes)
-      .join(
-        function (enter) {
-          return enter
-            .append("rect")
-            .attr("width", (d) => d.width)
-            .attr("height", (d) => d.height)
-            .attr("rx", 1.5) // corner radius
-            .attr("ry", 1.5)
-            .attr("stroke", (d) => d.stroke)
-            .attr("stroke-width", "0.2%")
-            .attr("fill", (d) => d.fill);
-        },
-        function (update) {
-          return update;
-        },
-        function (exit) {
-          return exit.remove();
-        }
-      )
-      .attr("x", (d) => d.posX)
-      .attr("y", (d) => d.posY);
-
-    g.selectAll(".node-label")
-      .data(nodes)
-      .join(
-        function (enter) {
-          return enter
-            .append("text")
-            .attr("class", "node-label")
-            .attr("dominant-baseline", "middle");
-        },
-        function (update) {
-          return update;
-        },
-        function (exit) {
-          return exit.remove();
-        }
-      )
-      .attr("x", (d) => d.label.posX)
-      .attr("y", (d) => d.label.posY)
-      .text((d) => d.label.text);
+    RenderSVG(g, this.nodes, this.edges, this.nodeMap);
   }
 
   node(): SVGSVGElement {
@@ -210,7 +128,7 @@ class RenderEngine {
 
 function GenerateRENode(d: AbstractNode, b: NodeBorder): RenderEngineNode {
   return {
-    id: d.id, // preserved for node brush
+    id: d.id, // preserved for node brush and interaction
     width: b.right - b.left,
     height: b.down - b.top,
     posX: b.left,
@@ -225,7 +143,11 @@ function GenerateRENode(d: AbstractNode, b: NodeBorder): RenderEngineNode {
   };
 }
 
-function GenerateREEdge(node: AbstractNode, b: NodeBorder): RenderEngineEdge[] {
+function GenerateREEdge(
+  node: AbstractNode,
+  b: NodeBorder,
+  grid: GridBoard
+): RenderEngineEdge[] {
   const src = node.id;
   const edges = new Array<RenderEngineEdge>();
   node.link.forEach((lk) => {
@@ -234,6 +156,7 @@ function GenerateREEdge(node: AbstractNode, b: NodeBorder): RenderEngineEdge[] {
       level: lk.weight, // use real count before normalization
       width: edgeWidth,
       opacity: 1, // display by normal, would be changed on filter event
+      connection: [src, dst],
     };
 
     const d = grid.nodeBorder(dst);
@@ -305,18 +228,13 @@ function GenerateREEdge(node: AbstractNode, b: NodeBorder): RenderEngineEdge[] {
   return edges;
 }
 
-function ColorScheme(lv: number): string {
-  // [0, 9] maps Blue-Yellow-Red color platte
-  return d3.interpolateRdYlBu((9 - lv) / 9);
-}
-
 function LinearNormalize(data: RenderEngineEdge[]) {
   let max: number = 0;
   data.forEach((e) => (max = max < e.level ? e.level : max));
 
   // List of upper bound of each level at the current rendering
   let uppers: Array<number> = new Array<number>(10).fill(0);
-  edges.forEach((e) => {
+  data.forEach((e) => {
     let lv: number = 0;
     if (max != 0) {
       lv = Math.floor((e.level * 9) / max);
@@ -335,7 +253,7 @@ function LinearNormalize(data: RenderEngineEdge[]) {
   EdgeTrafficCheckboxes.applyUpperBound(uppers);
 }
 
-function SetEdgeOpacity(data: RenderEngineEdge[]) {
+function SetEdgeOpacity(data: RenderEngineEdge[], checked: boolean[]) {
   data.forEach((e) => {
     e.opacity = checked[e.level] === true ? 1 : 0.02;
   });

@@ -2,7 +2,7 @@ import * as d3 from "d3";
 import { DataPortFlatResponse } from "data/data";
 import StackedChart from "widget/standalone/stackchart";
 import { SVGSelection, StackBarOptions } from "widget/standalone/stackchart";
-import RegisterResizerEvent from "./resizer";
+import RegisterResizerEvent from "widget/standalone/resizer";
 import {
   DataOrCommandDomain,
   MsgGroupsDomain,
@@ -96,7 +96,24 @@ export function RenderTimebar() {
     timebar.render();
 
     const resizer = div.select(".resizer");
-    RegisterResizerEvent(div, resizer, () => timebar.render());
+    RegisterResizerEvent(resizer, [
+      {
+        div: div,
+        // Timebar lays on the vertical bottom
+        calc: ([w, h, dx, dy]) => [w, h - dy < 65 ? 0 : h - dy],
+        callback: ([w, h]) => {
+          const sidecanvas = d3.select("#sidecanvas");
+          if (h == 0) {
+            sidecanvas.style("bottom", "0px");
+            sidecanvas.style("height", null);
+          } else {
+            timebar.render();
+            sidecanvas.style("bottom", h + "px");
+            sidecanvas.style("height", null);
+          }
+        },
+      },
+    ]);
     d3.select(window).on("resize", () => timebar.render());
 
     Component.ticker.setCast((l, r) => timebar.moveBrush(l, r));
@@ -117,8 +134,10 @@ export default class Timebar {
   protected data!: Object;
   protected dataForMsgGroups!: FormattedDataForChartByMsgGroups[];
   protected dataForDoC!: FormattedDataForChartByDoC[];
+  protected prevBrush: [number, number];
 
   constructor(d?: DataPortFlatResponse) {
+    this.prevBrush = [0, 0];
     if (d !== undefined) {
       this.loadFlatResponse(d);
     }
@@ -149,7 +168,6 @@ export default class Timebar {
 
   render() {
     div.select("#stacked-chart").remove();
-    // div.selectAll("svg").remove();
 
     opt.width = (div.node() as Element).getBoundingClientRect().width;
     opt.height = (div.node() as Element).getBoundingClientRect().height;
@@ -158,12 +176,16 @@ export default class Timebar {
     let svg = chart.axis();
     svg.attr("id", "stacked-chart");
     chart.bar(svg);
-    let brush = chart.brush(svg, (l, r) => {
-      Component.ticker.signal["state"]("pause");
-      Module.setTime.signal["start"](l);
-      Module.setTime.signal["end"](r);
-      Module.setTime.signal["refresh"](undefined);
-    });
+    let brush = chart.brush(
+      svg,
+      (l, r) => {
+        Component.ticker.signal["state"]("pause");
+        Module.setTime.signal["start"](l);
+        Module.setTime.signal["end"](r);
+        Module.setTime.signal["refresh"](undefined);
+      },
+      this.prevBrush
+    );
 
     div.append(() => chart.node(svg));
 
@@ -173,19 +195,7 @@ export default class Timebar {
   }
 
   moveBrush(left: number, right: number) {
-    if (right < 1) {
-      // console.error("Right position of brush cannot be less than 1");
-      return;
-    } else if (left > right) {
-      console.error("Left position of brush cannot be greater than right");
-      return;
-    }
-    const chart = this.chart;
-    const mapL: number = chart.xScale(`${left}`);
-    // To avoid position out of right bound, use last bar + band width,
-    // and `right` always >= 1
-    const mapR: number =
-      chart.xScale(`${right - 1}`) + chart.xScale.bandwidth();
-    this.svg.select(".brush").call(this.brush.move as any, [mapL, mapR]);
+    this.prevBrush = [left, right];
+    this.chart.moveBrush(this.svg, this.brush, this.prevBrush);
   }
 }

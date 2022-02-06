@@ -1,13 +1,17 @@
 import * as d3 from "d3";
 export type DivSelection = d3.Selection<d3.BaseType, unknown, HTMLElement, any>;
 
-export default function RegisterResizerEvent(
-  div: DivSelection,
-  resizer: DivSelection,
-  callback: (delta: number) => any
-) {
-  const container = div.node() as HTMLElement;
+export interface ResizableContainer {
+  div: DivSelection;
+  // Calculate dimension of container after resizing
+  calc: ([w, h, dx, dy]: [number, number, number, number]) => [number, number];
+  callback: ([w, h]: [number, number]) => any; // callback after resizing
+}
 
+export default function RegisterResizerEvent(
+  resizer: DivSelection,
+  containers: ResizableContainer[]
+) {
   resizer
     .on("mouseover", function () {
       d3.select(this).transition().style("background-color", "#bdbdbd");
@@ -18,17 +22,21 @@ export default function RegisterResizerEvent(
     });
 
   function resizerMouseEvent() {
-    let y = 0; // current mouse position
-    let h = 0; // dimension of the div element
+    let pos = [0, 0]; // current mouse position
+    let dims: Array<[number, number]>; // dimension of the div element
 
     // Handle the mousedown event triggered when user drags the resizer
     const mouseDownHandler = function (e: any) {
       // Get the current mouse position
-      y = e.clientY;
+      pos[0] = e.clientX;
+      pos[1] = e.clientY;
+      dims = new Array<[number, number]>();
 
       // Calculate the dimension of element
-      const styles = window.getComputedStyle(container);
-      h = parseInt(styles.height, 10);
+      containers.forEach((c) => {
+        const styles = window.getComputedStyle(c.div.node() as HTMLElement);
+        dims.push([parseInt(styles.width, 10), parseInt(styles.height, 10)]);
+      });
 
       // Attach the listeners to `document`
       document.addEventListener("mousemove", mouseMoveHandler);
@@ -37,15 +45,17 @@ export default function RegisterResizerEvent(
 
     const mouseMoveHandler = function (e: any) {
       // How far the mouse has been moved
-      const dy = y - e.clientY;
+      const [dx, dy] = [e.clientX - pos[0], e.clientY - pos[1]];
 
       // Adjust the dimension of element
-      if (h + dy >= 65) {
-        container.style.height = `${h + dy}px`;
-        callback(dy); // trigger callback, e.g. resize the SVG
-      } else {
-        container.style.height = "0px"; // assume it as the hidden action
-      }
+      containers.forEach((c, i) => {
+        const container = c.div.node() as HTMLElement;
+        const dim = c.calc([dims[i][0], dims[i][1], dx, dy]);
+        container.style.width = `${dim[0]}px`;
+        container.style.height = `${dim[1]}px`;
+        // Trigger callback, e.g. resize the SVG
+        c.callback(dim);
+      });
     };
 
     const mouseUpHandler = function () {

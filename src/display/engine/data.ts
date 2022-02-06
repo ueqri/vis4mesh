@@ -19,6 +19,7 @@ export interface RenderEngineEdge {
   label: RenderEngineLabel;
   opacity: number;
   rtl: boolean;
+  connection: number[]; // two element, i.e. IDs of source and destination
 }
 
 export interface RenderEngineLabel {

@@ -161,9 +161,6 @@ class EdgeTrafficCheckboxes {
   }
 
   node(): SVGSVGElement {
-    const navHeight = (document.querySelector("#navbar")! as HTMLElement)
-      .offsetHeight;
-    svg.style("top", navHeight + 30);
     return svg.node()!;
   }
 

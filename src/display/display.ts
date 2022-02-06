@@ -2,11 +2,11 @@ import { PackNodes, UnpackNode, ReestablishLinks } from "display/abstractnode";
 import AbstractNode from "display/abstractnode";
 import { DataToDisplay, NodeDisplay } from "./data";
 import RenderEngine from "./engine/engine";
+import SideCanvas from "./interaction/sidecanvas";
+import ClickInteraction from "./interaction/click";
 import * as d3 from "d3";
 
-const div = d3
-  .select("#graph")
-  .on("click", () => console.warn("graph clicked"));
+const div = d3.select("#graph").on("click", () => ClickInteraction.back());
 
 export default class Display {
   prev!: DataToDisplay;
@@ -24,6 +24,7 @@ export default class Display {
     div.append(() => GenerateSVG(data));
     // Store data for further use to avoid redundant DataPort request
     this.prev = data;
+    SideCanvas.load();
   }
 }
 
@@ -48,9 +49,9 @@ function GenerateSVG(data: DataToDisplay) {
   // Pack nodes, tested example:
   // PackNodesWithIDs(nodeMap, [13, 21, 14, 15, 22, 23]);
   // PackNodesWithIDs(nodeMap, [29, 30, 31]);
-  // GenerateBlockLists(4, 8).forEach((blk) => {
-  //   PackNodesWithIDs(nodeMap, blk);
-  // });
+  GenerateBlockLists(4, 8).forEach((blk) => {
+    PackNodesWithIDs(nodeMap, blk);
+  });
 
   // UnpackNodeWithID(nodeMap, 13);
 
