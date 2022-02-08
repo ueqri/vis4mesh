@@ -111,13 +111,13 @@ export function UnpackNode(node: AbstractNode): AbstractNode[] {
 export function ReestablishLinks(nodes: AbstractNode[]) {
   let locate: { [id: number]: number } = {};
 
-  const length = nodes.length;
-  for (let idx = 0; idx < length; idx++) {
-    const d = nodes[idx];
+  nodes.forEach((d) => {
     d.record.forEach((rec) => {
       locate[rec] = d.id; // the deep nodes would be added recursively
     });
+  });
 
+  nodes.forEach((d) => {
     let count: { [dst: number]: number } = {};
     let linkMap: { [dst: number]: NodeLink } = {};
     // Use full information to squash links, especially after **unpacking**
@@ -141,7 +141,7 @@ export function ReestablishLinks(nodes: AbstractNode[]) {
     d.link.forEach((lk) => {
       lk.weight = Math.round(lk.weight / count[lk.dst]); // average weight
     });
-  }
+  });
 }
 
 function MergeTwoNodeLinkLabel(labelA: string, labelB: string): string {
@@ -167,7 +167,7 @@ export function PackNodesWithIDs(
   let g = PackNodes(nodes, gridDim);
   nodeMap[g.id] = g;
   // console.log(nodeMap);
-  ReestablishLinks(Object.values(nodeMap));
+  // ReestablishLinks(Object.values(nodeMap));
 }
 
 export function UnpackNodeWithID(
@@ -178,7 +178,7 @@ export function UnpackNodeWithID(
   if (target.record.length > 1) {
     delete nodeMap[id];
     UnpackNode(target).forEach((d) => (nodeMap[d.id] = d));
-    ReestablishLinks(Object.values(nodeMap));
+    // ReestablishLinks(Object.values(nodeMap));
   }
 }
 

@@ -1,7 +1,7 @@
 import * as d3 from "d3";
 import { RenderEngineNode, RenderEngineEdge } from "./data";
 import { Direction, GridBoard, NodeBorder } from "./grid";
-import AbstractNode from "display/abstractnode";
+import AbstractNode, { ReestablishLinks } from "display/abstractnode";
 import Event from "event";
 import EdgeTrafficCheckboxes from "filterbar/edgecheckbox";
 import RenderSVG, { RemoveElementInsideSVGGroup } from "./render";
@@ -191,6 +191,7 @@ class RenderEngine {
         ).forEach((blk) => {
           PackNodesWithIDs(this.nodeMap, blk, this.gridDim);
         });
+        ReestablishLinks(Object.values(this.nodeMap));
         this.zoomDim /= 2;
       }
     }
