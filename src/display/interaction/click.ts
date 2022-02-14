@@ -13,7 +13,7 @@ class ClickInteraction {
     this.clearLastEvent();
     executeEvent();
 
-    SideCanvas.write(`<h2>Node ${d.id}</h2>`);
+    SideCanvas.write(`<h3>Node ${d.id}</h3>`);
 
     this.clearLastEvent = clearEvent;
   }
@@ -26,7 +26,7 @@ class ClickInteraction {
     this.clearLastEvent();
     executeEvent();
 
-    SideCanvas.write(`<h2>Link ${src.id} -> ${dst.id}</h2>`);
+    SideCanvas.write(`<h3>Link ${src.id} -> ${dst.id}</h3>`);
 
     this.clearLastEvent = clearEvent;
   }
@@ -35,6 +35,7 @@ class ClickInteraction {
     this.clearLastEvent();
     this.clearLastEvent = () => {};
     // Back to overview
+    SideCanvas.overview();
   }
 }
 

@@ -1,4 +1,4 @@
-module server
+module github.com/ueqri/vis4mesh/server
 
 go 1.16
 

@@ -83,6 +83,17 @@ body {
   }
 }
 
+// Prevent text selection in SVG
+
+svg {
+  text {
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+  }
+}
+
 // Style for Widgets
 
 .tooltip {

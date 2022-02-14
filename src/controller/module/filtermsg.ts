@@ -64,9 +64,8 @@ export default class FilterMsg implements ControllerModule {
       if (this.mode == FilterMsgMode.ByMsgGroup) {
         this.groupDomain.forEach((g) => {
           (MsgGroupsReverseMap[g] as string[]).forEach((key) => {
-            const val: number = ref.edges[idx].value[key];
-            // console.log(g, key, val);
-            if (val > 0) {
+            const val: number | undefined = ref.edges[idx].value[key];
+            if (val !== undefined && val > 0) {
               e.detail += `<br>${key}: ${val}`;
               e.weight += ref.edges[idx].value[key];
             }
@@ -75,8 +74,8 @@ export default class FilterMsg implements ControllerModule {
       } else if (this.mode == FilterMsgMode.ByDataOrCommand) {
         this.docDomain.forEach((doc) => {
           (DataOrCommandReverseMap[doc] as string[]).forEach((key) => {
-            const val: number = ref.edges[idx].value[key];
-            if (val > 0) {
+            const val: number | undefined = ref.edges[idx].value[key];
+            if (val !== undefined && val > 0) {
               e.detail += `<br>${key}: ${val}`;
               e.weight += ref.edges[idx].value[key];
             }

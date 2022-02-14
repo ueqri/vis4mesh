@@ -1,5 +1,5 @@
-const step = 66;
-const cover = 12;
+const defaultStep = 66;
+const defaultCover = 12;
 
 export interface NodeBorder {
   top: number;
@@ -29,6 +29,9 @@ export enum Direction {
 }
 
 export class GridBoard {
+  step: number; // spacing between two grid points
+  cover: number; // hollow spacing of a certain grid point
+
   dim: number;
   grid: Array<Array<number>>;
   pX: number;
@@ -36,6 +39,8 @@ export class GridBoard {
   border: { [id: number]: NodeBorder };
 
   constructor(dim: number) {
+    this.step = defaultStep;
+    this.cover = defaultCover;
     this.dim = dim;
     this.grid = new Array<Array<number>>();
     for (let i = 0; i < dim; i++) {
@@ -49,13 +54,15 @@ export class GridBoard {
     this.border = {};
   }
 
-  span() {
-    return (this.dim + 1) * step;
-  }
+  // span() {
+  //   return (this.dim + 1) * this.step;
+  // }
 
-  step() {
-    return step;
-  }
+  // step() {
+  //   return this.step;
+  // }
+
+  shrinkSpacing() {}
 
   clear() {
     this.border = {};
@@ -67,7 +74,24 @@ export class GridBoard {
     }
   }
 
-  yield(id: number, sizeX: number, sizeY: number): void {
+  yield(
+    id: number,
+    sizeX: number,
+    sizeY: number,
+    step?: number,
+    cover?: number
+  ): void {
+    if (step === undefined) {
+      step = this.step;
+    } else {
+      this.step = step;
+    }
+    if (cover === undefined) {
+      cover = this.cover;
+    } else {
+      this.cover = cover;
+    }
+
     if (this.pY == this.dim) {
       console.error("GridBoard is full and can't yield empty position");
     } else if (sizeX <= 0 || sizeY <= 0) {

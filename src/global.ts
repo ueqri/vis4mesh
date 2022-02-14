@@ -5,11 +5,13 @@ import FilterMsg from "controller/module/filtermsg";
 import SetTime from "controller/module/settime";
 import Timebar from "timebar/timebar";
 import Filterbar from "filterbar/filterbar";
+import Layout from "./layout";
 
 const Component = {
   port: new DataPort("ws://127.0.0.1:8080/"),
   view: new Display(),
   ticker: new Ticker(),
+  layout: new Layout(),
 };
 
 const Element = {

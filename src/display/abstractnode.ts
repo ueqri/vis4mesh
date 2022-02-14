@@ -25,13 +25,13 @@ export default class AbstractNode {
     this.baseLink.push(lk);
   }
 
-  CloneBaseLink(): void {
-    this.link = new Array<NodeLink>();
-    this.baseLink.forEach((lk) => {
-      // Clone link object instead of copying reference
-      this.link.push(Object.assign({}, lk));
-    });
-  }
+  // CloneBaseLink(): void {
+  //   this.link = new Array<NodeLink>();
+  //   this.baseLink.forEach((lk) => {
+  //     // Clone link object instead of copying reference
+  //     this.link.push(Object.assign({}, lk));
+  //   });
+  // }
 
   GetBaseLink(): readonly NodeLink[] {
     return this.baseLink;
@@ -69,7 +69,7 @@ export function PackNodes(
   }
 
   // Assume all nodes are adjacent
-  nodes.sort((a, b) => a.id - b.id);
+  // nodes.sort((a, b) => a.id - b.id);
 
   // Use head ID of the nodes as group node ID
   const id = nodes[0].id;
@@ -87,16 +87,9 @@ export function PackNodes(
   g.RebuildBaseLink();
 
   // Calculate block size
-  let inside: { [id: number]: boolean } = {};
-  g.record.forEach((rec) => (inside[rec] = true));
-  for (let row = 1; row <= gridDim; row++) {
-    if (inside[row * gridDim + id] !== true) {
-      g.allocY = row;
-      break;
-    }
-  }
+  g.allocY = Math.floor((g.record[g.record.length - 1] - id) / gridDim) + 1;
   g.allocX = g.record.length / g.allocY;
-  console.log(`${g.allocX} * ${g.allocY}`);
+  // console.log(`${g.allocX} * ${g.allocY}`);
 
   return g;
 }
@@ -109,35 +102,33 @@ export function UnpackNode(node: AbstractNode): AbstractNode[] {
 }
 
 export function ReestablishLinks(nodes: AbstractNode[]) {
-  let locate: { [id: number]: number } = {};
+  let locate = new Map<number, number>();
 
   nodes.forEach((d) => {
     d.record.forEach((rec) => {
-      locate[rec] = d.id; // the deep nodes would be added recursively
+      locate.set(rec, d.id); // the deep nodes would be added recursively
     });
   });
 
   nodes.forEach((d) => {
     let count: { [dst: number]: number } = {};
-    let linkMap: { [dst: number]: NodeLink } = {};
+    let linkMap = new Map<number, NodeLink>();
     // Use full information to squash links, especially after **unpacking**
-    d.CloneBaseLink();
-    d.link.forEach((lk) => {
+    d.GetBaseLink().forEach((lk) => {
       // Redirect links if connecting to a packed node
-      lk.dst = locate[lk.dst];
+      const dst = locate.get(lk.dst)!;
       // Squash the links with the same destination
-      if (linkMap[lk.dst] === undefined) {
-        linkMap[lk.dst] = lk;
-        count[lk.dst] = 1;
+      const mem = linkMap.get(dst);
+      if (mem === undefined) {
+        linkMap.set(dst, { dst: dst, weight: lk.weight, label: lk.label });
+        count[dst] = 1;
       } else {
-        linkMap[lk.dst].weight += lk.weight;
-        linkMap[lk.dst].label = MergeTwoNodeLinkLabel(
-          linkMap[lk.dst].label,
-          lk.label
-        );
+        mem.weight += lk.weight;
+        mem.label = MergeTwoNodeLinkLabel(mem.label, lk.label);
+        count[dst]++;
       }
     });
-    d.link = Object.values(linkMap);
+    d.link = Array.from(linkMap.values());
     d.link.forEach((lk) => {
       lk.weight = Math.round(lk.weight / count[lk.dst]); // average weight
     });

@@ -27,3 +27,5 @@ export interface SnapShotData {
 }
 
 export type DataPortFlatResponse = SnapShotData[];
+
+export type ZippedResponse = string[];

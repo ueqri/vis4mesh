@@ -2,7 +2,6 @@ import * as d3 from "d3";
 import { DataPortFlatResponse } from "data/data";
 import StackedChart from "widget/standalone/stackchart";
 import { SVGSelection, StackBarOptions } from "widget/standalone/stackchart";
-import RegisterResizerEvent from "widget/standalone/resizer";
 import {
   DataOrCommandDomain,
   MsgGroupsDomain,
@@ -93,30 +92,9 @@ function handleFlatResponseByDoC(
 export function RenderTimebar() {
   Component.port.flat(1).then((resp) => {
     const timebar = Element.timebar.loadFlatResponse(resp);
-    timebar.render();
-
-    const resizer = div.select(".resizer");
-    RegisterResizerEvent(resizer, [
-      {
-        div: div,
-        // Timebar lays on the vertical bottom
-        calc: ([w, h, dx, dy]) => [w, h - dy < 65 ? 0 : h - dy],
-        callback: ([w, h]) => {
-          const sidecanvas = d3.select("#sidecanvas");
-          if (h == 0) {
-            sidecanvas.style("bottom", "0px");
-            sidecanvas.style("height", null);
-          } else {
-            timebar.render();
-            sidecanvas.style("bottom", h + "px");
-            sidecanvas.style("height", null);
-          }
-        },
-      },
-    ]);
-    d3.select(window).on("resize", () => timebar.render());
 
     Component.ticker.setCast((l, r) => timebar.moveBrush(l, r));
+    Component.layout.timebar.afterResizing(() => timebar.render());
 
     Event.AddStepListener(ev.MsgGroup, (g: string[]) =>
       timebar.updateMsgGroupDomain(g)
@@ -124,6 +102,8 @@ export function RenderTimebar() {
     Event.AddStepListener(ev.DataOrCommand, (doc: string[]) =>
       timebar.updateDataOrCommandDomain(doc)
     );
+
+    timebar.render();
   });
 }
 

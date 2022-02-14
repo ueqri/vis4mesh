@@ -1,6 +1,5 @@
-import { PackNodes, UnpackNode, ReestablishLinks } from "display/abstractnode";
 import AbstractNode from "display/abstractnode";
-import { DataToDisplay, NodeDisplay } from "./data";
+import { DataToDisplay } from "./data";
 import RenderEngine from "./engine/engine";
 import SideCanvas from "./interaction/sidecanvas";
 import ClickInteraction from "./interaction/click";
@@ -18,6 +17,9 @@ export default class Display {
     if (sizeX !== sizeY) {
       console.error("Mesh must have the same height and weight so far");
     }
+
+    let start = performance.now();
+
     RenderEngine.resize(sizeX);
     // Generate abstract nodes
     const nodeMap = GenerateAbstractNodes(data);
@@ -27,8 +29,14 @@ export default class Display {
       resolve(RenderEngine.node());
     });
     render.then((svg) => div.append(() => svg));
+
+    let end = performance.now();
+
+    console.log(`Display of [${sizeX}, ${sizeY}] cost is ${end - start} ms`);
+
     // Display overview in SideCanvas
-    SideCanvas.overview(data.meta!, nodeMap);
+    SideCanvas.load(data.meta!, nodeMap);
+    SideCanvas.overview();
   }
 }
 
@@ -52,6 +60,6 @@ function GenerateAbstractNodes(data: DataToDisplay): {
     });
   });
   // Clone properties from base links
-  Object.values(nodeMap).forEach((d) => d.CloneBaseLink());
+  // Object.values(nodeMap).forEach((d) => d.CloneBaseLink());
   return nodeMap;
 }

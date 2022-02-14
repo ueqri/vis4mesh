@@ -20,7 +20,6 @@ const ev = {
 const edgeWidth = 5;
 const edgeOffset = edgeWidth / 2 + 2;
 const arrowWidth = edgeWidth / 3.8;
-const zoomStep = 4;
 
 //
 // SVG
@@ -51,33 +50,41 @@ g.append("svg:defs")
 let prevTransform: number = 1;
 let zoomIn: number = 0;
 let zoomOut: number = 0;
-const zoom = d3
-  .zoom()
-  .scaleExtent([0.1, 25])
-  .on("zoom", (e) => {
-    const k = e.transform.k;
-    g.attr("transform", e.transform);
-    if (k == prevTransform) {
-      // Drag only
-    } else if (k < prevTransform) {
-      zoomOut++;
-      zoomIn = 0;
-      if (Math.abs(zoomOut % zoomStep) === 0) {
-        console.log("smaller");
-        Event.FireEvent(ev.ZoomOut, undefined);
-      }
-    } else {
-      zoomIn++;
-      zoomOut = 0;
-      if (Math.abs(zoomIn % zoomStep) === 0) {
-        console.log("bigger");
-        Event.FireEvent(ev.ZoomIn, undefined);
-      }
-    }
-    prevTransform = e.transform.k;
-  });
+const zoom = d3.zoom().on("zoom", (e) => {
+  const k = e.transform.k;
+  g.attr("transform", e.transform);
+  if (k == prevTransform) {
+    // Drag only
+  } else if (k < prevTransform) {
+    // zoomOut++;
+    // zoomIn = 0;
+    // if (Math.abs(zoomOut % zoomStep) === 0) {
+    //   console.log("smaller");
+    //   Event.FireEvent(ev.ZoomOut, undefined);
+    // }
+  } else {
+    // zoomIn++;
+    // zoomOut = 0;
+    // if (Math.abs(zoomIn % zoomStep) === 0) {
+    //   console.log("bigger");
+    //   Event.FireEvent(ev.ZoomIn, undefined);
+    // }
+  }
+  prevTransform = e.transform.k;
+});
 
 svg.call(zoom as any).on("dblclick.zoom", null);
+
+// svg
+//   .on("wheel", (ev: WheelEvent) => {
+//     console.log(ev);
+//   })
+//   .call(
+//     d3.drag().on("drag", (ev) => {
+//       const [x, y] = d3.pointer(ev);
+//       g.attr("transform", `translate(${x},${y})`);
+//     }) as any
+//   );
 
 class RenderEngine {
   grid!: GridBoard;
@@ -145,7 +152,7 @@ class RenderEngine {
   }
 
   yieldBlockOnGrid(data: AbstractNode[]) {
-    data.sort((a, b) => a.id - b.id);
+    // data.sort((a, b) => a.id - b.id);
     data.forEach((d) => this.grid.yield(d.id, d.allocX, d.allocY));
   }
 
@@ -195,18 +202,6 @@ class RenderEngine {
         this.zoomDim /= 2;
       }
     }
-
-    // this.nodeMap = Object.assign({}, this.originData);
-    // const blockDim = Math.round(this.gridDim / zoomToDim);
-    // if (blockDim > 1) {
-    //   GenerateBlockListsFromBaseNodes(blockDim, this.gridDim).forEach((blk) => {
-    //     PackNodesWithIDs(this.nodeMap, blk, this.gridDim);
-    //   });
-    // } else {
-    //   // Reestablishing is needed to clone base links to update link information
-    //   // when zoomed to full dimension.
-    //   ReestablishLinks(Object.values(this.nodeMap));
-    // }
 
     this.zoomDim = zoomToDim;
   }
@@ -357,17 +352,6 @@ function SetEdgeOpacity(data: RenderEngineEdge[], checked: boolean[]) {
   data.forEach((e) => {
     e.opacity = checked[e.level] === true ? 1 : 0.02;
   });
-}
-
-function GetCenterPositionOfSVG(): [number, number] {
-  let rootSize = (svg.node() as Element).getBoundingClientRect();
-  let groupSize = (g.node() as Element).getBoundingClientRect();
-
-  let x = rootSize.x - groupSize.x + (rootSize.width - groupSize.width) / 2;
-  let y = rootSize.y - groupSize.y + (rootSize.height - groupSize.height) / 2;
-
-  console.log(x, y);
-  return [x, y];
 }
 
 export default new RenderEngine();

@@ -1,4 +1,4 @@
-package main
+package stateless
 
 import (
 	"bufio"
@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
-	"math/rand"
 	"os"
 	"strconv"
 )
@@ -15,12 +14,20 @@ import (
 // Function for universal use
 //
 
-func ParseInt64Decimal(str string) int64 {
-	result, err := strconv.ParseInt(str, 10, 64)
+func ParseUintDecimal(str string) uint {
+	result, err := strconv.ParseUint(str, 10, 64)
 	if err != nil {
 		panic(err)
 	}
-	return result
+	return uint(result)
+}
+
+func ParseUint16Decimal(str string) uint16 {
+	result, err := strconv.ParseUint(str, 10, 16)
+	if err != nil {
+		panic(err)
+	}
+	return uint16(result)
 }
 
 func JSONPrettyPrint(in []byte) string {
@@ -45,17 +52,34 @@ func WriteStringToFile(data, file string) {
 	writer.Flush()
 }
 
-func StringInt64MapValueAdd(
-	dst map[string]int64,
-	src map[string]int64,
-) map[string]int64 {
+func StringUint64MapValueAdd(
+	dst map[string]uint64,
+	src map[string]uint64,
+) map[string]uint64 {
 	for k, v := range src {
 		if _, ok := dst[k]; !ok {
-			panic("Source map has a unique key not existing in destination map")
+			// panic("Source map has a unique key not existing in destination map")
+			dst[k] = 0
 		}
 		dst[k] += v
 	}
 	return dst
+}
+
+func Uint64SliceValueAdd(
+	dst []uint64,
+	src []uint64,
+) []uint64 {
+	if dst == nil {
+		return src
+	} else if src == nil {
+		panic("Source uint64 slice is nil, value-add operation halted")
+	} else {
+		for i, val := range src {
+			dst[i] += val
+		}
+		return dst
+	}
 }
 
 func JSONToBytes(v interface{}) []byte {
@@ -64,17 +88,4 @@ func JSONToBytes(v interface{}) []byte {
 		panic(err)
 	}
 	return output
-}
-
-//
-// Functions only used in vis4mesh backend
-//
-
-// required: queriedMsgTypes
-func randomValueMap() map[string]int64 {
-	val := make(map[string]int64)
-	for _, msgType := range queriedMsgTypes {
-		val[msgType] = (int64)(rand.Intn(10))
-	}
-	return val
 }
