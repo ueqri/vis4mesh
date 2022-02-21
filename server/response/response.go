@@ -1,12 +1,22 @@
 package response
 
-import "github.com/ueqri/vis4mesh/server/graph"
+type Model interface {
+	CleanState()
+	MergeEdgesDuringTimeSlice(time uint)
+	CheckAvailableFrameSizeOfFlatInfo() int
+	AsyncGenerateFlatInfo(frameSize uint)
 
-type WebSocketResponse struct {
-	model *graph.Graph
+	DumpMeshMetaToBytes() []byte
+	DumpNodeInfoToZippedBytes() []byte
+	DumpEdgeInfoToZippedBytes() []byte
+	DumpFlatInfoToBytes() []byte
 }
 
-func MakeWebSocketResponse(model *graph.Graph) *WebSocketResponse {
+type WebSocketResponse struct {
+	model Model
+}
+
+func MakeWebSocketResponse(model Model) *WebSocketResponse {
 	return &WebSocketResponse{
 		model: model,
 	}

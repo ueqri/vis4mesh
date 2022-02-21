@@ -5,8 +5,12 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"io/fs"
+	"io/ioutil"
 	"log"
 	"os"
+	"os/user"
+	"path/filepath"
 	"strconv"
 )
 
@@ -39,17 +43,12 @@ func JSONPrettyPrint(in []byte) string {
 	return out.String()
 }
 
-func WriteStringToFile(data, file string) {
-	f, err := os.Create(file)
+func JSONToBytes(v interface{}) []byte {
+	output, err := json.Marshal(v)
 	if err != nil {
-		log.Fatal(err)
+		panic(err)
 	}
-
-	writer := bufio.NewWriter(f)
-	defer f.Close()
-
-	fmt.Fprintln(writer, data)
-	writer.Flush()
+	return output
 }
 
 func StringUint64MapValueAdd(
@@ -82,10 +81,64 @@ func Uint64SliceValueAdd(
 	}
 }
 
-func JSONToBytes(v interface{}) []byte {
-	output, err := json.Marshal(v)
+// File system
+
+func FindFiles(root, extension string) []string {
+	var a []string
+	filepath.WalkDir(root, func(s string, d fs.DirEntry, e error) error {
+		if e != nil {
+			return e
+		}
+		if filepath.Ext(d.Name()) == extension {
+			a = append(a, s)
+		}
+		return nil
+	})
+	return a
+}
+
+func ExpandTilde(path string) string {
+	if len(path) == 0 || path[0] != '~' {
+		return path
+	}
+
+	usr, err := user.Current()
 	if err != nil {
 		panic(err)
 	}
-	return output
+	return filepath.Join(usr.HomeDir, path[1:])
+}
+
+func CheckDirectoryExist(dir string) bool {
+	fileInfo, err := os.Stat(dir)
+	if err != nil {
+		panic(err)
+	}
+	return fileInfo.IsDir()
+}
+
+func CheckFileExist(file string) bool {
+	_, err := os.Stat(file)
+	return !os.IsNotExist(err)
+}
+
+func WriteStringToFile(data, file string) {
+	f, err := os.Create(file)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	writer := bufio.NewWriter(f)
+	defer f.Close()
+
+	fmt.Fprintln(writer, data)
+	writer.Flush()
+}
+
+func ReadStringFromFIle(file string) string {
+	content, err := ioutil.ReadFile(file)
+	if err != nil {
+		panic(err)
+	}
+	return string(content)
 }

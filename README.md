@@ -1,90 +1,64 @@
 # Vis4Mesh Visualization Tool
 
-Vis4Mesh tool is designed especially for Network-on-Chip(NoC) traffic research in [Akita project](https://gitlab.com/akita), also capable to use in other network to visualize the topology and traffics.
+Vis4Mesh is a visualization tool for designing mesh Network-on-Chips(NoC) for Wafer-Scale devices, like [Cerebras Wafer Scale Engine](https://cerebras.net/blog/cerebras-wafer-scale-engine-why-we-need-big-chips-for-deep-learning/).
 
-**Notice: This project is still under development, some of the features are not solid. We would update the documents after a new milestone.**
+It is mainly assisted with NoC traffic research in [Akita project](https://gitlab.com/akita), also capable for other scenarios to visualize the mesh topology and traffics.
+
+**Notice: This project is still under development, some of the features are not solid. We would update the documents after every new milestone.**
 
 ## Motivation
 
-1. **Network-on-Chip visualization**
+The large scale of the wafer makes it difficult for a designer to get insight into the network behavior simply from the numbers like bandwidth and latency of links. A visualization tool with a view of mixed temporal and spatial statistics would benefit the architects to analyze the performance issues of wafer-scale devices.
 
-   It would support the network of mesh, tree network, general connected graph, e.t.c)
+After reviewing the existing visualization tool, we found no systematic solution that is directly applicable to visualizing wafer-scale NoC, mainly due to the scalability and unique requirement of NoC. Thus we propose Vis4Mesh with the five key features as follows.
 
-2. **Dynamic traffic player**
+## Feature
 
-   - display the traffic statistics of any time
-   - show the hotspots and its movement
-   - smoothly change the time range to see traffic of certain interval
+1. **Overview of mixed temporal and spatial statistics**
 
-3. **Tracing visualization tool for Akita project**
+   The temporal view help to distinguish the communication pattern, while the spatial points out the hotspot location in the mesh. We also provide a temporal overview of one switch/channel if you click it, like switch buffer pressure over time.
 
-   servers as a supplementary of [Daisen](https://osf.io/73ry8/)(a tool for visualizing GPU execution in Akita), to support network traffic visualization
+2. **Sheer scalability to visualize wafers with millions of devices**
+
+   Existing network visualization tools do not consider the scale of wafers with millions of nodes and links. We design the tool targeting large-scale mesh system, using a hierarchy packing and unpacking way to support a smooth and intelligible zoom, with well-optimized rendering performance.
+
+3. **Dynamic player of network-on-chip traffic**
+
+   In pause mode, the tool could display the traffic statistics of any time, and brush a time range to see the details of a stage/pattern.
+   In play mode, it would show the dynamic changes of traffic to look at the behavior of the whole or part network.
+
+4. **Flexibility to cluster nodes as a functional module**
+
+   Clustering is quite common in the field of Coarse Grain Reconfigurable Architecture. We propose a flexible way to select nodes in frontend to build a different-sized cluster directly.
+
+5. **Collaboration with another mature visualization tool**
+
+   Akita project already integrates with [Akita Daisen](https://osf.io/73ry8/), a tool for visualizing component-level GPU execution like the request to caches, the process of compute units.
+   Vis4Mesh could serve as a supplementary of Daisen to support mesh network traffic visualization that Daisen could not perform very well.
 
 ## Design
 
-### **Principles**
+Briefly, the tool consists of two parts: **Web frontend** and **Server backend**. Frontend only do rendering work, backend feeds the frontend with full graph details through WebSocket.
 
-- Frontend only do rendering work, backend feeds the frontend with full graph details.
-- All graph data is fetched by _Time Range_ in backend, which generally support `range` as the unified data fetch instruction.
-- Assume the tracing time interval was discretized into many slices(we call time slice then). Thus avoiding float number storage and processing.
+For details, please refer to [doc/design.md](doc/design.md).
 
-### **Web Fronted**
+## Installation
 
-It was composed in TypeScript inside a loose-coupling framework for extensibility. It draws SVG by [D3.js](https://d3js.org/) for better performance than canvas, only servers as the SVG renders with console panel for state config and track.
+## Detached Mode
 
-The web view can be divided into two parts:
+To use the **frontend**, you can directly access https://ueqri.github.io/vis4mesh-release/. The page is built by GitHub Actions on the latest release.
 
-1. **Graph View**
+To use the **backend**, you can either use our example server for Akkalat in `src`, or your customized server with port 8080 listened for WebSockets and communication protocol supported. The backend is more complex to run in detached mode, please see [doc/backend.md](doc/design.md) for more details.
 
-   - display colored traffic statistics of the network
-   - full support for zoom and drag
-   - hover mouse to see details tooltip for each component
+## Container Mode
 
-2. **Sidebar** (Console panel)
+Two docker-compose configurations are provided in [docker-compose.yml](https://github.com/ueqri/vis4mesh/blob/main/docker-compose.yml) and [example/one-key.yml](https://github.com/ueqri/vis4mesh/blob/main/example/one-key.yml). Based on these environments, there are two options to choose respectively.
 
-   - **Legend**: select the edge with certain type or heavy level
-   - **Shape Config**: set the size of shape (e.g. node size, edge width, scale ratio) in SVG
-   - **General**: set the player speed, step of time slice, player mode and manually config the start/end time. (WIP: a range slider with two handles for mouse drag.)
+### Setup server and database in Docker
 
-We propose tree _Player Mode_ here:
+_Backend server_ and _Redis DB_ are packed into Docker as [docker-compose.yml](https://github.com/ueqri/vis4mesh/blob/main/docker-compose.yml), which make it convenient to build and maintain the backend.
 
-1. **Slice Tick**
-
-   Both **start time** and **end time** are ticking, e.g. `start=1,end=2` for now and `start=2,end=3` for next ticking.
-
-2. **Range Tick**
-
-   Only **end time** is ticking, i.e., **start time** is static after allocation. For example, `start=1,end=3` for now and `start=1,end=4` for next ticking. Using this mode, we could see the traffics within any interval to gain better granularity.
-
-3. **Range Slider**
-
-   Not a ticking mode. Move the **start time** and **end time** from range slider component, and see the real time feedback from graph view. The arrow keys are well-supported in this mode, compared to _Range Tick_ mode.
-
-### **Server Backend**
-
-Any server supported the WebSocket and data fetch instructions(e.g. `range`, `init`, `pong`) is fine as backend for Vis4Mesh.
-
-In this project, we implemented an example backend in Golang to fit the [Akita Redis tracer in mesh networking](https://gitlab.com/akita/util/-/issues/19).
-
-The example backend contains 3 parts, locating in `server.go`, `graph.go` and `redis.go` respectively:
-
-1. **HTTP Handlers**: process the WebSocket and parse the instructions to call internal `Inst<name>` function.
-
-2. **Graph Build**: store the graph(node/edge details) and dump the JSON format description of graph that could be accepted by frontend.
-
-3. **Redis DB Query**: implement the DB query function for results of the mesh tracing.
-
-## Setup Guide
-
-Given the convenience of WebSocket, our frontend is extremely loose-coupling and light. Our latest release is built by GitHub Actions and public in this site: https://ueqri.github.io/vis4mesh-release/.
-
-If you want to run locally, just choose one mode to set up both frontend and backend.
-
-### Detached Mode
-
-We recommend using detached mode, i.e., build & run the web frontend and server backend separately. And only use this mode especially for online site.
-
-In this mode, we use npm and NodeJS in the host to build TypeScript program, and trigger docker to maintain server backend and Redis DB. (PS: frontend build is **not need** when using online site)
+Here we also introduce how to build frontend in the host, if you choose aforementioned online site, just skip the frontend build.
 
 #### Prerequisites
 
@@ -94,17 +68,17 @@ In this mode, we use npm and NodeJS in the host to build TypeScript program, and
 ```bash
 git clone git@github.com:ueqri/vis4mesh.git
 cd vis4mesh
-# if you use online site, skip the `npm` commands
+# if you use online site, skip the two `npm` commands
 npm install
-npm run dev # run parcel with HTTP server in localhost:1234
+npm start # run webpack with HTTP server in localhost:1234
 docker-compose up # add `-d` to run in background
 ```
 
 To close the container, use <kbd>Ctrl</kbd> + <kbd>C</kbd> to stop in interactive mode, then `docker-compose down`.
 
-### One-key Mode
+### Setup all components in Docker
 
-Use one-key docker-compose file to build all.
+Use one-key docker-compose file to set up both **frontend** and **backend** in Docker.
 
 ```bash
 git clone git@github.com:ueqri/vis4mesh.git
@@ -112,25 +86,27 @@ cd vis4mesh
 docker-compose -f example/one-key.yml up # add `-d` to run in background
 ```
 
-Like the previous, `docker-compose -f example/one-key.yml down` to close.
+Likewise, `docker-compose -f example/one-key.yml down` to close.
 
-### After Setup
+## After Setup
 
 If it's all set, just open your favorable browser to view http://localhost:1234/ and see the visualization.
 
-We have provided a demo DB generated by FIR(length:100000) in 8\*8 Wafer-scale GPU v0.1. And all the backend config would be well done by docker-compose.
+We have provided a demo DB generated by FIR(length:100000) in 8x8 Wafer-scale GPU [akkalat v3](https://github.com/ueqri/akkalat/tree/v3). And all the backend config would be well done by docker-compose.
 
-## Forthcoming
-
-There is still some minor bugs in our tool, including but not limited to SVG invisible weirdly(probably caused by the web pack, since it runs smoothly in dev mode).
+## Follow-up
 
 As for follow-up work, we'd implemented these features:
 
-- [x] Fix the display bugs and replace current _iframe_ scheme with better one.
-- [x] Implement better legend to support the selection of different traffic types, with more rational color scheme.
-- [x] Add range slider with two handles, using the awesome [noUiSlider](https://refreshless.com/nouislider/) to enable range dragging.
+- [ ] Fine-tune the zoom interaction for large-scale visualization
+- [ ] Trace more status data of switch and channels in [Akita Akkalat](https://github.com/ueqri/akkalat) and show in side canvas
+- [ ] Add minimap for mesh as another spatial overview
+- [ ] Add configuration in front to change data port
 - [ ] Build the detailed documents about the design and protocols
-- [ ] Implement more layout to support general network dynamic visualization.
+
+## Snapshot of Main Layout
+
+![pic](doc/v0.2.3.png)
 
 ## Reference
 
@@ -138,4 +114,4 @@ As for follow-up work, we'd implemented these features:
 
 [GitLab of Akita Simulator Framework](https://gitlab.com/akita)
 
-[D3.js - Data-Driven Documents](https://d3js.org/)
+[Docker Docs: Install Docker Compose](https://docs.docker.com/compose/install/)

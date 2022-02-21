@@ -15,6 +15,8 @@ const ev = {
   EdgeTraffic: "FilterETCheckbox",
   ZoomIn: "GraphZoomIn",
   ZoomOut: "GraphZoomOut",
+  GridSpacingStep: "GridSpacingStep",
+  GridSpacingCover: "GridSpacingCover",
 };
 
 const edgeWidth = 5;
@@ -56,6 +58,7 @@ const zoom = d3.zoom().on("zoom", (e) => {
   if (k == prevTransform) {
     // Drag only
   } else if (k < prevTransform) {
+    Event.FireEvent(ev.ZoomOut, undefined);
     // zoomOut++;
     // zoomIn = 0;
     // if (Math.abs(zoomOut % zoomStep) === 0) {
@@ -63,6 +66,7 @@ const zoom = d3.zoom().on("zoom", (e) => {
     //   Event.FireEvent(ev.ZoomOut, undefined);
     // }
   } else {
+    Event.FireEvent(ev.ZoomIn, undefined);
     // zoomIn++;
     // zoomOut = 0;
     // if (Math.abs(zoomIn % zoomStep) === 0) {
@@ -96,12 +100,18 @@ class RenderEngine {
   gridDim!: number;
   zoomDim!: number;
 
+  gridStep: number;
+  gridCover: number;
+
   constructor() {
     this.nodes = new Array<RenderEngineNode>();
     this.edges = new Array<RenderEngineEdge>();
     this.checked = Array<boolean>(10).fill(true); // edge traffic checkbox
     this.nodeMap = {};
     this.zoomDim = 8;
+
+    this.gridStep = 66;
+    this.gridCover = 12;
 
     Event.AddStepListener(ev.EdgeTraffic, (levels: number[]) => {
       this.checked = Array<boolean>(10).fill(false);
@@ -111,6 +121,25 @@ class RenderEngine {
     });
     Event.AddStepListener(ev.ZoomIn, () => this.zoomIn());
     Event.AddStepListener(ev.ZoomOut, () => this.zoomOut());
+    Event.AddStepListener(ev.GridSpacingStep, (step: number) => {
+      this.gridStep = Number(step);
+
+      this.clear();
+      const data = Object.values(this.nodeMap);
+      this.yieldBlockOnGrid(data);
+      this.grid.deflate(Math.round(this.gridDim / this.zoomDim));
+
+      this.generateREDataAndRender(data);
+    });
+    Event.AddStepListener(ev.GridSpacingCover, (cover: number) => {
+      this.gridCover = Number(cover);
+      this.clear();
+      const data = Object.values(this.nodeMap);
+      this.yieldBlockOnGrid(data);
+      this.grid.deflate(Math.round(this.gridDim / this.zoomDim));
+
+      this.generateREDataAndRender(data);
+    });
   }
 
   resize(dim: number) {
@@ -123,19 +152,18 @@ class RenderEngine {
   join(nodeMap: { [id: number]: AbstractNode }, zoomToDim?: number) {
     this.nodeMap = nodeMap;
 
-    if (zoomToDim === undefined) {
-      zoomToDim = this.zoomDim;
-      this.zoomDim = this.gridDim;
-    }
-    this.zoomTransform(zoomToDim); // transform `nodeMap` with zoom dimension
+    // if (zoomToDim === undefined) {
+    //   zoomToDim = this.zoomDim;
+    //   this.zoomDim = this.gridDim;
+    // }
+    // this.zoomTransform(zoomToDim); // transform `nodeMap` with zoom dimension
 
     const data = Object.values(this.nodeMap);
 
     this.clear();
 
     this.yieldBlockOnGrid(data);
-    this.grid.deflate(Math.round(this.gridDim / this.zoomDim));
-    // console.log(this.grid.span());
+    // this.grid.deflate(Math.round(this.gridDim / this.zoomDim));
 
     this.generateREDataAndRender(data);
   }
@@ -145,8 +173,8 @@ class RenderEngine {
   }
 
   clear() {
-    // this.grid.clear();
     this.grid = new GridBoard(this.gridDim);
+    this.grid.changeSpacing(this.gridStep, this.gridCover);
     this.nodes = new Array<RenderEngineNode>();
     this.edges = new Array<RenderEngineEdge>();
   }
@@ -158,7 +186,7 @@ class RenderEngine {
 
   generateREDataAndRender(data: AbstractNode[]) {
     data.forEach((d) => {
-      const border = this.grid.nodeBorder(d.id);
+      const border = this.grid.nodeBorder(d.id)!;
       this.nodes.push(GenerateRENode(d, border));
       this.edges = [...this.edges, ...GenerateREEdge(d, border, this.grid)];
     });
@@ -207,17 +235,21 @@ class RenderEngine {
   }
 
   zoomIn() {
-    if (this.zoomDim < this.gridDim) {
-      RemoveElementInsideSVGGroup(g);
-      this.join(this.nodeMap, this.zoomDim * 2);
-    }
+    // if (this.zoomDim < this.gridDim) {
+    //   RemoveElementInsideSVGGroup(g);
+    //   this.gridStep = 66;
+    //   this.gridCover = 12;
+    //   this.join(this.nodeMap, this.zoomDim * 2);
+    // }
   }
 
   zoomOut() {
-    if (this.zoomDim > 1) {
-      RemoveElementInsideSVGGroup(g);
-      this.join(this.nodeMap, Math.round(this.zoomDim / 2));
-    }
+    // if (this.zoomDim > 1) {
+    //   RemoveElementInsideSVGGroup(g);
+    //   this.gridStep = 66;
+    //   this.gridCover = 12;
+    //   this.join(this.nodeMap, Math.round(this.zoomDim / 2));
+    // }
   }
 }
 
@@ -254,7 +286,7 @@ function GenerateREEdge(
       connection: [src, dst],
     };
 
-    const d = grid.nodeBorder(dst);
+    const d = grid.nodeBorder(dst)!;
     const overlap = grid.overlappedBorder(src, dst);
     const mid = (overlap.posBegin! + overlap.posEnd!) / 2;
     switch (grid.direction(src, dst)) {

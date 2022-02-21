@@ -4,7 +4,9 @@ import (
 	"flag"
 	"log"
 	"net/http"
+	"runtime"
 
+	"github.com/ueqri/vis4mesh/server/archive"
 	"github.com/ueqri/vis4mesh/server/graph"
 	"github.com/ueqri/vis4mesh/server/reader"
 	"github.com/ueqri/vis4mesh/server/response"
@@ -27,6 +29,9 @@ var endElapse = flag.Int("elapse", -1, "the end of the time slice to trace, "+
 
 var archivePath = flag.String("archive", "nil", "path of the dumped archive")
 
+var numThreads = flag.Int("thread", runtime.NumCPU(), "number of threads to "+
+	"preprocess data, e.g. mesh flat")
+
 func main() {
 	// log.SetFlags(0)
 	flag.Parse()
@@ -35,25 +40,47 @@ func main() {
 		{
 			rd := new(reader.RedisTracerReader)
 			rd.Init()
-			el := GetTracingElapse(rd)
+			el := GetTracingElapseFromReader(rd)
 			rsp := response.MakeWebSocketResponse(
-				graph.MakeGraph(uint16(*width), uint16(*height), *timeSlice, el, rd),
+				graph.MakeGraph(
+					uint16(*width), uint16(*height), *timeSlice, el, rd, *numThreads,
+				),
 			)
 			http.HandleFunc("/", rsp.Handle)
 			log.Fatal(http.ListenAndServe(*addr, nil))
 		}
 	case "file":
 		{
-
+			if *archivePath == "nil" {
+				panic("No archive path is provided, try the option `-archive [path]`")
+			}
+			if *endElapse != -1 {
+				panic("End elapse cannot be customized in `file` mode so far, it is " +
+					"determined by the dumped archive")
+			}
+			rsp := response.MakeWebSocketResponse(
+				archive.LoadArchive(*archivePath),
+			)
+			http.HandleFunc("/", rsp.Handle)
+			log.Fatal(http.ListenAndServe(*addr, nil))
 		}
 	case "dump":
 		{
+			if *archivePath == "nil" {
+				panic("No archive path is provided, try the option `-archive [path]`")
+			}
+			rd := new(reader.RedisTracerReader)
+			rd.Init()
+			el := GetTracingElapseFromReader(rd)
+			archive.PreprocessAndDumpGraph(*archivePath, graph.MakeGraph(
+				uint16(*width), uint16(*height), *timeSlice, el, rd, *numThreads,
+			),
+			)
 		}
 	}
-
 }
 
-func GetTracingElapse(rd reader.Reader) uint {
+func GetTracingElapseFromReader(rd reader.Reader) uint {
 	var elapse uint
 	if *endElapse >= 0 {
 		elapse = uint(*endElapse)

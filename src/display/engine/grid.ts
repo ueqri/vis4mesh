@@ -36,7 +36,7 @@ export class GridBoard {
   grid: Array<Array<number>>;
   pX: number;
   pY: number;
-  border: { [id: number]: NodeBorder };
+  border: Map<number, NodeBorder>;
 
   constructor(dim: number) {
     this.step = defaultStep;
@@ -51,21 +51,16 @@ export class GridBoard {
       this.grid.push(row);
     }
     this.pX = this.pY = 0;
-    this.border = {};
+    this.border = new Map<number, NodeBorder>();
   }
 
-  // span() {
-  //   return (this.dim + 1) * this.step;
-  // }
-
-  // step() {
-  //   return this.step;
-  // }
-
-  shrinkSpacing() {}
+  changeSpacing(step: number, cover: number) {
+    this.step = step;
+    this.cover = cover;
+  }
 
   clear() {
-    this.border = {};
+    this.border = new Map<number, NodeBorder>();
     this.pX = this.pY = 0;
     for (let i = 0; i < this.dim; i++) {
       for (let j = 0; j < this.dim; j++) {
@@ -110,28 +105,29 @@ export class GridBoard {
               left: (this.pX + 1) * step,
               right: (this.pX + sizeX) * step,
             };
-            this.border[id] = {
+            this.border.set(id, {
               top: baseline.top - cover,
               down: baseline.down + cover,
               left: baseline.left - cover,
               right: baseline.right + cover,
-            };
+            });
             return;
           }
       }
     }
   }
 
-  nodeBorder(id: number): NodeBorder {
-    if (this.border[id] === undefined) {
+  nodeBorder(id: number): NodeBorder | undefined {
+    const b = this.border.get(id);
+    if (b === undefined) {
       console.error(`GridBoard doesn't contain ${id} element`);
     }
-    return this.border[id];
+    return b;
   }
 
   overlappedBorder(idA: number, idB: number): OverLappedBorder {
-    const a = this.border[idA];
-    const b = this.border[idB];
+    const a = this.border.get(idA)!;
+    const b = this.border.get(idB)!;
     // AA OR BB
     // BB    AA
     if (a.down < b.top || b.down < a.top) {
@@ -167,7 +163,7 @@ export class GridBoard {
         return base < target ? Direction.S : Direction.N;
       }
       case OBDirection.Vertical: {
-        return this.border[base].right < this.border[target].left
+        return this.border.get(base)!.right < this.border.get(target)!.left
           ? Direction.E
           : Direction.W;
       }

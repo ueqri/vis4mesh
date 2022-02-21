@@ -7,8 +7,8 @@ var cleanState bool = false
 // Response for init instruction
 func (r *WebSocketResponse) InstInitiate(what string) []byte {
 	if !cleanState {
-		r.model.CleanMeshEdgeValueInfo()
-		cleanState = true
+		r.model.CleanState()
+		cleanState = true // init inst always keeps the graph state clean
 	}
 	switch what {
 	case "meta":
@@ -30,11 +30,13 @@ func (r *WebSocketResponse) InstRangeReturnZippedEdges(from, to uint) []byte {
 	}
 
 	if !cleanState {
-		r.model.CleanMeshEdgeValueInfo()
+		r.model.CleanState()
 	}
 
+	cleanState = false // range inst always keeps the graph state dirty
+
 	for time := from; time < to; time++ {
-		r.model.QueryTimeSliceAndAppend(time)
+		r.model.MergeEdgesDuringTimeSlice(time)
 	}
 
 	return r.model.DumpEdgeInfoToZippedBytes()
@@ -43,10 +45,6 @@ func (r *WebSocketResponse) InstRangeReturnZippedEdges(from, to uint) []byte {
 func (r *WebSocketResponse) InstFlat(frameSize uint) []byte {
 	if frameSize != 1 {
 		panic("Vis4Mesh server only support frame size 1 for mesh flat so far")
-	}
-
-	if !cleanState {
-		r.model.CleanMeshEdgeValueInfo()
 	}
 
 	avail := r.model.CheckAvailableFrameSizeOfFlatInfo()

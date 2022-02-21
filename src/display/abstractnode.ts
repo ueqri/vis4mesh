@@ -25,16 +25,16 @@ export default class AbstractNode {
     this.baseLink.push(lk);
   }
 
-  // CloneBaseLink(): void {
-  //   this.link = new Array<NodeLink>();
-  //   this.baseLink.forEach((lk) => {
-  //     // Clone link object instead of copying reference
-  //     this.link.push(Object.assign({}, lk));
-  //   });
-  // }
-
   GetBaseLink(): readonly NodeLink[] {
     return this.baseLink;
+  }
+
+  DeepCloneBaseLinkToLink(): void {
+    this.link = new Array<NodeLink>();
+    this.baseLink.forEach((lk) => {
+      // Clone link object instead of copying reference
+      this.link.push(Object.assign({}, lk));
+    });
   }
 
   RebuildBaseLink() {
@@ -157,7 +157,6 @@ export function PackNodesWithIDs(
   });
   let g = PackNodes(nodes, gridDim);
   nodeMap[g.id] = g;
-  // console.log(nodeMap);
   // ReestablishLinks(Object.values(nodeMap));
 }
 

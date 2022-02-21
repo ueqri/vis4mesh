@@ -108,8 +108,6 @@ export default function RenderSVG(
       function (enter) {
         return enter
           .append("rect")
-          .attr("width", (d) => d.width)
-          .attr("height", (d) => d.height)
           .attr("rx", 1.5) // corner radius
           .attr("ry", 1.5)
           .attr("stroke", (d) => d.stroke)
@@ -123,6 +121,8 @@ export default function RenderSVG(
         return exit.remove();
       }
     )
+    .attr("width", (d) => d.width)
+    .attr("height", (d) => d.height)
     .attr("x", (d) => d.posX)
     .attr("y", (d) => d.posY)
     .on("mouseover", function (ev, d) {
@@ -158,25 +158,25 @@ export default function RenderSVG(
       ev.stopPropagation();
     });
 
-  g.selectAll(".node-label")
-    .data(nodes)
-    .join(
-      function (enter) {
-        return enter
-          .append("text")
-          .attr("class", "node-label")
-          .attr("dominant-baseline", "middle");
-      },
-      function (update) {
-        return update;
-      },
-      function (exit) {
-        return exit.remove();
-      }
-    )
-    .attr("x", (d) => d.label.posX)
-    .attr("y", (d) => d.label.posY)
-    .text((d) => d.label.text);
+  // g.selectAll(".node-label")
+  //   .data(nodes)
+  //   .join(
+  //     function (enter) {
+  //       return enter
+  //         .append("text")
+  //         .attr("class", "node-label")
+  //         .attr("dominant-baseline", "middle");
+  //     },
+  //     function (update) {
+  //       return update;
+  //     },
+  //     function (exit) {
+  //       return exit.remove();
+  //     }
+  //   )
+  //   .attr("x", (d) => d.label.posX)
+  //   .attr("y", (d) => d.label.posY)
+  //   .text((d) => d.label.text);
 }
 
 export function RemoveElementInsideSVGGroup(

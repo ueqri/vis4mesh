@@ -9,7 +9,7 @@ import (
 	"github.com/ueqri/vis4mesh/server/stateless"
 )
 
-const numFlatWorkers = 2
+var numFlatWorkers int
 
 var queriedMsgTypes []string
 var numQueriedMsgTypes int
@@ -26,6 +26,7 @@ type Graph struct {
 
 func MakeGraph(
 	width, height uint16, timeSlice float64, elapse uint, rd reader.Reader,
+	numParallelThreads int,
 ) *Graph {
 	g := &Graph{
 		elapse:       elapse,
@@ -37,17 +38,20 @@ func MakeGraph(
 		reader:       rd,
 	}
 
-	g.mesh.Init(width, height, timeSlice, elapse)
-	go g.AsyncGenerateFlatInfo(1)
+	numFlatWorkers = numParallelThreads
 
 	queriedMsgTypes = stateless.GetQueriedMsgTypesList()
 	numQueriedMsgTypes = len(queriedMsgTypes)
 
+	g.mesh.Init(width, height, timeSlice, elapse)
+	go g.AsyncGenerateFlatInfo(1)
+
 	return g
 }
 
-// query the counts of all channels across the mesh during [time, time + 1)
-func (g *Graph) QueryTimeSliceAndAppend(time uint) {
+// query the counts of all channels across the mesh during [time, time + 1), and
+// merge the edges to get the statistic of a time range
+func (g *Graph) MergeEdgesDuringTimeSlice(time uint) {
 	if g.mesh.Edges[0].CountBuffer[time] != nil {
 		// if the time slice is queried before
 		for i := range g.mesh.Edges {
@@ -120,12 +124,13 @@ func (g *Graph) AsyncGenerateFlatInfo(frameSize uint) {
 
 	log.Printf("flat %d event with %d workers start", frameSize, numFlatWorkers)
 
+	var numRanks = uint(numFlatWorkers)
 	for i := 0; i < numFlatWorkers; i++ {
 		g.flatWorkers.Add(1)
 		go func(rank uint) {
 			batch := g.elapse
-			load := batch / numFlatWorkers
-			rest := batch % numFlatWorkers
+			load := batch / numRanks
+			rest := batch % numRanks
 
 			var start, end uint
 			if rank < rest {
@@ -191,7 +196,7 @@ func (g *Graph) DumpEdgeInfoToZippedBytes() []byte {
 	return stateless.JSONToBytes(arr)
 }
 
-func (g *Graph) CleanMeshEdgeValueInfo() {
+func (g *Graph) CleanState() {
 	g.mesh.CleanEdgeValueInfo()
 }
 

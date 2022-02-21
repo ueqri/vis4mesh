@@ -7,6 +7,7 @@ import {
   MsgGroupsDomain,
   MsgGroupsReverseMap,
 } from "data/classification";
+import * as d3 from "d3";
 import Event from "event";
 
 const ev = {
@@ -83,7 +84,7 @@ export default class FilterMsg implements ControllerModule {
         });
       }
       // label
-      e.label = e.weight === 0 ? "" : `${e.weight}`;
+      e.label = e.weight === 0 ? "" : CompressBigNumber(e.weight);
     });
   }
 
@@ -95,5 +96,20 @@ export default class FilterMsg implements ControllerModule {
 
   updateDataOrCommandDomain(domain: string[]) {
     this.docDomain = domain;
+  }
+}
+
+function CompressBigNumber(number: string | number): string {
+  if (typeof number === "string") {
+    number = Number(number);
+  }
+  const format = d3.format(".3s")(number);
+  const len = format.length;
+  const trans = Number(format);
+  if (Number.isNaN(trans) === true) {
+    const prefix = format.substring(0, len - 1);
+    return `${Number(prefix)}${format.charAt(len - 1)}`;
+  } else {
+    return `${trans}`;
   }
 }

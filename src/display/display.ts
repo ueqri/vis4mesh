@@ -60,6 +60,6 @@ function GenerateAbstractNodes(data: DataToDisplay): {
     });
   });
   // Clone properties from base links
-  // Object.values(nodeMap).forEach((d) => d.CloneBaseLink());
+  Object.values(nodeMap).forEach((d) => d.DeepCloneBaseLinkToLink());
   return nodeMap;
 }
