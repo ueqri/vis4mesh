@@ -2,9 +2,7 @@ package response
 
 type Model interface {
 	CleanState()
-	MergeEdgesDuringTimeSlice(time uint)
-	CheckAvailableFrameSizeOfFlatInfo() int
-	AsyncGenerateFlatInfo(frameSize uint)
+	MoveToTimeRange(from, to uint)
 
 	DumpMeshMetaToBytes() []byte
 	DumpNodeInfoToZippedBytes() []byte

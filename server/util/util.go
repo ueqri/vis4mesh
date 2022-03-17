@@ -1,4 +1,4 @@
-package stateless
+package util
 
 import (
 	"bufio"
@@ -135,7 +135,7 @@ func WriteStringToFile(data, file string) {
 	writer.Flush()
 }
 
-func ReadStringFromFIle(file string) string {
+func ReadStringFromFile(file string) string {
 	content, err := ioutil.ReadFile(file)
 	if err != nil {
 		panic(err)

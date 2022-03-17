@@ -35,9 +35,7 @@ func (r *WebSocketResponse) InstRangeReturnZippedEdges(from, to uint) []byte {
 
 	cleanState = false // range inst always keeps the graph state dirty
 
-	for time := from; time < to; time++ {
-		r.model.MergeEdgesDuringTimeSlice(time)
-	}
+	r.model.MoveToTimeRange(from, to)
 
 	return r.model.DumpEdgeInfoToZippedBytes()
 }
@@ -46,14 +44,5 @@ func (r *WebSocketResponse) InstFlat(frameSize uint) []byte {
 	if frameSize != 1 {
 		panic("Vis4Mesh server only support frame size 1 for mesh flat so far")
 	}
-
-	avail := r.model.CheckAvailableFrameSizeOfFlatInfo()
-	if avail > 0 {
-		if uint(avail) == frameSize {
-			return r.model.DumpFlatInfoToBytes()
-		} else {
-			go r.model.AsyncGenerateFlatInfo(frameSize)
-		}
-	}
-	return []byte("!wait")
+	return r.model.DumpFlatInfoToBytes()
 }

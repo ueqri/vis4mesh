@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"github.com/gorilla/websocket"
-	util "github.com/ueqri/vis4mesh/server/stateless"
+	util "github.com/ueqri/vis4mesh/server/util"
 )
 
 var upgrader = websocket.Upgrader{
