@@ -4,7 +4,8 @@ go 1.16
 
 require (
 	github.com/gorilla/websocket v1.4.2
-	gitlab.com/akita/util/v2 v2.0.1
+	gitlab.com/akita/noc/v3 v3.0.0-alpha.3
 )
 
-replace gitlab.com/akita/util/v2 => ../../util
+// Ensure the noc/v3 contains latest commit of package noctracing
+replace gitlab.com/akita/noc/v3 => ../../noc

@@ -10,8 +10,6 @@ import (
 )
 
 var addr = flag.String("addr", ":8080", "websocket service address without SSL")
-var width = flag.Int("width", 8, "width of the mesh")
-var height = flag.Int("height", 8, "height of the mesh")
 var path = flag.String("path", "nil", "path of the dumped metrics")
 
 func main() {

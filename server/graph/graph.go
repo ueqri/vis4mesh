@@ -3,21 +3,27 @@ package graph
 import (
 	"fmt"
 	"io/ioutil"
+	"log"
 	"path/filepath"
 	"strconv"
 
 	"github.com/ueqri/vis4mesh/server/util"
-	"gitlab.com/akita/util/v2/tracing"
+	"gitlab.com/akita/noc/v3/networking/noctracing"
 )
 
 type Graph struct {
-	mesh    *tracing.MeshInfo
+	mesh    *noctracing.MeshInfo
 	dirRoot string
 }
 
 func MakeGraph(dirRoot string) *Graph {
+	mesh := noctracing.MakeMeshInfoFromFiles(dirRoot)
+	if mesh == nil {
+		panic("build MeshInfo failed")
+	}
+	log.Println("metrics loaded successfully")
 	return &Graph{
-		mesh:    tracing.MakeMeshInfoFromFiles(dirRoot),
+		mesh:    mesh,
 		dirRoot: dirRoot,
 	}
 }
@@ -54,7 +60,7 @@ func (g *Graph) DumpNodeInfoToZippedBytes() []byte {
 }
 
 func (g *Graph) DumpEdgeInfoToZippedBytes() []byte {
-	numMsgTypes := tracing.NumMeshMsgTypesToTrace
+	numMsgTypes := noctracing.NumMeshMsgTypesToTrace
 	offsetOneEdge := 4 + numMsgTypes
 	arr := make([]string, 0, len(g.mesh.Edges)*offsetOneEdge)
 	for _, edge := range g.mesh.Edges {
