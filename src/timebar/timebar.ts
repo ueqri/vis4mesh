@@ -90,21 +90,21 @@ function handleFlatResponseByDoC(
 }
 
 export function RenderTimebar() {
-  Component.port.flat(1).then((resp) => {
-    const timebar = Element.timebar.loadFlatResponse(resp);
+  const resp = Component.port.flat();
+  const timebar = Element.timebar.loadFlatResponse(resp);
 
-    Component.ticker.setCast((l, r) => timebar.moveBrush(l, r));
-    Component.layout.timebar.afterResizing(() => timebar.render());
+  Component.ticker.setCast((l, r) => timebar.moveBrush(l, r));
+  Component.layout.timebar.afterResizing(() => timebar.render());
 
-    Event.AddStepListener(ev.MsgGroup, (g: string[]) =>
-      timebar.updateMsgGroupDomain(g)
-    );
-    Event.AddStepListener(ev.DataOrCommand, (doc: string[]) =>
-      timebar.updateDataOrCommandDomain(doc)
-    );
+  Event.AddStepListener(ev.MsgGroup, (g: string[]) =>
+    timebar.updateMsgGroupDomain(g)
+  );
+  Event.AddStepListener(ev.DataOrCommand, (doc: string[]) =>
+    timebar.updateDataOrCommandDomain(doc)
+  );
 
-    timebar.render();
-  });
+  timebar.render();
+
 }
 
 export default class Timebar {

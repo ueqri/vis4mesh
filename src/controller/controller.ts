@@ -2,6 +2,7 @@ import DataPort from "data/dataport";
 import { DataPortRangeResponse } from "data/data";
 import Display from "display/display";
 import { DataToDisplay } from "display/data";
+import DataWrapper from "../data/datawrapper"
 
 export type SignalMap = { [type: string]: (v: any) => any };
 
@@ -18,7 +19,7 @@ export interface ControllerModule {
 
 export default class Controller {
   // Controller components
-  protected port: DataPort;
+  protected port: DataWrapper;
   protected view: Display;
   protected modules: Array<ControllerModule>;
 
@@ -26,7 +27,7 @@ export default class Controller {
   public startTime: number;
   public endTime: number;
 
-  constructor(port: DataPort, view: Display) {
+  constructor(port: DataWrapper, view: Display) {
     this.startTime = this.endTime = 0;
 
     this.port = port;
