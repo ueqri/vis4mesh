@@ -20,7 +20,7 @@ export default class DataWrapper {
         for(let i = 0; i < len; i++) {
           let valueMap = new Object();
           MsgTypes.forEach((t, idx) => {
-            valueMap[t] = edgesArray[i].value;
+            valueMap[t] = edgesArray[i].value[idx];
           });
           edgesData.push({
               source: edgesArray[i].source,
