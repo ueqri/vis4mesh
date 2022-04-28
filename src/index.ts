@@ -11,35 +11,33 @@ import { directoryOpen } from "browser-fs-access";
 
 const port = Component.port;
 
-const chooseDirButton = document.querySelector("#Directory-Open");
+const chooseDirButton = document.querySelector("#Directory-Open")!;
 
-if(chooseDirButton != undefined) {
-  chooseDirButton.addEventListener("click", async()=> {
-    try {
-      const dirEntries = await directoryOpen({recursive: true});
-      port.meshInfo = await buildMeshInfo(dirEntries);
-      const meta = Object(port.meshInfo.meta);
-      console.log(meta);
+chooseDirButton.addEventListener("click", async()=> {
+  try {
+    const dirEntries = await directoryOpen({recursive: true});
+    port.meshInfo = await buildMeshInfo(dirEntries);
+    const meta = Object(port.meshInfo.meta);
+    console.log(meta);
 
-      let c = new Controller(port, Component.view).loadModules([
-        Module.filterMsg,
-        Module.setTime,
-      ]);
+    let c = new Controller(port, Component.view).loadModules([
+      Module.filterMsg,
+      Module.setTime,
+    ]);
 
-      Component.ticker.setMaxTime(+meta["elapse"]).bindController(c);
+    Component.ticker.setMaxTime(+meta["elapse"]).bindController(c);
 
-      c.requestDataPort(); // render initial view
+    c.requestDataPort(); // render initial view
 
-      RenderTopbar();
-      RenderTimebar();
-      RenderFilterbar();
-    } catch (err) {
-      console.error(err);
-    }
-    
-  });
+    RenderTopbar();
+    RenderTimebar();
+    RenderFilterbar();
+  } catch (err) {
+    console.error(err);
+  }
+  
+});
 
-}
 // port.init().then((meta) => {
 //   console.log(meta);
 
