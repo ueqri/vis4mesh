@@ -6,6 +6,7 @@ import {
   DataOrCommandReverseMap,
   MsgGroupsDomain,
   MsgGroupsReverseMap,
+  MsgTypesInOrderIndexMap,
 } from "data/classification";
 import * as d3 from "d3";
 import Event from "event";
@@ -19,6 +20,8 @@ enum FilterMsgMode {
   ByMsgGroup,
   ByDataOrCommand,
 }
+
+const MapMsgTypeToIdx = MsgTypesInOrderIndexMap;
 
 export default class FilterMsg implements ControllerModule {
   public signal: SignalMap;
@@ -65,20 +68,22 @@ export default class FilterMsg implements ControllerModule {
       if (this.mode == FilterMsgMode.ByMsgGroup) {
         this.groupDomain.forEach((g) => {
           (MsgGroupsReverseMap[g] as string[]).forEach((key) => {
-            const val: number | undefined = ref.edges[idx].value[key];
+            const typeIdx: number = MapMsgTypeToIdx[key];
+            const val: number | undefined = ref.edges[idx].value[typeIdx];
             if (val !== undefined && val > 0) {
               e.detail += `<br>${key}: ${val}`;
-              e.weight += ref.edges[idx].value[key];
+              e.weight! += ref.edges[idx].value[typeIdx];
             }
           });
         });
       } else if (this.mode == FilterMsgMode.ByDataOrCommand) {
         this.docDomain.forEach((doc) => {
           (DataOrCommandReverseMap[doc] as string[]).forEach((key) => {
-            const val: number | undefined = ref.edges[idx].value[key];
+            const typeIdx: number = MapMsgTypeToIdx[key];
+            const val: number | undefined = ref.edges[idx].value[typeIdx];
             if (val !== undefined && val > 0) {
               e.detail += `<br>${key}: ${val}`;
-              e.weight += ref.edges[idx].value[key];
+              e.weight! += ref.edges[idx].value[typeIdx];
             }
           });
         });

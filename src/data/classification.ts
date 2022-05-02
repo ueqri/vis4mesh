@@ -1,3 +1,46 @@
+/* Message type               Index
+ *cache.FlushReq              0
+ *cache.FlushRsp              1
+ *mem.DataReadyRsp            2
+ *mem.ReadReq                 3
+ *mem.WriteDoneRsp            4
+ *mem.WriteReq                5
+ *protocol.FlushReq           6
+ *protocol.LaunchKernelReq    7
+ *protocol.MapWGReq           8
+ *protocol.WGCompletionMsg    9
+ *vm.TranslationReq           10
+ *vm.TranslationRsp           11
+ */
+
+export const MsgTypesInOrder: string[] = [
+  "*cache.FlushReq",
+  "*cache.FlushRsp",
+  "*mem.DataReadyRsp",
+  "*mem.ReadReq",
+  "*mem.WriteDoneRsp",
+  "*mem.WriteReq",
+  "*protocol.FlushReq",
+  "*protocol.LaunchKernelReq",
+  "*protocol.MapWGReq",
+  "*protocol.WGCompletionMsg",
+  "*vm.TranslationReq",
+  "*vm.TranslationRsp",
+];
+
+function reverseArrayIdxAndValue(arr: string[]): Object {
+  const rev = {};
+  arr.forEach((val, idx) => {
+    rev[val] = idx;
+  });
+  return rev;
+}
+
+export const MsgTypesInOrderIndexMap = reverseArrayIdxAndValue(MsgTypesInOrder);
+
+export const MsgTypes = MsgTypesInOrder;
+export const NumMsgTypes = MsgTypes.length;
+
 export const MsgGroupsDomain = ["Translation", "Read", "Write", "Others"];
 export const NumMsgGroups = MsgGroupsDomain.length;
 
@@ -15,9 +58,6 @@ export const MsgGroupsMap: Object = {
   "*vm.TranslationReq": "Translation",
   "*vm.TranslationRsp": "Translation",
 };
-
-export const MsgTypes = Object.keys(MsgGroupsMap);
-export const NumMsgTypes = MsgTypes.length;
 
 function reverseObject(obj: Object): Object {
   const rev = {};

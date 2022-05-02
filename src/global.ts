@@ -1,4 +1,3 @@
-import DataPort from "data/dataport";
 import Ticker from "controller/ticker";
 import Display from "display/display";
 import FilterMsg from "controller/module/filtermsg";
@@ -6,10 +5,10 @@ import SetTime from "controller/module/settime";
 import Timebar from "timebar/timebar";
 import Filterbar from "filterbar/filterbar";
 import Layout from "./layout";
-import DataWrapper from "./data/datawrapper"
+import LocalPort from "./data/localport";
 
 const Component = {
-  port: new DataWrapper(),
+  port: new LocalPort(),
   view: new Display(),
   ticker: new Ticker(),
   layout: new Layout(),

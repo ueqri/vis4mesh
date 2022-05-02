@@ -1,22 +1,22 @@
+export interface MetaData {
+  width: number;
+  height: number;
+  slice: number;
+  elapse: number;
+}
+
 export interface NodeData {
   id: string;
   label?: string;
   detail: string;
 }
 
-// Wrapped EdgeArray, return as response
 export interface EdgeData {
   source: string;
   target: string;
-  value:  Object;
+  value: number[];
   label?: string;
   detail: string;
-}
-
-export interface DataPortRangeResponse {
-  meta:  Object; // metadata contains graph size, definition of time slice, etc
-  nodes: NodeData[];
-  edges: EdgeData[];
 }
 
 export interface SnapShotData {
@@ -27,25 +27,12 @@ export interface SnapShotData {
   count: number; // count of the certain message type during this frame
 }
 
+export type FlatData = SnapShotData[];
 
-// Meta Data, parsed from the json file
-export interface MetaData {
-  width: number;
-  height: number;
-  slice: number;
-  elapse: number;
+export type DataPortMetaResponse = MetaData;
+export type DataPortFlatResponse = FlatData;
+export interface DataPortRangeResponse {
+  meta: MetaData; // metadata contains graph size, definition of time slice, etc
+  nodes: NodeData[];
+  edges: EdgeData[];
 }
-
-
-// Edge array, parsed from the json file
-export interface EdgeArray {
-  source: string;
-  target: string;
-  value:  number[];
-  label?: string;
-  detail: string;
-}
-
-export type DataPortFlatResponse = SnapShotData[];
-
-export type ZippedResponse = string[];

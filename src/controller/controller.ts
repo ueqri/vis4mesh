@@ -2,7 +2,7 @@ import DataPort from "data/dataport";
 import { DataPortRangeResponse } from "data/data";
 import Display from "display/display";
 import { DataToDisplay } from "display/data";
-import DataWrapper from "../data/datawrapper"
+import DataWrapper from "../data/localport";
 
 export type SignalMap = { [type: string]: (v: any) => any };
 
@@ -19,7 +19,7 @@ export interface ControllerModule {
 
 export default class Controller {
   // Controller components
-  protected port: DataWrapper;
+  protected port: DataPort;
   protected view: Display;
   protected modules: Array<ControllerModule>;
 
