@@ -217,6 +217,9 @@ export class MainView {
   }
 
   get_text(links: LineLink[]) {
+    let offsetText_1 = this.rect_size * 0.1;
+    let offsetText_2 = this.rect_size * 0.2;
+    let offsetText_3 = this.rect_size * 0.3;
     let texts: LinkText[] = [];
     for (let link of links) {
       let posX: number;
@@ -225,14 +228,14 @@ export class MainView {
       switch (link.direction) {
         case 0: {
           // South
-          posX = link.x1;
+          posX = link.x1 + offsetText_2;
           posY = (link.y1 + link.y2) / 2;
           tile = this.layers[this.level].nodes[link.idx][link.idy].data[0];
           break;
         }
         case 1: {
           // North
-          posX = link.x1;
+          posX = link.x1 - offsetText_3;
           posY = (link.y1 + link.y2) / 2;
           tile = this.layers[this.level].nodes[link.idx][link.idy].data[1];
           break;
@@ -240,14 +243,14 @@ export class MainView {
         case 2: {
           // East
           posX = (link.x1 + link.x2) / 2;
-          posY = link.y1;
+          posY = link.y1 + offsetText_1;
           tile = this.layers[this.level].nodes[link.idx][link.idy].data[2];
           break;
         }
         case 3: {
           // West
           posX = (link.x1 + link.x2) / 2;
-          posY = link.y1;
+          posY = link.y1 - offsetText_2;
           tile = this.layers[this.level].nodes[link.idx][link.idy].data[3];
           break;
         }
