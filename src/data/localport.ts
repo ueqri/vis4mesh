@@ -8,7 +8,6 @@ import { directoryOpen } from "browser-fs-access";
 
 export default class LocalDataPort extends DataPort {
   protected loader!: FileLoader;
-
   protected meta!: MetaData;
   protected overview!: FlatData;
   protected nodes!: NodeData[];

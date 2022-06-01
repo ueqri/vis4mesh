@@ -1,8 +1,9 @@
 import DataPort from "data/dataport";
 import { DataPortRangeResponse } from "data/data";
-import Display from "display/display";
 import { DataToDisplay } from "display/data";
-import DataWrapper from "../data/localport";
+import DataWrapper from "data/localport";
+import { BuildAbstractLayers } from "../graph/abstractlayer";
+import { MainView } from "graph/graph";
 
 export type SignalMap = { [type: string]: (v: any) => any };
 
@@ -20,18 +21,18 @@ export interface ControllerModule {
 export default class Controller {
   // Controller components
   protected port: DataPort;
-  protected view: Display;
+  protected graph: MainView;
   protected modules: Array<ControllerModule>;
 
   // Shared variables for all modules
   public startTime: number;
   public endTime: number;
 
-  constructor(port: DataWrapper, view: Display) {
+  constructor(port: DataWrapper, graph: MainView) {
     this.startTime = this.endTime = 0;
 
     this.port = port;
-    this.view = view;
+    this.graph = graph;
     this.modules = new Array<ControllerModule>();
   }
 
@@ -41,23 +42,30 @@ export default class Controller {
     return this;
   }
 
-  requestDataPort() {
-    this.port.range(this.startTime, this.endTime).then(
-      (resp) => {
-        let data: DataToDisplay = {
-          // Basic data clone
-          meta: resp.meta,
-          nodes: resp.nodes,
-          edges: resp.edges,
-        };
-        this.modules.forEach((m) => {
-          m.decorateData(resp, data);
-        });
-        this.view.renderData(data);
-      },
-      (reason) => {
-        console.error(reason);
-      }
-    );
+  async requestDataPort() {
+    try {
+      let resp = await this.port.range(this.startTime, this.endTime);
+      let data: DataToDisplay = {
+        // Basic data reference
+        meta: resp.meta,
+        nodes: resp.nodes,
+        edges: resp.edges,
+      };
+      this.modules.forEach((m) => {
+        m.decorateData(resp, data);
+      });
+      // rebuild abstract layers and render
+      console.log("new data loaded");
+      this.graph.loadAbstractLayers(
+        BuildAbstractLayers(
+          resp.meta["width"],
+          resp.meta["height"],
+          this.graph.max_scale,
+          resp.edges
+        )
+      );
+    } catch (reason) {
+      console.error(reason);
+    }
   }
 }

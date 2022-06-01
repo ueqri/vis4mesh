@@ -5,6 +5,7 @@ import { Component, Module } from "global";
 import { RenderTimebar } from "./timebar/timebar";
 import { RenderFilterbar } from "./filterbar/filterbar";
 import { RenderTopbar } from "topbar/topbar";
+import { MainView } from "./graph/graph";
 
 const port = Component.port;
 
@@ -15,14 +16,16 @@ chooseDirButton.addEventListener("click", async () => {
     const meta = await port.init();
     console.log(meta);
 
-    let c = new Controller(port, Component.view).loadModules([
+    const graph = new MainView(meta["width"], meta["height"]);
+
+    let c = new Controller(port, graph).loadModules([
       Module.filterMsg,
       Module.setTime,
     ]);
 
     Component.ticker.setMaxTime(+meta["elapse"]).bindController(c);
 
-    c.requestDataPort(); // render initial view
+    // c.requestDataPort(); // render initial view
 
     RenderTopbar();
     RenderTimebar();
