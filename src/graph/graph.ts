@@ -1,6 +1,7 @@
 import * as d3 from "d3";
 import { AbstractLayer } from "./abstractlayer";
 import { MsgTypesInOrder } from "data/classification";
+import { CompressBigNumber } from "controller/module/filtermsg";
 
 const ZoomWindowSize = 50;
 const SubDisplaySize = 200;
@@ -32,7 +33,7 @@ interface LineLink {
 interface LinkText {
   x: number;
   y: number;
-  label: number;
+  label: string;
 }
 
 interface ClientSize {
@@ -240,7 +241,7 @@ export class MainView {
           // East
           posX = (link.x1 + link.x2) / 2;
           posY = link.y1;
-          tile = this.layers[this.level].nodes[link.idx][link.idy].data[1];
+          tile = this.layers[this.level].nodes[link.idx][link.idy].data[2];
           break;
         }
         case 3: {
@@ -252,10 +253,16 @@ export class MainView {
         }
       }
       let sum = 0;
+      console.log(tile!);
       for (let j = 0; j < MsgTypesInOrder.length; j++) {
         sum += tile![j];
       }
-      texts.push({ x: posX!, y: posY!, label: sum });
+      console.log(sum);
+      texts.push({
+        x: posX!,
+        y: posY!,
+        label: sum === 0 ? "" : CompressBigNumber(sum),
+      });
     }
     return texts;
   }
@@ -274,8 +281,8 @@ export class MainView {
             .attr("ry", (d) => RectCornerRadius * d.size)
             .attr("width", (d) => d.size)
             .attr("height", (d) => d.size)
-            .attr("fill", "white")
-            .attr("stroke", "blue")
+            .attr("fill", "#8fbed1")
+            .attr("stroke", "#599dbb")
             .attr("stroke-width", (d) => d.scale * 0.02),
         (update) =>
           update
@@ -287,8 +294,8 @@ export class MainView {
             .attr("ry", (d) => RectCornerRadius * d.size)
             .attr("width", (d) => d.size)
             .attr("height", (d) => d.size)
-            .attr("fill", "white")
-            .attr("stroke", "blue")
+            .attr("fill", "#8fbed1")
+            .attr("stroke", "#599dbb")
             .attr("stroke-width", (d) => d.scale * 0.02),
         (exit) => exit.remove()
       );
@@ -315,11 +322,11 @@ export class MainView {
       .attr("y2", (d) => d.y2)
       .attr("stroke-dasharray", (d) => d.dasharray)
       .attr("stroke-width", (d) => d.width)
-      .attr("stroke", "green");
+      .attr("stroke", "cyan");
   }
 
   draw_text(texts: LinkText[]) {
-    let fontsize = this.rect_size * 0.1;
+    let fontsize = this.rect_size * 0.2;
     this.grid
       .selectAll(".edge-label")
       .data(texts)
@@ -341,7 +348,8 @@ export class MainView {
       .attr("x", (d) => d.x)
       .attr("y", (d) => d.y)
       .text((d) => d.label)
-      .style("font-size", fontsize);
+      .style("font-size", fontsize)
+      .raise();
   }
 
   draw() {

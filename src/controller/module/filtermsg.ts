@@ -104,7 +104,7 @@ export default class FilterMsg implements ControllerModule {
   }
 }
 
-function CompressBigNumber(number: string | number): string {
+export function CompressBigNumber(number: string | number): string {
   if (typeof number === "string") {
     number = Number(number);
   }

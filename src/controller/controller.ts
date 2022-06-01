@@ -51,9 +51,6 @@ export default class Controller {
         nodes: resp.nodes,
         edges: resp.edges,
       };
-      this.modules.forEach((m) => {
-        m.decorateData(resp, data);
-      });
       // rebuild abstract layers and render
       console.log("new data loaded");
       this.graph.loadAbstractLayers(
@@ -64,6 +61,9 @@ export default class Controller {
           resp.edges
         )
       );
+      this.modules.forEach((m) => {
+        m.decorateData(resp, data);
+      });
     } catch (reason) {
       console.error(reason);
     }
