@@ -49,21 +49,22 @@ export default class Controller {
         // Basic data reference
         meta: resp.meta,
         nodes: resp.nodes,
-        edges: resp.edges,
+        edges: [],
       };
       // rebuild abstract layers and render
+      
+      this.modules.forEach((m) => {
+        m.decorateData(resp, data);
+      });
       console.log("new data loaded");
       this.graph.loadAbstractLayers(
         BuildAbstractLayers(
           resp.meta["width"],
           resp.meta["height"],
           this.graph.max_scale,
-          resp.edges
+          data.edges
         )
       );
-      this.modules.forEach((m) => {
-        m.decorateData(resp, data);
-      });
     } catch (reason) {
       console.error(reason);
     }

@@ -1,10 +1,11 @@
 import { EdgeData } from "data/data";
 import { MsgTypesInOrder } from "data/classification";
+import { EdgeDisplay } from "display/data";
 
 export interface AbstractNode {
   x: number;
   y: number;
-  data: number[][];
+  data: number[];
 }
 
 export class AbstractLayer {
@@ -17,14 +18,13 @@ export class AbstractLayer {
     scale: number,
     height: number,
     width: number,
-    edges: EdgeData[],
+    edges: EdgeDisplay[],
     subLayer?: AbstractLayer
   ) {
     this.scale = scale;
     this.height = height;
     this.width = width;
     this.nodes = [];
-    console.log("build layer scale: ", scale);
     if (scale === 1) {
       this.nodes = this.buildFromFlatData(height, width, edges);
     } else {
@@ -32,46 +32,36 @@ export class AbstractLayer {
       for (let i = 0; i < height; i++) {
         let row: AbstractNode[] = [];
         for (let j = 0; j < width; j++) {
-          let value: number[][] = [];
+          let value: number[] = [0, 0, 0, 0];
           let si = i * 4;
           let sj = j * 4;
 
-          console.log(subLayer!.nodes[si][sj + 3].data)
-          let sum = subLayer!.nodes[si][sj + 3].data[0];
-          for (let k = si + 1; k < si + 4; k++) {
+          let sum = 0;
+          for (let k = si; k < si + 4; k++) {
             let tile = subLayer!.nodes[k][sj + 3].data[0];
             for (let idx = 0; idx < length; idx++) {
               sum[idx] += tile[idx];
             }
           }
-          value.push(sum);
-        
-          sum = subLayer!.nodes[si][sj].data[1];
-          for (let k = si + 1; k < si + 4; k++) {
-            let tile = subLayer!.nodes[k][sj].data[1];
-            for (let idx = 0; idx < length; idx++) {
-              sum[idx] += tile[idx];
-            }
-          }
-          value.push(sum);
+          value[0] = sum;
 
-          sum = subLayer!.nodes[si+3][sj].data[2];
-          for (let k = sj + 1; k < sj + 4; k++) {
-            let tile = subLayer!.nodes[si+3][k].data[2];
-            for (let idx = 0; idx < length; idx++) {
-              sum[idx] += tile[idx];
-            }
+          sum = 0;
+          for (let k = si; k < si + 4; k++) {
+            sum += subLayer!.nodes[k][sj].data[1];
           }
-          value.push(sum);
+          value[1] = sum;
 
-          sum = subLayer!.nodes[si][sj].data[3];
-          for (let k = sj + 1; k < sj + 4; k++) {
-            let tile = subLayer!.nodes[si][k].data[3];
-            for (let idx = 0; idx < length; idx++) {
-              sum[idx] += tile[idx];
-            }
+          sum = 0;
+          for (let k = sj; k < sj + 4; k++) {
+            sum += subLayer!.nodes[si + 3][k].data[2];
           }
-          value.push(sum);
+          value[2] = sum;
+
+          sum = 0;
+          for (let k = sj; k < sj + 4; k++) {
+            sum += subLayer!.nodes[si][k].data[3];
+          }
+          value[3] = sum;
 
           row.push({ x: i, y: j, data: value });
         }
@@ -83,13 +73,13 @@ export class AbstractLayer {
   buildFromFlatData(
     width: number,
     height: number,
-    edges: EdgeData[]
+    edges: EdgeDisplay[]
   ): AbstractNode[][] {
     let nodes: AbstractNode[][] = [];
     for (let i = 0; i < height; i++) {
       let row: AbstractNode[] = [];
       for (let j = 0; j < width; j++) {
-        let value: number[][] = [[], [], [], []];
+        let value: number[] = [0, 0, 0, 0];
         row.push({ x: i, y: j, data: value });
       }
       nodes.push(row);
@@ -101,13 +91,13 @@ export class AbstractLayer {
       let dx = Math.floor(parseInt(edge.target) / width);
       let dy = parseInt(edge.target) % width;
       if (dy === y + 1) {
-        nodes[x][y].data[0] = edge.value;
+        nodes[x][y].data[0] = edge.weight;
       } else if (dy === y - 1) {
-        nodes[x][y].data[1] = edge.value;
+        nodes[x][y].data[1] = edge.weight;
       } else if (dx === x + 1) {
-        nodes[x][y].data[2] = edge.value;
+        nodes[x][y].data[2] = edge.weight;
       } else {
-        nodes[x][y].data[3] = edge.value;
+        nodes[x][y].data[3] = edge.weight;
       }
     }
     return nodes;
@@ -118,12 +108,17 @@ export function BuildAbstractLayers(
   tile_width: number,
   tile_height: number,
   init_scale: number,
-  rangedEdges: EdgeData[]
+  rangedEdges: EdgeDisplay[]
 ): AbstractLayer[] {
+  let buildStart = performance.now();
   let layers: AbstractLayer[] = [];
 
+  let start = performance.now();
   layers.push(new AbstractLayer(1, tile_height, tile_width, rangedEdges));
+  let end = performance.now();
+  console.log(`build from source data: time spent ${end - start}ms`);
   for (let i = 4; i <= init_scale; i *= 4) {
+    let start = performance.now();
     let layer = new AbstractLayer(
       i,
       tile_width / i,
@@ -132,6 +127,14 @@ export function BuildAbstractLayers(
       layers[layers.length - 1]
     );
     layers.push(layer);
+    let end = performance.now();
+    console.log(
+      `load layer[${layers.length - 1}] of scale ${i}: time spent ${
+        end - start
+      }ms`
+    );
   }
+  let buildEnd = performance.now();
+  console.log(`build layers: time spent ${buildEnd - buildStart}ms`);
   return layers;
 }

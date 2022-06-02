@@ -227,7 +227,6 @@ export class MainView {
         }
       }
     }
-    console.log(links);
     return links;
   }
 
@@ -235,47 +234,41 @@ export class MainView {
     let offsetText_1 = this.rect_size * 0.1;
     let offsetText_2 = this.rect_size * 0.2;
     let offsetText_3 = this.rect_size * 0.3;
+    let sum = 0;
     let texts: LinkText[] = [];
     for (let link of links) {
       let posX: number;
       let posY: number;
-      let tile: number[];
       switch (link.direction) {
         case 0: {
           // South
           posX = link.x1 + offsetText_2;
           posY = (link.y1 + link.y2) / 2;
-          tile = this.layers[this.level].nodes[link.idx][link.idy].data[0];
+          sum = this.layers[this.level].nodes[link.idx][link.idy].data[0];
           break;
         }
         case 1: {
           // North
           posX = link.x1 - offsetText_3;
           posY = (link.y1 + link.y2) / 2;
-          tile = this.layers[this.level].nodes[link.idx][link.idy].data[1];
+          sum = this.layers[this.level].nodes[link.idx][link.idy].data[1];
           break;
         }
         case 2: {
           // East
           posX = (link.x1 + link.x2) / 2;
           posY = link.y1 + offsetText_1;
-          tile = this.layers[this.level].nodes[link.idx][link.idy].data[2];
+          sum = this.layers[this.level].nodes[link.idx][link.idy].data[2];
           break;
         }
         case 3: {
           // West
           posX = (link.x1 + link.x2) / 2;
           posY = link.y1 - offsetText_2;
-          tile = this.layers[this.level].nodes[link.idx][link.idy].data[3];
+          sum = this.layers[this.level].nodes[link.idx][link.idy].data[3];
           break;
         }
       }
-      let sum = 0;
-      console.log(tile!);
-      for (let j = 0; j < MsgTypesInOrder.length; j++) {
-        sum += tile![j];
-      }
-      console.log(sum);
       texts.push({
         x: posX!,
         y: posY!,
@@ -463,3 +456,4 @@ export class MainView {
     this.draw();
   }
 }
+
