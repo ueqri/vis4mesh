@@ -1,7 +1,9 @@
 import * as d3 from "d3";
 import { AbstractLayer } from "./abstractlayer";
-import { MsgTypesInOrder } from "data/classification";
 import { CompressBigNumber } from "controller/module/filtermsg";
+import TooltipInteraction from "display/interaction/tooltip";
+import EdgeTrafficCheckboxes from "filterbar/edgecheckbox";
+import ClickInteraction from "display/interaction/click";
 
 const ZoomWindowSize = 50;
 const SubDisplaySize = 200;
@@ -18,6 +20,7 @@ interface RectNode {
 }
 
 interface LineLink {
+  connection: number[];
   idx: number;
   idy: number;
   x1: number;
@@ -28,12 +31,15 @@ interface LineLink {
   value: number;
   dasharray: string;
   direction: number;
+  level: number;
+  opacity: number;
 }
 
 interface LinkText {
   x: number;
   y: number;
   label: string;
+  opacity: number;
 }
 
 interface ClientSize {
@@ -60,6 +66,8 @@ export class MainView {
   dataLoaded: boolean = false;
   tile_width: number;
   tile_height: number;
+  primary_width: number;
+  primary_height: number;
   max_scale: number = 0;
   level: number = 0;
   scale: number = 0; // abstract node, size: scale*scale
@@ -71,6 +79,7 @@ export class MainView {
   sub_nodes: RectNode[] = [];
   links: LineLink[] = [];
   layers: AbstractLayer[] = [];
+  checkedColors: boolean[] = [];
   transform_scale: number = 0; // abstract node, size of scale*scale
   rect_size: number = 0; // reassign each time by this.draw()
   readonly node_size_ratio = 0.6;
@@ -83,28 +92,44 @@ export class MainView {
   constructor(tile_width: number, tile_height: number) {
     this.tile_width = tile_width;
     this.tile_height = tile_height;
+    this.primary_width = tile_width;
+    this.primary_height = tile_height;
     console.log(this.client_size);
     this.initialize_zoom();
-    this.grid.append("svg:defs")
-    .selectAll("marker")
-    .data(["end"]) // different link/path types can be defined here
-    .enter()
-    .append("svg:marker") // this section adds in the arrows
-    .attr("id", String)
-    .attr("viewBox", "0 -5 10 10")
-    .attr("refX", arrowWidth * 5.5)
-    .attr("refY", 0)
-    .attr("markerWidth", arrowWidth)
-    .attr("markerHeight", arrowWidth)
-    .attr("orient", "auto")
-    .append("svg:path")
-    .attr("d", "M0,-5L10,0L0,5");
+    this.grid
+      .append("svg:defs")
+      .selectAll("marker")
+      .data(["end"]) // different link/path types can be defined here
+      .enter()
+      .append("svg:marker") // this section adds in the arrows
+      .attr("id", String)
+      .attr("viewBox", "0 -5 10 10")
+      .attr("refX", arrowWidth * 5.5)
+      .attr("refY", 0)
+      .attr("markerWidth", arrowWidth)
+      .attr("markerHeight", arrowWidth)
+      .attr("orient", "auto")
+      .append("svg:path")
+      .attr("d", "M0,-5L10,0L0,5");
   }
 
   loadAbstractLayers(layers: AbstractLayer[]) {
     this.dataLoaded = true;
     this.layers = layers;
+    this.links = this.get_links(this.primary_nodes); 
     this.draw();
+  }
+
+  loadcheckedColors(checkedColors: boolean[]) {
+    this.checkedColors = checkedColors;
+    this.setLinksOpacity();
+    this.draw();
+  }
+
+  setLinksOpacity() {
+    for(let link of this.links) {
+      link.opacity = this.checkedColors[link.level] === true ? 1 : 0.02;
+    }
   }
 
   // center based, each center is (i, j) + (scale/2, scale/2)
@@ -125,6 +150,10 @@ export class MainView {
 
   valid_link(x: number, y: number) {
     return x >= 0 && x <= this.tile_width && y >= 0 && y <= this.tile_height;
+  }
+
+  nodeXYToID(x: number, y: number) {
+    return x * this.primary_width + y;
   }
 
   // reassign this.rect_size to suit the window before draw
@@ -210,22 +239,36 @@ export class MainView {
       for (let i = 0; i < 4; i++) {
         let nx = center.x + half_size * directionX[i] + directionY[i] * offset;
         let ny = center.y + half_size * directionY[i] + directionX[i] * offset;
-        let link = {
-          idx: node.idx,
-          idy: node.idy,
-          x1: nx,
-          y1: ny,
-          x2: nx + link_length * directionX[i],
-          y2: ny + link_length * directionY[i],
-          width: link_width,
-          value: 0,
-          dasharray: Boolean(i & 1) ? "5, 0" : `${dash[0]}, ${dash[1]}`,
-          direction: i,
-        };
-        if (this.valid_link(link.x2, link.y2)) {
+        let endX = nx + link_length * directionX[i];
+        let endY = ny + link_length * directionY[i];
+        if (this.valid_link(endX, endY)) {
+          let link = {
+            connection: [
+              this.nodeXYToID(node.idx, node.idy),
+              this.nodeXYToID(
+                node.idx + directionX[i],
+                node.idy + directionY[i]
+              ),
+            ],
+            idx: node.idx,
+            idy: node.idy,
+            x1: nx,
+            y1: ny,
+            x2: nx + link_length * directionX[i],
+            y2: ny + link_length * directionY[i],
+            width: link_width,
+            value: 0,
+            dasharray: Boolean(i & 1) ? "5, 0" : `${dash[0]}, ${dash[1]}`,
+            direction: i,
+            level: this.dataLoaded ? this.layers[this.level].nodes[node.idx][node.idy].level[i] : 0,
+            opacity: this.dataLoaded && this.layers[this.level].nodes[node.idx][node.idy].level[i] === 0 ? 0.02 : 1,
+          };
           links.push(link);
         }
       }
+    }
+    if(this.dataLoaded) {
+      this.setLinksOpacity();
     }
     return links;
   }
@@ -273,6 +316,7 @@ export class MainView {
         x: posX!,
         y: posY!,
         label: sum === 0 ? "" : CompressBigNumber(sum),
+        opacity: link.opacity,
       });
     }
     return texts;
@@ -309,7 +353,39 @@ export class MainView {
             .attr("stroke", "#599dbb")
             .attr("stroke-width", (d) => d.scale * 0.02),
         (exit) => exit.remove()
-      );
+      )
+      .on("mouseover", function (ev, d) {
+        const sel = d3.select(this);
+        sel.attr("fill", "#599dbb");
+        sel.style("cursor", "pointer");
+        // TooltipInteraction.onNode(nodeMap[d.id]);
+      })
+      .on("mousemove", function (ev) {
+        TooltipInteraction.move([ev.pageX, ev.pageY]);
+      })
+      .on("mouseout", function (ev, d) {
+        const sel = d3.select(this);
+        if (sel.property("checked") !== true) {
+          sel.attr("fill", "#8fbed1");
+          sel.style("cursor", "default");
+        }
+        TooltipInteraction.hide();
+      })
+      .on("click", function (ev, d) {
+        const sel = d3.select(this);
+        // ClickInteraction.onNode(
+        //   nodeMap[d.id],
+        //   () => {
+        //     sel.attr("fill", d.stroke);
+        //     sel.property("checked", true);
+        //   },
+        //   () => {
+        //     sel.attr("fill", d.fill);
+        //     sel.property("checked", false);
+        //   }
+        // );
+        ev.stopPropagation();
+      });;
   }
 
   draw_line(lines: LineLink[]) {
@@ -331,9 +407,45 @@ export class MainView {
       .attr("x2", (d) => d.x2)
       .attr("y1", (d) => d.y1)
       .attr("y2", (d) => d.y2)
+      .attr("opacity", (d)=> d.opacity)
       .attr("stroke-dasharray", (d) => d.dasharray)
       .attr("stroke-width", (d) => d.width)
-      .attr("stroke", "cyan");
+      .attr("stroke", (d)=> ColorScheme(d.level))
+      .on("mouseover", function (ev, d) {
+        const sel = d3.select(this);
+        sel.attr("stroke-width", d.width * 1.5);
+        sel.style("cursor", "pointer");
+        const [src, dst] = d.connection;
+        // TooltipInteraction.onEdge([nodeMap[src], nodeMap[dst]]);
+      })
+      .on("mousemove", function (ev) {
+        TooltipInteraction.move([ev.pageX, ev.pageY]);
+      })
+      .on("mouseout", function (ev, d) {
+        const sel = d3.select(this);
+        if (sel.property("checked") !== true) {
+          sel.attr("stroke-width", d.width);
+          sel.style("cursor", "default");
+        }
+        TooltipInteraction.hide();
+      })
+      .on("click", function (ev, d) {
+        const sel = d3.select(this);
+        const [src, dst] = d.connection;
+
+        // ClickInteraction.onEdge(
+        //   [nodeMap[src], nodeMap[dst]],
+        //   () => {
+        //     sel.attr("stroke-width", d.width * 1.5);
+        //     sel.property("checked", true);
+        //   },
+        //   () => {
+        //     sel.attr("stroke-width", d.width);
+        //     sel.property("checked", false);
+        //   }
+        // );
+        ev.stopPropagation();
+      });
   }
 
   draw_text(texts: LinkText[]) {
@@ -358,6 +470,7 @@ export class MainView {
       )
       .attr("x", (d) => d.x)
       .attr("y", (d) => d.y)
+      .attr("opacity", (d) => d.opacity)
       .text((d) => d.label)
       .style("font-size", fontsize)
       .raise();
@@ -446,6 +559,11 @@ export class MainView {
       this.scale *= 4;
       this.level++;
     }
+    if(this.dataLoaded) {
+      // draw traffic chose box
+    }
+    this.primary_width = this.tile_width / this.scale;
+    this.primary_height = this.tile_height / this.scale;
     this.max_scale = Math.max(this.max_scale, this.scale);
     // console.log(this.scale);
     this.get_rect_size(); // get rectangle size
@@ -457,3 +575,8 @@ export class MainView {
   }
 }
 
+
+export function ColorScheme(lv: number): string {
+  // [0, 9] maps Blue-Yellow-Red color platte
+  return d3.interpolateRdYlBu((9 - lv) / 9);
+}
