@@ -2,9 +2,7 @@ import * as d3 from "d3";
 import { AbstractLayer } from "./abstractlayer";
 import { CompressBigNumber } from "controller/module/filtermsg";
 import TooltipInteraction from "display/interaction/tooltip";
-import EdgeTrafficCheckboxes from "filterbar/edgecheckbox";
-import ClickInteraction from "display/interaction/click";
-
+import MiniMap from "./minimap";
 const ZoomWindowSize = 50;
 const SubDisplaySize = 200;
 
@@ -64,6 +62,8 @@ function ReverseMapping(
 const arrowWidth = 5 / 3.8;
 export class MainView {
   dataLoaded: boolean = false;
+  windowWidth: number = 0;
+  windowHeight: number = 0;
   tile_width: number;
   tile_height: number;
   primary_width: number;
@@ -96,6 +96,7 @@ export class MainView {
     this.primary_height = tile_height;
     console.log(this.client_size);
     this.initialize_zoom();
+    MiniMap.draw(tile_width, tile_height);
     this.grid
       .append("svg:defs")
       .selectAll("marker")
@@ -506,6 +507,8 @@ export class MainView {
 
   initialize_zoom() {
     const graph = d3.select<SVGSVGElement, unknown>("#graph");
+    this.windowHeight = graph.node()!.clientHeight;
+    this.windowWidth = graph.node()!.clientWidth;
 
     const [initial_translate, initial_scale] = this.initial_transform_param();
     console.log(initial_translate, initial_scale);
@@ -529,14 +532,14 @@ export class MainView {
   }
 
   update_zoom(transform: d3.ZoomTransform) {
-    const canvas = d3.select<SVGSVGElement, unknown>("#graph");
     this.transform_scale = transform.k;
 
     this.grid.attr("transform", transform.toString());
 
+    console.log(this.windowWidth, this.windowHeight);
     const top_left = ReverseMapping([0, 0], transform);
     const bottom_right = ReverseMapping(
-      [canvas.node()!.clientWidth, canvas.node()!.clientHeight],
+      [this.windowWidth, this.windowHeight],
       transform
     );
     const viewport_width = bottom_right[0] - top_left[0];
@@ -547,12 +550,12 @@ export class MainView {
     this.min_y = top_left[1];
     this.max_y = bottom_right[1];
 
-    // this.minimap.update_minimap_viewport_box(
-    //   top_left[1],
-    //   top_left[0],
-    //   viewport_width,
-    //   viewport_height
-    // );
+    MiniMap.update_minimap_viewport_box(
+      top_left[1],
+      top_left[0],
+      viewport_width,
+      viewport_height
+    );
     this.update_semantic_zoom(viewport_width, viewport_height);
   }
 

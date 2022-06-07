@@ -1,4 +1,5 @@
-class Minimap {
+import * as d3 from "d3"
+export class Minimap {
   scale: number = 1024;
   offset_x: number = 0;
   offset_y: number = 0;
@@ -16,7 +17,6 @@ class Minimap {
     const canvas_width = canvas_height * this.ratio;
 
     d3.select("#minimap")
-      .select("svg")
       .style("width", canvas_width)
       .style("height", canvas_height);
 
@@ -55,3 +55,7 @@ class Minimap {
       .attr("stroke", "green");
   }
 }
+
+
+let MiniMap = new Minimap();
+export default MiniMap;
