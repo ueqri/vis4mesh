@@ -5,9 +5,9 @@ class Minimap {
   ratio: number;
 
   constructor() {
-    const canvas = d3.select<SVGSVGElement, unknown>("#canvas");
-    const canvas_width = canvas.node()!.clientWidth;
-    const canvas_height = canvas.node()!.clientHeight;
+    const graph = d3.select("#graph");
+    const canvas_width = (graph.node() as SVGSVGElement).clientWidth;
+    const canvas_height = (graph.node() as SVGSVGElement).clientHeight;
     this.ratio = canvas_width / canvas_height;
   }
 
@@ -16,6 +16,7 @@ class Minimap {
     const canvas_width = canvas_height * this.ratio;
 
     d3.select("#minimap")
+      .select("svg")
       .style("width", canvas_width)
       .style("height", canvas_height);
 
@@ -26,7 +27,7 @@ class Minimap {
     this.offset_x = canvas_width / 2 - (tile_width / 2) * this.scale;
     this.offset_y = canvas_height / 2 - (tile_height / 2) * this.scale;
 
-    const wafer_mini = d3.select("#wafer-mini");
+    const wafer_mini = d3.select("#minimap-wafer");
     wafer_mini
       .attr("x", this.offset_x)
       .attr("y", this.offset_y)

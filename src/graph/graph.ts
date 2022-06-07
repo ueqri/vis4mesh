@@ -116,7 +116,7 @@ export class MainView {
   loadAbstractLayers(layers: AbstractLayer[]) {
     this.dataLoaded = true;
     this.layers = layers;
-    this.links = this.get_links(this.primary_nodes); 
+    this.links = this.get_links(this.primary_nodes);
     this.draw();
   }
 
@@ -127,7 +127,7 @@ export class MainView {
   }
 
   setLinksOpacity() {
-    for(let link of this.links) {
+    for (let link of this.links) {
       link.opacity = this.checkedColors[link.level] === true ? 1 : 0.02;
     }
   }
@@ -260,14 +260,20 @@ export class MainView {
             value: 0,
             dasharray: Boolean(i & 1) ? "5, 0" : `${dash[0]}, ${dash[1]}`,
             direction: i,
-            level: this.dataLoaded ? this.layers[this.level].nodes[node.idx][node.idy].level[i] : 0,
-            opacity: this.dataLoaded && this.layers[this.level].nodes[node.idx][node.idy].level[i] === 0 ? 0.02 : 1,
+            level: this.dataLoaded
+              ? this.layers[this.level].nodes[node.idx][node.idy].level[i]
+              : 0,
+            opacity:
+              this.dataLoaded &&
+              this.layers[this.level].nodes[node.idx][node.idy].level[i] === 0
+                ? 0.02
+                : 1,
           };
           links.push(link);
         }
       }
     }
-    if(this.dataLoaded) {
+    if (this.dataLoaded) {
       this.setLinksOpacity();
     }
     return links;
@@ -385,7 +391,7 @@ export class MainView {
         //   }
         // );
         ev.stopPropagation();
-      });;
+      });
   }
 
   draw_line(lines: LineLink[]) {
@@ -407,10 +413,10 @@ export class MainView {
       .attr("x2", (d) => d.x2)
       .attr("y1", (d) => d.y1)
       .attr("y2", (d) => d.y2)
-      .attr("opacity", (d)=> d.opacity)
+      .attr("opacity", (d) => d.opacity)
       .attr("stroke-dasharray", (d) => d.dasharray)
       .attr("stroke-width", (d) => d.width)
-      .attr("stroke", (d)=> ColorScheme(d.level))
+      .attr("stroke", (d) => ColorScheme(d.level))
       .on("mouseover", function (ev, d) {
         const sel = d3.select(this);
         sel.attr("stroke-width", d.width * 1.5);
@@ -559,7 +565,7 @@ export class MainView {
       this.scale *= 4;
       this.level++;
     }
-    if(this.dataLoaded) {
+    if (this.dataLoaded) {
       // draw traffic chose box
     }
     this.primary_width = this.tile_width / this.scale;
@@ -574,7 +580,6 @@ export class MainView {
     this.draw();
   }
 }
-
 
 export function ColorScheme(lv: number): string {
   // [0, 9] maps Blue-Yellow-Red color platte
