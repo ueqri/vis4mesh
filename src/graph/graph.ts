@@ -3,6 +3,7 @@ import { AbstractLayer } from "./abstractlayer";
 import { CompressBigNumber } from "controller/module/filtermsg";
 import TooltipInteraction from "display/interaction/tooltip";
 import MiniMap from "./minimap";
+import Event from "event";
 const ZoomWindowSize = 50;
 const SubDisplaySize = 200;
 
@@ -97,6 +98,9 @@ export class MainView {
     console.log(this.client_size);
     this.initialize_zoom();
     MiniMap.draw(tile_width, tile_height);
+    Event.AddStepListener("FilterETCheckbox", (levels: number[]) => {
+      this.loadcheckedColors(levels);
+    });
     this.grid
       .append("svg:defs")
       .selectAll("marker")
@@ -121,15 +125,18 @@ export class MainView {
     this.draw();
   }
 
-  loadcheckedColors(checkedColors: boolean[]) {
-    this.checkedColors = checkedColors;
+  loadcheckedColors(levels: number[]) {
+    console.log(levels);
+    this.checkedColors.fill(false);
+    levels.forEach((lv) => (this.checkedColors[lv] = true));
     this.filterLinks();
     this.draw();
   }
 
   filterLinks() {
     for (let link of this.links) {
-      link.opacity = this.checkedColors[link.level] === true ? 1 : 0;
+      link.opacity =
+        link.value != 0 && this.checkedColors[link.level] === true ? 1 : 0;
     }
   }
 
@@ -258,24 +265,21 @@ export class MainView {
             x2: nx + link_length * directionX[i],
             y2: ny + link_length * directionY[i],
             width: link_width,
-            value: 0,
+            value: this.dataLoaded
+              ? this.layers[this.level].nodes[node.idx][node.idy].data[i]
+              : 0,
             dasharray: Boolean(i & 1) ? "5, 0" : `${dash[0]}, ${dash[1]}`,
             direction: i,
             level: this.dataLoaded
               ? this.layers[this.level].nodes[node.idx][node.idy].level[i]
               : 0,
-            opacity:
-              this.dataLoaded &&
-              this.layers[this.level].nodes[node.idx][node.idy].level[i] === 0
-                ? 0
-                : 1,
+            opacity: 1,
           };
+          link.opacity =
+            link.value != 0 && this.checkedColors[link.level] === true ? 1 : 0;
           links.push(link);
         }
       }
-    }
-    if (this.dataLoaded) {
-      this.filterLinks();
     }
     return links;
   }

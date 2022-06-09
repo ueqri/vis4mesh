@@ -1,6 +1,6 @@
-import { EdgeData } from "data/data";
 import { MsgTypesInOrder } from "data/classification";
 import { EdgeDisplay } from "display/data";
+import EdgeTrafficCheckboxes from "filterbar/edgecheckbox";
 
 export interface AbstractNode {
   x: number;
@@ -139,6 +139,7 @@ export class AbstractLayer {
         this.uppers[i] = Math.floor(((i + 1) * this.linkValueMax) / 10);
       }
     });
+    EdgeTrafficCheckboxes.applyUpperBound(this.uppers);
   }
 
 }
