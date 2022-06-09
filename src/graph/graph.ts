@@ -123,11 +123,11 @@ export class MainView {
 
   loadcheckedColors(checkedColors: boolean[]) {
     this.checkedColors = checkedColors;
-    this.setLinksOpacity();
+    this.filterLinks();
     this.draw();
   }
 
-  setLinksOpacity() {
+  filterLinks() {
     for (let link of this.links) {
       link.opacity = this.checkedColors[link.level] === true ? 1 : 0;
     }
@@ -275,7 +275,7 @@ export class MainView {
       }
     }
     if (this.dataLoaded) {
-      this.setLinksOpacity();
+      this.filterLinks();
     }
     return links;
   }
