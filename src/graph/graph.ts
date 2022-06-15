@@ -122,9 +122,6 @@ export class MainView {
   loadAbstractLayers(layers: AbstractLayer[]) {
     this.dataLoaded = true;
     this.layers = layers;
-    // PERFORMANCE: a better way to repaint the nodes and links?
-    this.primary_nodes = this.get_primary_nodes();
-    this.sub_nodes = this.get_sub_nodes(this.primary_nodes);
     this.links = this.get_links(this.primary_nodes);
     this.draw();
   }
@@ -187,9 +184,7 @@ export class MainView {
             x: j * this.scale + this.scale / 2 - this.rect_size / 2,
             y: i * this.scale + this.scale / 2 - this.rect_size / 2,
             size: this.rect_size,
-            color: this.dataLoaded
-              ? ColorScheme(this.layers[this.level].nodes[i][j].level)
-              : "#8fbed1",
+            color: "#8fbed1",
           });
         }
       }
@@ -226,9 +221,7 @@ export class MainView {
             size: sub_rect_size,
             x: basepos_x + 0.2 * sub_cord_size + (i - base_idy) * sub_cord_size,
             y: basepos_y + 0.2 * sub_cord_size + (j - base_idx) * sub_cord_size,
-            color: this.dataLoaded
-              ? ColorScheme(this.layers[this.level - 1].nodes[j][i].level)
-              : "#8fbed1",
+            color: "#8fbed1",
           });
         }
       }
