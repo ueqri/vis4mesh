@@ -5,14 +5,17 @@ import EdgeTrafficCheckboxes from "filterbar/edgecheckbox";
 export interface AbstractNode {
   x: number;
   y: number;
-  data: number[];
-  level: number[];
+  level: number;
+  dataFlow: number;
+  edgeData: number[];
+  edgeLevel: number[];
 }
 
 export class AbstractLayer {
   scale: number;
   height: number;
   width: number;
+  nodeValueMax: number = 0;
   linkValueMax: number = 0;
   nodes: AbstractNode[][];
   uppers: Array<number> = new Array<number>(10).fill(0);
@@ -44,31 +47,27 @@ export class AbstractLayer {
         let value: number[] = [0, 0, 0, 0];
         let si = i * 4;
         let sj = j * 4;
-
         let sum = 0;
-        for (let k = si; k < si + 4; k++) {
-          let tile = subLayer!.nodes[k][sj + 3].data[0];
-          for (let idx = 0; idx < length; idx++) {
-            sum[idx] += tile[idx];
-          }
+        for (let k = sj; k < sj + 4; k++) {
+          sum += subLayer.nodes[si+3][k].edgeData[0];
         }
         value[0] = sum;
 
         sum = 0;
-        for (let k = si; k < si + 4; k++) {
-          sum += subLayer.nodes[k][sj].data[1];
+        for (let k = sj; k < sj + 4; k++) {
+          sum += subLayer.nodes[si][k].edgeData[1];
         }
         value[1] = sum;
 
         sum = 0;
-        for (let k = sj; k < sj + 4; k++) {
-          sum += subLayer.nodes[si + 3][k].data[2];
+        for (let k = si; k < si + 4; k++) {
+          sum += subLayer.nodes[k][sj+3].edgeData[2];
         }
         value[2] = sum;
 
         sum = 0;
-        for (let k = sj; k < sj + 4; k++) {
-          sum += subLayer.nodes[si][k].data[3];
+        for (let k = si; k < si + 4; k++) {
+          sum += subLayer.nodes[k][sj].edgeData[3];
         }
         value[3] = sum;
 
@@ -76,7 +75,14 @@ export class AbstractLayer {
         for (let x of value) {
           this.linkValueMax = Math.max(this.linkValueMax, x);
         }
-        row.push({ x: i, y: j, data: value, level: [0, 0, 0, 0] });
+        row.push({
+          x: i,
+          y: j,
+          dataFlow: 0,
+          level: 0,
+          edgeData: value,
+          edgeLevel: [0, 0, 0, 0],
+        });
       }
       this.nodes.push(row);
     }
@@ -92,36 +98,55 @@ export class AbstractLayer {
       let row: AbstractNode[] = [];
       for (let j = 0; j < width; j++) {
         let value: number[] = [0, 0, 0, 0];
-        row.push({ x: i, y: j, data: value, level: [0, 0, 0, 0]});
+        row.push({
+          x: i,
+          y: j,
+          dataFlow: 0,
+          level: 0,
+          edgeData: value,
+          edgeLevel: [0, 0, 0, 0],
+        });
       }
       nodes.push(row);
     }
+    // S N E W
     for (let edge of edges) {
       // deal with flat structre,  a better idea: the order is specific
       let x = Math.floor(parseInt(edge.source) / width);
       let y = parseInt(edge.source) % width;
       let dx = Math.floor(parseInt(edge.target) / width);
       let dy = parseInt(edge.target) % width;
-      if (dy === y + 1) {
-        nodes[x][y].data[0] = edge.weight;
-      } else if (dy === y - 1) {
-        nodes[x][y].data[1] = edge.weight;
-      } else if (dx === x + 1) {
-        nodes[x][y].data[2] = edge.weight;
+      if (dx === x + 1) {
+        nodes[x][y].edgeData[0] = edge.weight;
+      } else if (dx === x - 1) {
+        nodes[x][y].edgeData[1] = edge.weight;
+      } else if (dy === y + 1) {
+        nodes[x][y].edgeData[2] = edge.weight;
       } else {
-        nodes[x][y].data[3] = edge.weight;
+        nodes[x][y].edgeData[3] = edge.weight;
       }
+      nodes[x][y].dataFlow += edge.weight;
       this.linkValueMax = Math.max(this.linkValueMax, edge.weight);
+    }
+    for (let i = 0; i < height; i++) {
+      for (let j = 0; j < width; j++) {
+        this.nodeValueMax = Math.max(this.nodeValueMax, nodes[i][j].dataFlow);
+      }
     }
     return nodes;
   }
 
   initLinearNormalize() {
-    // List of upper bound of each level at the current rendering
+    // List of upper bound of each edgeLevel at the current rendering
     for (let row of this.nodes) {
       for (let node of row) {
+        // calc node level
+        if (this.nodeValueMax != 0) {
+          node.level = Math.floor((node.dataFlow * 9) / this.nodeValueMax);
+        }
+        // calc link level
         for (let i = 0; i < 4; i++) {
-          let val = node.data[i];
+          let val = node.edgeData[i];
           let lv: number = 0;
           if (this.linkValueMax != 0) {
             lv = Math.floor((val * 9) / this.linkValueMax);
@@ -129,8 +154,7 @@ export class AbstractLayer {
           if (val > this.uppers[lv]) {
             this.uppers[lv] = val;
           }
-          // WARNING!!: useful? a reference to this.node.xx???
-          node.level[i] = lv;
+          node.edgeLevel[i] = lv;
         }
       }
     }
@@ -141,7 +165,6 @@ export class AbstractLayer {
     });
     EdgeTrafficCheckboxes.applyUpperBound(this.uppers);
   }
-
 }
 
 export function BuildAbstractLayers(
@@ -156,7 +179,7 @@ export function BuildAbstractLayers(
   let start = performance.now();
   layers.push(new AbstractLayer(1, tile_height, tile_width, rangedEdges));
   let end = performance.now();
-  console.log(`build from source data: time spent ${end - start}ms`);
+  // console.log(`build from source edgeData: time spent ${end - start}ms`);
   for (let i = 4; i <= init_scale; i *= 4) {
     let start = performance.now();
     let layer = new AbstractLayer(
@@ -168,11 +191,6 @@ export function BuildAbstractLayers(
     );
     layers.push(layer);
     let end = performance.now();
-    console.log(
-      `load layer[${layers.length - 1}] of scale ${i}: time spent ${
-        end - start
-      }ms`
-    );
   }
   let buildEnd = performance.now();
   console.log(`build layers: time spent ${buildEnd - buildStart}ms`);

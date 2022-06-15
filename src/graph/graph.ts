@@ -16,6 +16,7 @@ interface RectNode {
   size: number;
   x: number;
   y: number;
+  color: string;
 }
 
 interface LineLink {
@@ -178,11 +179,14 @@ export class MainView {
         if (this.within_view(i, j)) {
           primary_nodes.push({
             scale: this.scale,
-            idx: j,
-            idy: i,
+            idx: i,
+            idy: j,
             x: j * this.scale + this.scale / 2 - this.rect_size / 2,
             y: i * this.scale + this.scale / 2 - this.rect_size / 2,
             size: this.rect_size,
+            color: this.dataLoaded
+              ? ColorScheme(this.layers[this.level].nodes[i][j].level)
+              : "#8fbed1",
           });
         }
       }
@@ -208,8 +212,8 @@ export class MainView {
     for (let node of primary_nodes) {
       let base_idx = node.idx * 4;
       let base_idy = node.idy * 4;
-      let base_x = base_idx * sub_scale + 0.2 * this.scale;
-      let base_y = base_idy * sub_scale + 0.2 * this.scale;
+      let basepos_x = base_idy * sub_scale + 0.2 * this.scale;
+      let basepos_y = base_idx * sub_scale + 0.2 * this.scale;
       for (let i = base_idy; i < base_idy + 4; i++) {
         for (let j = base_idx; j < base_idx + 4; j++) {
           sub_nodes.push({
@@ -217,8 +221,11 @@ export class MainView {
             idx: j,
             idy: i,
             size: sub_rect_size,
-            x: base_x + 0.2 * sub_cord_size + (j - base_idx) * sub_cord_size,
-            y: base_y + 0.2 * sub_cord_size + (i - base_idy) * sub_cord_size,
+            x: basepos_x + 0.2 * sub_cord_size + (i - base_idy) * sub_cord_size,
+            y: basepos_y + 0.2 * sub_cord_size + (j - base_idx) * sub_cord_size,
+            color: this.dataLoaded
+              ? ColorScheme(this.layers[this.level - 1].nodes[j][i].level)
+              : "#8fbed1",
           });
         }
       }
@@ -266,12 +273,12 @@ export class MainView {
             y2: ny + link_length * directionY[i],
             width: link_width,
             value: this.dataLoaded
-              ? this.layers[this.level].nodes[node.idx][node.idy].data[i]
+              ? this.layers[this.level].nodes[node.idx][node.idy].edgeData[i]
               : 0,
             dasharray: Boolean(i & 1) ? "5, 0" : `${dash[0]}, ${dash[1]}`,
             direction: i,
             level: this.dataLoaded
-              ? this.layers[this.level].nodes[node.idx][node.idy].level[i]
+              ? this.layers[this.level].nodes[node.idx][node.idy].edgeLevel[i]
               : 0,
             opacity: 1,
           };
@@ -296,30 +303,30 @@ export class MainView {
       switch (link.direction) {
         case 0: {
           // South
-          posX = link.x1 + offsetText_2;
+          posX = link.x1 + offsetText_3;
           posY = (link.y1 + link.y2) / 2;
-          sum = this.layers[this.level].nodes[link.idx][link.idy].data[0];
+          sum = this.layers[this.level].nodes[link.idx][link.idy].edgeData[0];
           break;
         }
         case 1: {
           // North
           posX = link.x1 - offsetText_3;
           posY = (link.y1 + link.y2) / 2;
-          sum = this.layers[this.level].nodes[link.idx][link.idy].data[1];
+          sum = this.layers[this.level].nodes[link.idx][link.idy].edgeData[1];
           break;
         }
         case 2: {
           // East
           posX = (link.x1 + link.x2) / 2;
           posY = link.y1 + offsetText_1;
-          sum = this.layers[this.level].nodes[link.idx][link.idy].data[2];
+          sum = this.layers[this.level].nodes[link.idx][link.idy].edgeData[2];
           break;
         }
         case 3: {
           // West
           posX = (link.x1 + link.x2) / 2;
           posY = link.y1 - offsetText_2;
-          sum = this.layers[this.level].nodes[link.idx][link.idy].data[3];
+          sum = this.layers[this.level].nodes[link.idx][link.idy].edgeData[3];
           break;
         }
       }
@@ -347,7 +354,7 @@ export class MainView {
             .attr("ry", (d) => RectCornerRadius * d.size)
             .attr("width", (d) => d.size)
             .attr("height", (d) => d.size)
-            .attr("fill", "#8fbed1")
+            .attr("fill", (d) => d.color)
             .attr("stroke", "#599dbb")
             .attr("stroke-width", (d) => d.scale * 0.02),
         (update) =>
@@ -360,7 +367,7 @@ export class MainView {
             .attr("ry", (d) => RectCornerRadius * d.size)
             .attr("width", (d) => d.size)
             .attr("height", (d) => d.size)
-            .attr("fill", "#8fbed1")
+            .attr("fill", (d) => d.color)
             .attr("stroke", "#599dbb")
             .attr("stroke-width", (d) => d.scale * 0.02),
         (exit) => exit.remove()
@@ -377,7 +384,7 @@ export class MainView {
       .on("mouseout", function (ev, d) {
         const sel = d3.select(this);
         if (sel.property("checked") !== true) {
-          sel.attr("fill", "#8fbed1");
+          sel.attr("fill", d.color);
           sel.style("cursor", "default");
         }
         TooltipInteraction.hide();
@@ -400,6 +407,7 @@ export class MainView {
   }
 
   draw_line(lines: LineLink[]) {
+    console.log(lines);
     this.grid
       .selectAll("line")
       .data(lines)
@@ -590,5 +598,5 @@ export class MainView {
 
 export function ColorScheme(lv: number): string {
   // [0, 9] maps Blue-Yellow-Red color platte
-  return d3.interpolateRdYlBu((9 - lv) / 9);
+  return d3.interpolateReds((lv + 1) / 10);
 }
