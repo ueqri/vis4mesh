@@ -189,5 +189,5 @@ export function RemoveElementInsideSVGGroup(
 
 export function ColorScheme(lv: number): string {
   // [0, 9] maps Blue-Yellow-Red color platte
-  return d3.interpolateRdYlBu((9 - lv) / 9);
+  return d3.interpolateReds((lv+1)/10);
 }
