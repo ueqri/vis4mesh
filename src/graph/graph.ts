@@ -122,6 +122,9 @@ export class MainView {
   loadAbstractLayers(layers: AbstractLayer[]) {
     this.dataLoaded = true;
     this.layers = layers;
+    // PERFORMANCE: a better way to repaint the nodes and links?
+    this.primary_nodes = this.get_primary_nodes();
+    this.sub_nodes = this.get_sub_nodes(this.primary_nodes);
     this.links = this.get_links(this.primary_nodes);
     this.draw();
   }
