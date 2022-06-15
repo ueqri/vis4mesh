@@ -75,10 +75,12 @@ export class AbstractLayer {
         for (let x of value) {
           this.linkValueMax = Math.max(this.linkValueMax, x);
         }
+        sum = value[0] + value[1] + value[2] + value[3];
+        this.nodeValueMax = Math.max(this.nodeValueMax, sum);
         row.push({
           x: i,
           y: j,
-          dataFlow: 0,
+          dataFlow: sum,
           level: 0,
           edgeData: value,
           edgeLevel: [0, 0, 0, 0],

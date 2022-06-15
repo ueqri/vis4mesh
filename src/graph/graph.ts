@@ -232,6 +232,8 @@ export class MainView {
           });
         }
       }
+      // OPTION: if sub layer is displayed, unset the color of primary layer
+      node.color = "#8fbed1";
     }
 
     return sub_nodes;
