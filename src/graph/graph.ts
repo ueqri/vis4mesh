@@ -127,6 +127,7 @@ export class MainView {
     this.sub_nodes = this.get_sub_nodes(this.primary_nodes);
     this.links = this.get_links(this.primary_nodes);
     this.draw();
+    MiniMap.paint_wafer(layers);
   }
 
   loadcheckedColors(levels: number[]) {
