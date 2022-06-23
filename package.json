@@ -34,7 +34,7 @@
   },
   "dependencies": {
     "@types/d3": "^7.1.0",
-    "browser-fs-access": "^0.29.3",
+    "browser-fs-access": "^0.29.6",
     "d3": "^7.4.4",
     "invert-color": "^2.0.0",
     "nouislider": "^15.5.0"

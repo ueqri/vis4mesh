@@ -7,9 +7,16 @@ import { RenderFilterbar } from "./filterbar/filterbar";
 import { RenderTopbar } from "topbar/topbar";
 import { MainView } from "./graph/graph";
 
+import { supported } from "browser-fs-access";
 const port = Component.port;
 
 const chooseDirButton = document.querySelector("#open-directory-btn")!;
+
+if (supported) {
+  console.log("Using the File System Access API.");
+} else {
+  console.log("Using the fallback implementation.");
+}
 
 chooseDirButton.addEventListener("click", async () => {
   try {

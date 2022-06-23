@@ -1,4 +1,4 @@
-import { FileWithDirectoryAndFileHandle } from "browser-fs-access";
+import { FileWithDirectoryAndFileHandle, supported } from "browser-fs-access";
 
 export class FileLoader {
   dirEnrties: FileWithDirectoryAndFileHandle[];
@@ -10,6 +10,7 @@ export class FileLoader {
   public constructor(dirHandle: FileWithDirectoryAndFileHandle[]) {
     this.edgeFiles = [];
     this.dirEnrties = dirHandle;
+    console.log("constructor FileLoader");
   }
 
   // getEdgeFiles: must be called and awaited before MeshInfo
@@ -19,10 +20,7 @@ export class FileLoader {
     }
     for (const entry of this.dirEnrties) {
       if (entry.webkitRelativePath.startsWith(this.dirEdges)) {
-        if (entry.handle === undefined) {
-          throw new Error("Unreachable code of build edgeFile[] object");
-        }
-        this.edgeFiles.push(await entry.handle.getFile());
+        this.edgeFiles.push(entry);
       }
     }
 
@@ -42,11 +40,7 @@ export class FileLoader {
     filename += ".json";
     for (const entry of this.dirEnrties) {
       if (entry.name === filename) {
-        if (entry.handle === undefined) {
-          throw new Error(filename + " has not been loaded");
-        }
-        let file = await entry.handle.getFile();
-        return await file.text();
+        return await entry.text();
       }
     }
   }
