@@ -178,21 +178,37 @@ export class MainView {
     let primary_nodes = [];
     let height = this.tile_height / this.scale;
     let width = this.tile_width / this.scale;
+    let top = height;
+    let bottom = 0;
+    let left = width;
+    let right = 0;
     for (let i = 0; i < height; i++) {
       for (let j = 0; j < width; j++) {
         if (this.within_view(i, j)) {
-          primary_nodes.push({
-            scale: this.scale,
-            idx: i,
-            idy: j,
-            x: j * this.scale + this.scale / 2 - this.rect_size / 2,
-            y: i * this.scale + this.scale / 2 - this.rect_size / 2,
-            size: this.rect_size,
-            color: this.dataLoaded
-              ? ColorScheme(this.layers[this.level].nodes[i][j].level)
-              : "#8fbed1",
-          });
+          top = Math.min(top, i);
+          bottom = Math.max(bottom, i);
+          left = Math.min(left, j);
+          right = Math.max(right, j);
         }
+      }
+    }
+    if (top > 0) top = top - 1;
+    if (bottom + 1 < height) bottom = bottom + 1;
+    if (left > 0) left = left - 1;
+    if (right + 1 < width) right = right + 1;
+    for (let i = top; i <= bottom; i++) {
+      for (let j = left; j <= right; j++) {
+        primary_nodes.push({
+          scale: this.scale,
+          idx: i,
+          idy: j,
+          x: j * this.scale + this.scale / 2 - this.rect_size / 2,
+          y: i * this.scale + this.scale / 2 - this.rect_size / 2,
+          size: this.rect_size,
+          color: this.dataLoaded
+            ? ColorScheme(this.layers[this.level].nodes[i][j].level)
+            : "#8fbed1",
+        });
       }
     }
 
