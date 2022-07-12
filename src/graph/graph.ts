@@ -1,67 +1,19 @@
 import * as d3 from "d3";
 import { AbstractLayer } from "./abstractlayer";
 import { CompressBigNumber } from "controller/module/filtermsg";
-import TooltipInteraction from "display/interaction/tooltip";
-import MiniMap from "./minimap";
+import { ReverseMapping, ColorScheme } from "./util";
 import Event from "event";
-const ZoomWindowSize = 50;
-const SubDisplaySize = 200;
+import MiniMap from "./minimap";
+import Renderer from "./render";
+import {
+  RectNode,
+  LineLink,
+  LinkText,
+  ClientSize,
+  ZoomWindowSize,
+  SubDisplaySize,
+} from "./common";
 
-const RectCornerRadius = 0.05;
-
-interface RectNode {
-  scale: number;
-  idx: number;
-  idy: number;
-  size: number;
-  x: number;
-  y: number;
-  color: string;
-}
-
-interface LineLink {
-  connection: number[];
-  idx: number;
-  idy: number;
-  x1: number;
-  y1: number;
-  x2: number;
-  y2: number;
-  width: number;
-  value: number;
-  dasharray: string;
-  direction: number;
-  level: number;
-  opacity: number;
-}
-
-interface LinkText {
-  x: number;
-  y: number;
-  label: string;
-  opacity: number;
-}
-
-interface ClientSize {
-  width: number;
-  height: number;
-}
-
-function ReverseMapping(
-  coord: number[],
-  transform: d3.ZoomTransform
-): number[] {
-  const scale = transform.k;
-  const translate_x = transform.x;
-  const translate_y = transform.y;
-
-  const x_ = (coord[0] - translate_x) / scale;
-  const y_ = (coord[1] - translate_y) / scale;
-
-  return [x_, y_];
-}
-
-const arrowWidth = 5 / 3.8;
 export class MainView {
   dataLoaded: boolean = false;
   windowWidth: number = 0;
@@ -85,7 +37,6 @@ export class MainView {
   transform_scale: number = 0; // abstract node, size of scale*scale
   rect_size: number = 0; // reassign each time by this.draw()
   readonly node_size_ratio = 0.6;
-  readonly grid = d3.select("#graph").append("svg").append("g");
   readonly client_size: ClientSize = {
     width: d3.select<SVGSVGElement, unknown>("#graph").node()!.clientWidth,
     height: d3.select<SVGSVGElement, unknown>("#graph").node()!.clientHeight,
@@ -102,21 +53,6 @@ export class MainView {
     Event.AddStepListener("FilterETCheckbox", (levels: number[]) => {
       this.loadcheckedColors(levels);
     });
-    this.grid
-      .append("svg:defs")
-      .selectAll("marker")
-      .data(["end"]) // different link/path types can be defined here
-      .enter()
-      .append("svg:marker") // this section adds in the arrows
-      .attr("id", String)
-      .attr("viewBox", "0 -5 10 10")
-      .attr("refX", arrowWidth * 5.5)
-      .attr("refY", 0)
-      .attr("markerWidth", arrowWidth)
-      .attr("markerHeight", arrowWidth)
-      .attr("orient", "auto")
-      .append("svg:path")
-      .attr("d", "M0,-5L10,0L0,5");
   }
 
   loadAbstractLayers(layers: AbstractLayer[]) {
@@ -182,6 +118,7 @@ export class MainView {
     let bottom = 0;
     let left = width;
     let right = 0;
+    // get the rim of wafer nodes within the viewport
     for (let i = 0; i < height; i++) {
       for (let j = 0; j < width; j++) {
         if (this.within_view(i, j)) {
@@ -192,6 +129,7 @@ export class MainView {
         }
       }
     }
+    // render perimeter
     if (top > 0) top = top - 1;
     if (bottom + 1 < height) bottom = bottom + 1;
     if (left > 0) left = left - 1;
@@ -362,167 +300,12 @@ export class MainView {
     return texts;
   }
 
-  draw_rect(nodes: RectNode[]) {
-    this.grid
-      .selectAll<SVGSVGElement, RectNode>("rect")
-      .data<RectNode>(nodes, (d) => `${d.scale}, ${d.idx}, ${d.idy}`)
-      .join(
-        (enter) =>
-          enter
-            .append("rect")
-            .attr("x", (d) => d.x)
-            .attr("y", (d) => d.y)
-            .attr("rx", (d) => RectCornerRadius * d.size)
-            .attr("ry", (d) => RectCornerRadius * d.size)
-            .attr("width", (d) => d.size)
-            .attr("height", (d) => d.size)
-            .attr("fill", (d) => d.color)
-            .attr("stroke", "#599dbb")
-            .attr("stroke-width", (d) => d.scale * 0.02),
-        (update) =>
-          update
-            .transition()
-            .duration(500)
-            .attr("x", (d) => d.x)
-            .attr("y", (d) => d.y)
-            .attr("rx", (d) => RectCornerRadius * d.size)
-            .attr("ry", (d) => RectCornerRadius * d.size)
-            .attr("width", (d) => d.size)
-            .attr("height", (d) => d.size)
-            .attr("fill", (d) => d.color)
-            .attr("stroke", "#599dbb")
-            .attr("stroke-width", (d) => d.scale * 0.02),
-        (exit) => exit.remove()
-      )
-      .on("mouseover", function (ev, d) {
-        const sel = d3.select(this);
-        sel.attr("fill", "#599dbb");
-        sel.style("cursor", "pointer");
-        // TooltipInteraction.onNode(nodeMap[d.id]);
-      })
-      .on("mousemove", function (ev) {
-        TooltipInteraction.move([ev.pageX, ev.pageY]);
-      })
-      .on("mouseout", function (ev, d) {
-        const sel = d3.select(this);
-        if (sel.property("checked") !== true) {
-          sel.attr("fill", d.color);
-          sel.style("cursor", "default");
-        }
-        TooltipInteraction.hide();
-      })
-      .on("click", function (ev, d) {
-        const sel = d3.select(this);
-        // ClickInteraction.onNode(
-        //   nodeMap[d.id],
-        //   () => {
-        //     sel.attr("fill", d.stroke);
-        //     sel.property("checked", true);
-        //   },
-        //   () => {
-        //     sel.attr("fill", d.fill);
-        //     sel.property("checked", false);
-        //   }
-        // );
-        ev.stopPropagation();
-      });
-  }
-
-  draw_line(lines: LineLink[]) {
-    console.log(lines);
-    this.grid
-      .selectAll("line")
-      .data(lines)
-      .join(
-        function (enter) {
-          return enter.append("line").attr("marker-end", "url(#end)");
-        },
-        function (update) {
-          return update;
-        },
-        function (exit) {
-          return exit.remove();
-        }
-      )
-      .attr("x1", (d) => d.x1)
-      .attr("x2", (d) => d.x2)
-      .attr("y1", (d) => d.y1)
-      .attr("y2", (d) => d.y2)
-      .attr("opacity", (d) => d.opacity)
-      .attr("stroke-dasharray", (d) => d.dasharray)
-      .attr("stroke-width", (d) => d.width)
-      .attr("stroke", (d) => ColorScheme(d.level))
-      .on("mouseover", function (ev, d) {
-        const sel = d3.select(this);
-        sel.attr("stroke-width", d.width * 1.5);
-        sel.style("cursor", "pointer");
-        const [src, dst] = d.connection;
-        // TooltipInteraction.onEdge([nodeMap[src], nodeMap[dst]]);
-      })
-      .on("mousemove", function (ev) {
-        TooltipInteraction.move([ev.pageX, ev.pageY]);
-      })
-      .on("mouseout", function (ev, d) {
-        const sel = d3.select(this);
-        if (sel.property("checked") !== true) {
-          sel.attr("stroke-width", d.width);
-          sel.style("cursor", "default");
-        }
-        TooltipInteraction.hide();
-      })
-      .on("click", function (ev, d) {
-        const sel = d3.select(this);
-        const [src, dst] = d.connection;
-
-        // ClickInteraction.onEdge(
-        //   [nodeMap[src], nodeMap[dst]],
-        //   () => {
-        //     sel.attr("stroke-width", d.width * 1.5);
-        //     sel.property("checked", true);
-        //   },
-        //   () => {
-        //     sel.attr("stroke-width", d.width);
-        //     sel.property("checked", false);
-        //   }
-        // );
-        ev.stopPropagation();
-      });
-  }
-
-  draw_text(texts: LinkText[]) {
-    let fontsize = this.rect_size * 0.2;
-    this.grid
-      .selectAll(".edge-label")
-      .data(texts)
-      .join(
-        function (enter) {
-          return enter
-            .append("text")
-            .attr("class", "edge-label")
-            .attr("dy", ".35em")
-            .attr("dominant-baseline", "middle");
-        },
-        function (update) {
-          return update;
-        },
-        function (exit) {
-          return exit.remove();
-        }
-      )
-      .attr("x", (d) => d.x)
-      .attr("y", (d) => d.y)
-      .attr("opacity", (d) => d.opacity)
-      .text((d) => d.label)
-      .style("font-size", fontsize)
-      .raise();
-  }
-
   draw() {
-    this.draw_rect(this.primary_nodes.concat(this.sub_nodes));
-    this.draw_line(this.links);
+    Renderer.draw_rect(this.primary_nodes.concat(this.sub_nodes));
+    Renderer.draw_line(this.links);
     if (this.dataLoaded) {
       let texts = this.get_text(this.links);
-      this.draw_text(texts);
+      Renderer.draw_text(texts, this.rect_size);
     }
   }
 
@@ -568,8 +351,8 @@ export class MainView {
   update_zoom(transform: d3.ZoomTransform) {
     this.transform_scale = transform.k;
 
-    this.grid.attr("transform", transform.toString());
-
+    Renderer.Transform(transform.toString());
+    
     console.log(this.windowWidth, this.windowHeight);
     const top_left = ReverseMapping([0, 0], transform);
     const bottom_right = ReverseMapping(
@@ -618,7 +401,3 @@ export class MainView {
   }
 }
 
-export function ColorScheme(lv: number): string {
-  // [0, 9] maps Blue-Yellow-Red color platte
-  return d3.interpolateReds((lv + 1) / 10);
-}

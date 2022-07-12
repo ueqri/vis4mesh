@@ -1,6 +1,6 @@
 import * as d3 from "d3";
 import { AbstractLayer } from "./abstractlayer";
-import { ColorScheme } from "./graph";
+import { ColorScheme } from "./util";
 
 interface block_tile {
   x: number;
