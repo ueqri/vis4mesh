@@ -7,14 +7,20 @@ class ClickInteraction {
     this.clearLastEvent = () => {};
   }
 
-  onNode(text: string, executeEvent: () => any, clearEvent: () => any) {
+  onNode(
+    level: number,
+    text: string,
+    executeEvent: () => any,
+    clearEvent: () => any
+  ) {
     this.reset();
     executeEvent();
 
     // SideCanvas.write(`<h3>Node</h3>`);
     SideCanvas.write(`<h4>${text}</h4>`);
-    SideCanvas.DisplayTransChord();
-
+    if (level === 0) {
+      SideCanvas.DisplayChord();
+    }
     this.clearLastEvent = clearEvent;
   }
 

@@ -140,6 +140,7 @@ export class MainView {
           scale: this.scale,
           idx: i,
           idy: j,
+          level: this.level,
           x: j * this.scale + this.scale / 2 - this.rect_size / 2,
           y: i * this.scale + this.scale / 2 - this.rect_size / 2,
           size: this.rect_size,
@@ -178,6 +179,7 @@ export class MainView {
             scale: sub_scale,
             idx: j,
             idy: i,
+            level: this.level - 1,
             size: sub_rect_size,
             x: basepos_x + 0.2 * sub_cord_size + (i - base_idy) * sub_cord_size,
             y: basepos_y + 0.2 * sub_cord_size + (j - base_idx) * sub_cord_size,
@@ -227,6 +229,7 @@ export class MainView {
             ],
             idx: node.idx,
             idy: node.idy,
+            level: this.level,
             x1: nx,
             y1: ny,
             x2: nx + link_length * directionX[i],
@@ -237,13 +240,15 @@ export class MainView {
               : 0,
             dasharray: Boolean(i & 1) ? "5, 0" : `${dash[0]}, ${dash[1]}`,
             direction: i,
-            level: this.dataLoaded
+            colorLevel: this.dataLoaded
               ? this.layers[this.level].nodes[node.idx][node.idy].edgeLevel[i]
               : 0,
             opacity: 1,
           };
           link.opacity =
-            link.value != 0 && this.checkedColors[link.level] === true ? 1 : 0;
+            link.value != 0 && this.checkedColors[link.colorLevel] === true
+              ? 1
+              : 0;
           links.push(link);
         }
       }

@@ -92,6 +92,7 @@ class Render {
       .on("click", function (ev, d) {
         const sel = d3.select(this);
         ClickInteraction.onNode(
+          d.level,
           `(${d.idx}, ${d.idy})`,
           () => {
             sel.attr("fill", "#599dbb");
@@ -129,7 +130,7 @@ class Render {
       .attr("opacity", (d) => d.opacity)
       .attr("stroke-dasharray", (d) => d.dasharray)
       .attr("stroke-width", (d) => d.width)
-      .attr("stroke", (d) => ColorScheme(d.level))
+      .attr("stroke", (d) => ColorScheme(d.colorLevel))
       .on("mouseover", function (ev, d) {
         const sel = d3.select(this);
         sel.attr("stroke-width", d.width * 1.5);
@@ -167,8 +168,8 @@ class Render {
           () => {
             if (d.level === 0) {
               Component.port.snapshotByEdge("flat");
+              RenderTimebar();
             }
-            RenderTimebar();
             console.log("clear click on edge");
             sel.attr("stroke-width", d.width);
             sel.property("checked", false);

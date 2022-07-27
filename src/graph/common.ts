@@ -11,6 +11,7 @@ export interface RectNode {
   x: number;
   y: number;
   color: string;
+  level: number;
 }
 
 export interface LineLink {
@@ -25,6 +26,7 @@ export interface LineLink {
   value: number;
   dasharray: string;
   direction: number;
+  colorLevel: number;
   level: number;
   opacity: number;
 }
