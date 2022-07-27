@@ -90,9 +90,14 @@ function handleFlatResponseByDoC(
   });
 }
 
-export async function RenderTimebar(setzero: boolean = false) {
+export async function RenderTimebar(
+  name: string = "flat",
+  setzero: boolean = false
+) {
   console.log("Render Timebar from flat data");
+  await Component.port.snapshotByEdge(name);
   let resp = await Component.port.flat();
+  console.log(resp);
   if (setzero) {
     let zeroresp = JSON.parse(JSON.stringify(resp));
     console.log(zeroresp);

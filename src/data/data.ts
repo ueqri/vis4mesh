@@ -19,6 +19,7 @@ export interface EdgeData {
   detail: string;
 }
 
+
 export interface SnapShotData {
   id: number; // frame ID
   type: string; // message type

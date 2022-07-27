@@ -157,9 +157,8 @@ class Render {
           `(${d.idx}, ${d.idy})->${dstNode}`,
           () => {
             if (d.level === 0) {
-              let edgeName = "";
-              Component.port.snapshotByEdge(edgeName);
-              RenderTimebar(true);
+              let edgeName = `${d.connection[0]}to${d.connection[1]}`;
+              RenderTimebar(edgeName);
             }
             console.log("click on edge");
             sel.attr("stroke-width", d.width * 1.5);
@@ -167,7 +166,6 @@ class Render {
           },
           () => {
             if (d.level === 0) {
-              Component.port.snapshotByEdge("flat");
               RenderTimebar();
             }
             console.log("clear click on edge");

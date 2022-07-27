@@ -5,6 +5,7 @@ export class FileLoader {
   edgeFiles: File[];
   readonly dirRoot = "meshmetrics/";
   readonly dirEdges = this.dirRoot.concat("edge_prefix_sum/");
+  readonly dirEdgeHistory = this.dirRoot.concat("edgehis/");
 
   // dirHandle: built by openDirectory() method supported by web-fs-access
   public constructor(dirHandle: FileWithDirectoryAndFileHandle[]) {
@@ -38,11 +39,15 @@ export class FileLoader {
   // getFileContent: expected to be called for three times (meta, flat, nodes)
   public async getFileContent(filename: string) {
     filename += ".json";
+    console.log("Try to get file content: " + filename);
+
     for (const entry of this.dirEnrties) {
       if (entry.name === filename) {
+        console.log("Get file content succeed: " + filename);
         return await entry.text();
       }
     }
+    return "";
   }
 
   // ! getEdgeFileContent: idx should be limited to meta.elapse by caller
@@ -57,7 +62,7 @@ export class FileLoader {
 
   public async getEdgeSnapshot(name: string) {
     // return edge snapshot
-    return "";
+    return await this.getFileContent(name);
   }
 
   private getFilenameIndex(filename: string): number {
