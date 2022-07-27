@@ -1,4 +1,4 @@
-import { FileWithDirectoryAndFileHandle, supported } from "browser-fs-access";
+import { FileWithDirectoryAndFileHandle } from "browser-fs-access";
 
 export class FileLoader {
   dirEnrties: FileWithDirectoryAndFileHandle[];
@@ -53,6 +53,11 @@ export class FileLoader {
     }
     const content = await this.edgeFiles[idx].text();
     return content;
+  }
+
+  public async getEdgeSnapshot(name: string) {
+    // return edge snapshot
+    return "";
   }
 
   private getFilenameIndex(filename: string): number {

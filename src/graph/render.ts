@@ -5,14 +5,20 @@ import {
   RectCornerRadius,
   ArrowWidth,
 } from "./common";
-import TooltipInteraction from "display/interaction/tooltip";
-import { ColorScheme } from "./util";
+import { RenderTimebar } from "timebar/timebar";
+import TooltipInteraction from "./interaction/tooltip";
+import ClickInteraction from "./interaction/click";
+import { ColorScheme, GetLinkDst } from "./util";
+import { Component } from "global";
 import * as d3 from "d3";
 
 class Render {
   readonly grid = d3.select("#graph").append("svg").append("g");
 
   constructor() {
+    d3.select("#graph")
+      .select("svg")
+      .on("click", () => ClickInteraction.reset());
     this.grid
       .append("svg:defs")
       .selectAll("marker")
@@ -85,17 +91,17 @@ class Render {
       })
       .on("click", function (ev, d) {
         const sel = d3.select(this);
-        // ClickInteraction.onNode(
-        //   nodeMap[d.id],
-        //   () => {
-        //     sel.attr("fill", d.stroke);
-        //     sel.property("checked", true);
-        //   },
-        //   () => {
-        //     sel.attr("fill", d.fill);
-        //     sel.property("checked", false);
-        //   }
-        // );
+        ClickInteraction.onNode(
+          `(${d.idx}, ${d.idy})`,
+          () => {
+            sel.attr("fill", "#599dbb");
+            sel.property("checked", true);
+          },
+          () => {
+            sel.attr("fill", d.color);
+            sel.property("checked", false);
+          }
+        );
         ev.stopPropagation();
       });
   }
@@ -145,18 +151,29 @@ class Render {
       .on("click", function (ev, d) {
         const sel = d3.select(this);
         const [src, dst] = d.connection;
-
-        // ClickInteraction.onEdge(
-        //   [nodeMap[src], nodeMap[dst]],
-        //   () => {
-        //     sel.attr("stroke-width", d.width * 1.5);
-        //     sel.property("checked", true);
-        //   },
-        //   () => {
-        //     sel.attr("stroke-width", d.width);
-        //     sel.property("checked", false);
-        //   }
-        // );
+        let dstNode = GetLinkDst([d.idx, d.idy], d.direction);
+        ClickInteraction.onEdge(
+          `(${d.idx}, ${d.idy})->${dstNode}`,
+          () => {
+            if (d.level === 0) {
+              let edgeName = "";
+              Component.port.snapshotByEdge(edgeName);
+              RenderTimebar(true);
+            }
+            console.log("click on edge");
+            sel.attr("stroke-width", d.width * 1.5);
+            sel.property("checked", true);
+          },
+          () => {
+            if (d.level === 0) {
+              Component.port.snapshotByEdge("flat");
+            }
+            RenderTimebar();
+            console.log("clear click on edge");
+            sel.attr("stroke-width", d.width);
+            sel.property("checked", false);
+          }
+        );
         ev.stopPropagation();
       });
   }

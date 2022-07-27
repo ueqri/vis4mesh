@@ -9,6 +9,7 @@ import {
 } from "data/classification";
 import { Component, Element, Module } from "global";
 import Event from "event";
+import { FlatData } from "data/data";
 
 const ev = {
   MsgGroup: "FilterMsgGroup",
@@ -89,22 +90,35 @@ function handleFlatResponseByDoC(
   });
 }
 
-export function RenderTimebar() {
-  Component.port.flat().then((resp) => {
-    const timebar = Element.timebar.loadFlatResponse(resp);
+export async function RenderTimebar(setzero: boolean = false) {
+  console.log("Render Timebar from flat data");
+  let resp = await Component.port.flat();
+  if (setzero) {
+    let zeroresp = JSON.parse(JSON.stringify(resp));
+    console.log(zeroresp);
+    for (let data of zeroresp) {
+      data.count = 0;
+    }
+    RenderTimebarImpl(zeroresp);
+  } else {
+    RenderTimebarImpl(resp);
+  }
+}
 
-    Component.ticker.setCast((l, r) => timebar.moveBrush(l, r));
-    Component.layout.timebar.afterResizing(() => timebar.render());
+export function RenderTimebarImpl(resp: FlatData) {
+  const timebar = Element.timebar.loadFlatResponse(resp);
 
-    Event.AddStepListener(ev.MsgGroup, (g: string[]) =>
-      timebar.updateMsgGroupDomain(g)
-    );
-    Event.AddStepListener(ev.DataOrCommand, (doc: string[]) =>
-      timebar.updateDataOrCommandDomain(doc)
-    );
+  Component.ticker.setCast((l, r) => timebar.moveBrush(l, r));
+  Component.layout.timebar.afterResizing(() => timebar.render());
 
-    timebar.render();
-  });
+  Event.AddStepListener(ev.MsgGroup, (g: string[]) =>
+    timebar.updateMsgGroupDomain(g)
+  );
+  Event.AddStepListener(ev.DataOrCommand, (doc: string[]) =>
+    timebar.updateDataOrCommandDomain(doc)
+  );
+
+  timebar.render();
 }
 
 export default class Timebar {

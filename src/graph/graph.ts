@@ -221,8 +221,8 @@ export class MainView {
             connection: [
               this.nodeXYToID(node.idx, node.idy),
               this.nodeXYToID(
-                node.idx + directionX[i],
-                node.idy + directionY[i]
+                node.idx + directionY[i],
+                node.idy + directionX[i]
               ),
             ],
             idx: node.idx,
@@ -385,6 +385,12 @@ export class MainView {
       this.scale *= 4;
       this.level++;
     }
+    d3.select("#nodesize").select("text").remove();
+    d3.select("#nodesize")
+      .append("text")
+      .attr("dy", ".35em")
+      .text(`${this.scale}X${this.scale}`)
+      .attr("font-size", 15);
     if (this.dataLoaded) {
       // draw traffic chose box
     }

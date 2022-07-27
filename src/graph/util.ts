@@ -1,5 +1,8 @@
 import * as d3 from "d3";
 
+const directionY = [0, 0, 1, -1];
+const directionX = [1, -1, 0, 0]; // S N E W
+
 export function ReverseMapping(
   coord: number[],
   transform: d3.ZoomTransform
@@ -17,4 +20,10 @@ export function ReverseMapping(
 export function ColorScheme(lv: number): string {
   // [0, 9] maps Blue-Yellow-Red color platte
   return d3.interpolateReds((lv + 1) / 10);
+}
+
+export function GetLinkDst([x, y]: [number, number], direction: number) {
+  let dx = x + directionX[direction];
+  let dy = y + directionY[direction];
+  return `(${dx}, ${dy})`;
 }
