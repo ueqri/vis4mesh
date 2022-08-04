@@ -36,7 +36,7 @@ let opt: StackBarOptions = {
   width: 0,
   height: 0,
   offset: d3.stackOffsetNone,
-  yLabel: "Message Count",
+  yLabel: "BandWidth Percentage",
   zDomain: MsgGroupsDomain,
   colors: colorScheme[NumMsgGroups],
   yFormat: "~s", // SI prefix and trims insignificant trailing zeros
@@ -106,6 +106,11 @@ export async function RenderTimebar(
     }
     RenderTimebarImpl(zeroresp);
   } else {
+    if (name !== "flat") {
+      opt.yLabel = "Bandwidth Percentage (%)";
+    } else {
+      opt.yLabel = "Message Count (flits)";
+    }
     RenderTimebarImpl(resp);
   }
 }

@@ -2,6 +2,7 @@ import * as d3 from "d3";
 import { AbstractLayer } from "./abstractlayer";
 import { CompressBigNumber } from "controller/module/filtermsg";
 import { ReverseMapping, ColorScheme } from "./util";
+import EdgeTrafficCheckboxes from "filterbar/edgecheckbox";
 import Event from "event";
 import MiniMap from "./minimap";
 import Renderer from "./render";
@@ -62,6 +63,7 @@ export class MainView {
     this.primary_nodes = this.get_primary_nodes();
     this.sub_nodes = this.get_sub_nodes(this.primary_nodes);
     this.links = this.get_links(this.primary_nodes);
+    EdgeTrafficCheckboxes.applyUpperBound(this.layers[this.level].uppers);
     this.draw();
     MiniMap.paint_wafer(layers);
   }
@@ -357,7 +359,7 @@ export class MainView {
     this.transform_scale = transform.k;
 
     Renderer.Transform(transform.toString());
-    
+
     console.log(this.windowWidth, this.windowHeight);
     const top_left = ReverseMapping([0, 0], transform);
     const bottom_right = ReverseMapping(
@@ -398,6 +400,7 @@ export class MainView {
       .attr("font-size", 15);
     if (this.dataLoaded) {
       // draw traffic chose box
+      EdgeTrafficCheckboxes.applyUpperBound(this.layers[this.level].uppers);
     }
     this.primary_width = this.tile_width / this.scale;
     this.primary_height = this.tile_height / this.scale;

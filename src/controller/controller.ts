@@ -62,7 +62,8 @@ export default class Controller {
           resp.meta["width"],
           resp.meta["height"],
           this.graph.max_scale,
-          data.edges
+          data.edges,
+          this.endTime - this.startTime
         )
       );
     } catch (reason) {

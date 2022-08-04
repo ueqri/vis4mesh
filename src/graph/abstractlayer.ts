@@ -1,6 +1,5 @@
 import { MsgTypesInOrder } from "data/classification";
 import { EdgeDisplay } from "display/data";
-import EdgeTrafficCheckboxes from "filterbar/edgecheckbox";
 
 export interface AbstractNode {
   x: number;
@@ -15,6 +14,7 @@ export class AbstractLayer {
   scale: number;
   height: number;
   width: number;
+  bandwidth: number;
   nodeValueMax: number = 0;
   linkValueMax: number = 0;
   nodes: AbstractNode[][];
@@ -24,12 +24,14 @@ export class AbstractLayer {
     scale: number,
     height: number,
     width: number,
+    bandwidth: number,
     edges: EdgeDisplay[],
     subLayer?: AbstractLayer
   ) {
     this.scale = scale;
     this.height = height;
     this.width = width;
+    this.bandwidth = bandwidth;
     this.nodes = [];
     if (scale === 1) {
       this.nodes = this.buildFromFlatData(height, width, edges);
@@ -49,7 +51,7 @@ export class AbstractLayer {
         let sj = j * 4;
         let sum = 0;
         for (let k = sj; k < sj + 4; k++) {
-          sum += subLayer.nodes[si+3][k].edgeData[0];
+          sum += subLayer.nodes[si + 3][k].edgeData[0];
         }
         value[0] = sum;
 
@@ -61,7 +63,7 @@ export class AbstractLayer {
 
         sum = 0;
         for (let k = si; k < si + 4; k++) {
-          sum += subLayer.nodes[k][sj+3].edgeData[2];
+          sum += subLayer.nodes[k][sj + 3].edgeData[2];
         }
         value[2] = sum;
 
@@ -128,7 +130,7 @@ export class AbstractLayer {
         nodes[x][y].edgeData[3] = edge.weight;
       }
       nodes[x][y].dataFlow += edge.weight;
-      this.linkValueMax = Math.max(this.linkValueMax, edge.weight);
+      // this.linkValueMax = Math.max(this.linkValueMax, edge.weight);
     }
     for (let i = 0; i < height; i++) {
       for (let j = 0; j < width; j++) {
@@ -149,23 +151,13 @@ export class AbstractLayer {
         // calc link level
         for (let i = 0; i < 4; i++) {
           let val = node.edgeData[i];
-          let lv: number = 0;
-          if (this.linkValueMax != 0) {
-            lv = Math.floor((val * 9) / this.linkValueMax);
-          }
-          if (val > this.uppers[lv]) {
-            this.uppers[lv] = val;
-          }
-          node.edgeLevel[i] = lv;
+          node.edgeLevel[i] = Math.floor((val * 100) / this.bandwidth / 10);
         }
       }
     }
     this.uppers.forEach((u, i) => {
-      if (u === 0) {
-        this.uppers[i] = Math.floor(((i + 1) * this.linkValueMax) / 10);
-      }
+      this.uppers[i] = Math.floor(((i + 1) * this.bandwidth) / 10);
     });
-    EdgeTrafficCheckboxes.applyUpperBound(this.uppers);
   }
 }
 
@@ -173,21 +165,26 @@ export function BuildAbstractLayers(
   tile_width: number,
   tile_height: number,
   init_scale: number,
-  rangedEdges: EdgeDisplay[]
+  rangedEdges: EdgeDisplay[],
+  timeRange: number
 ): AbstractLayer[] {
   let buildStart = performance.now();
   let layers: AbstractLayer[] = [];
-
+  let bandwidth = timeRange * 2000;
   let start = performance.now();
-  layers.push(new AbstractLayer(1, tile_height, tile_width, rangedEdges));
+  layers.push(
+    new AbstractLayer(1, tile_height, tile_width, bandwidth, rangedEdges)
+  );
   let end = performance.now();
   // console.log(`build from source edgeData: time spent ${end - start}ms`);
   for (let i = 4; i <= init_scale; i *= 4) {
+    bandwidth *= 4;
     let start = performance.now();
     let layer = new AbstractLayer(
       i,
       tile_width / i,
       tile_height / i,
+      bandwidth,
       [],
       layers[layers.length - 1]
     );
