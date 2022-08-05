@@ -1,6 +1,5 @@
 import * as d3 from "d3";
 
-
 export type SVGSelection = d3.Selection<
   SVGSVGElement,
   undefined,
@@ -103,8 +102,12 @@ export default class StackedChart {
     const X = d3.map(data, opt.x);
     const Y = d3.map(data, opt.y);
     const Z = d3.map(data, opt.z);
-
     this.total = [];
+
+    let lim = data.length / 4;
+    for (let i = 0; i < lim; i++) {
+      this.total.push(0);
+    }
 
     let sum = 0;
     for (let i = 0; i < data.length; i++) {
