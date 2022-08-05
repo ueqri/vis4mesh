@@ -71,7 +71,7 @@ export class Minimap {
         });
       }
     }
-    console.log("minimap: ", rects);
+    // console.log("minimap: ", rects);
     d3.select("#minimap-blocks")
       .selectAll("rect")
       .data(rects)
@@ -84,7 +84,7 @@ export class Minimap {
       .attr("y", (d) => d.y)
       .attr("width", rect_width)
       .attr("height", rect_height)
-      .attr("fill", (d) => d.color)
+      .attr("fill", (d) => d.color);
   }
 
   update_minimap_viewport_box(

@@ -97,7 +97,7 @@ export async function RenderTimebar(
   console.log("Render Timebar from flat data");
   let loadEdge = await Component.port.snapshotByEdge(name);
   let resp = await Component.port.flat();
-  console.log(resp);
+  // console.log(resp);
   if (setzero) {
     let zeroresp = JSON.parse(JSON.stringify(resp));
     console.log(zeroresp);
@@ -179,6 +179,7 @@ export default class Timebar {
     let chart = new StackedChart(this.data, opt);
     let svg = chart.axis();
     svg.attr("id", "stacked-chart");
+    // chart.line(svg);
     chart.bar(svg);
     let brush = chart.brush(
       svg,
