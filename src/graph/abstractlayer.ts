@@ -146,12 +146,12 @@ export class AbstractLayer {
       for (let node of row) {
         // calc node level
         if (this.nodeValueMax != 0) {
-          node.level = Math.floor((node.dataFlow * 9) / this.nodeValueMax);
+          node.level = Math.floor((node.dataFlow * 10) / this.bandwidth / 4);
         }
         // calc link level
         for (let i = 0; i < 4; i++) {
           let val = node.edgeData[i];
-          node.edgeLevel[i] = Math.floor((val * 100) / this.bandwidth / 10);
+          node.edgeLevel[i] = Math.floor((val * 10) / this.bandwidth);
         }
       }
     }

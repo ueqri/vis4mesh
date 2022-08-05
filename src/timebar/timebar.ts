@@ -95,7 +95,7 @@ export async function RenderTimebar(
   setzero: boolean = false
 ) {
   console.log("Render Timebar from flat data");
-  await Component.port.snapshotByEdge(name);
+  let loadEdge = await Component.port.snapshotByEdge(name);
   let resp = await Component.port.flat();
   console.log(resp);
   if (setzero) {
@@ -106,7 +106,7 @@ export async function RenderTimebar(
     }
     RenderTimebarImpl(zeroresp);
   } else {
-    if (name !== "flat") {
+    if (loadEdge) {
       opt.yLabel = "Bandwidth Percentage (%)";
     } else {
       opt.yLabel = "Message Count (flits)";

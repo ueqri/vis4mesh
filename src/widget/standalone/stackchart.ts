@@ -268,6 +268,8 @@ export default class StackedChart {
     return bar;
   }
 
+  line() {}
+
   area(onAxis: SVGSelection, groupId?: string): SVGGroupSelection {
     const xScale = this.xScale;
     const yScale = this.yScale;

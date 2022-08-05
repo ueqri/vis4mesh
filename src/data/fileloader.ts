@@ -39,7 +39,6 @@ export class FileLoader {
   // getFileContent: expected to be called for three times (meta, flat, nodes)
   public async getFileContent(filename: string) {
     filename += ".json";
-    console.log("Try to get file content: " + filename);
 
     for (const entry of this.dirEnrties) {
       if (entry.name === filename) {
@@ -47,6 +46,7 @@ export class FileLoader {
         return await entry.text();
       }
     }
+    console.log(filename + " not found");
     return "";
   }
 

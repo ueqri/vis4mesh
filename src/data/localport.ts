@@ -59,13 +59,18 @@ export default class LocalDataPort extends DataPort {
   async snapshotByEdge(edgeName: string) {
     if (edgeName === "flat") {
       this.overview = JSON.parse(await this.initData("flat")) as FlatData;
+      return false;
     } else {
       console.log("load edge history to flat data: " + edgeName);
       let history = await this.loader.getEdgeSnapshot(edgeName);
+      if (history === "") {
+        return false;
+      }
       this.overview = JSON.parse(history) as FlatData;
       for (let i = 0; i < this.overview.length; i++) {
         this.overview[i].count /= 20;
       }
+      return true;
     }
   }
 
