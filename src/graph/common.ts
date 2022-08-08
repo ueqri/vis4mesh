@@ -15,6 +15,7 @@ export interface RectNode {
 }
 
 export interface LineLink {
+  start: RectNode;
   connection: number[];
   idx: number;
   idy: number;

@@ -9,13 +9,16 @@ import { RenderTimebar } from "timebar/timebar";
 import TooltipInteraction from "./interaction/tooltip";
 import ClickInteraction from "./interaction/click";
 import { ColorScheme, GetLinkDst } from "./util";
+import { MainView } from "./graph";
 import { Component } from "global";
 import * as d3 from "d3";
 
-class Render {
+export class Render {
+  mainview: MainView;
   readonly grid = d3.select("#graph").append("svg").append("g");
 
-  constructor() {
+  constructor(mainview: MainView) {
+    this.mainview = mainview;
     d3.select("#graph")
       .select("svg")
       .on("click", () => ClickInteraction.reset());
@@ -41,6 +44,7 @@ class Render {
   }
 
   draw_rect(nodes: RectNode[]) {
+    const mainview = this.mainview;
     this.grid
       .selectAll<SVGSVGElement, RectNode>("rect")
       .data<RectNode>(nodes, (d) => `${d.scale}, ${d.idx}, ${d.idy}`)
@@ -60,7 +64,7 @@ class Render {
         (update) =>
           update
             .transition()
-            .duration(500)
+            .duration(300)
             .attr("x", (d) => d.x)
             .attr("y", (d) => d.y)
             .attr("rx", (d) => RectCornerRadius * d.size)
@@ -90,6 +94,8 @@ class Render {
         TooltipInteraction.hide();
       })
       .on("click", function (ev, d) {
+        ev.stopPropagation();
+
         const sel = d3.select(this);
         ClickInteraction.onNode(
           d.level,
@@ -103,11 +109,12 @@ class Render {
             sel.property("checked", false);
           }
         );
-        ev.stopPropagation();
+        mainview.click_node_jump(ev, d);
       });
   }
 
   draw_line(lines: LineLink[]) {
+    const mainview = this.mainview;
     console.log(lines);
     this.grid
       .selectAll("line")
@@ -173,6 +180,7 @@ class Render {
             sel.property("checked", false);
           }
         );
+        mainview.click_edge_jump(ev, d);
         ev.stopPropagation();
       });
   }
@@ -205,6 +213,3 @@ class Render {
       .raise();
   }
 }
-
-let Renderer = new Render();
-export default Renderer;

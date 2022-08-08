@@ -5,7 +5,7 @@ import { ReverseMapping, ColorScheme } from "./util";
 import EdgeTrafficCheckboxes from "filterbar/edgecheckbox";
 import Event from "event";
 import MiniMap from "./minimap";
-import Renderer from "./render";
+import { Render } from "./render";
 import {
   RectNode,
   LineLink,
@@ -14,8 +14,10 @@ import {
   ZoomWindowSize,
   SubDisplaySize,
 } from "./common";
+import { geoOrthographic } from "d3";
 
 export class MainView {
+  render: Render;
   dataLoaded: boolean = false;
   windowWidth: number = 0;
   windowHeight: number = 0;
@@ -49,6 +51,7 @@ export class MainView {
     this.primary_width = tile_width;
     this.primary_height = tile_height;
     console.log(this.client_size);
+    this.render = new Render(this);
     this.initialize_zoom();
     MiniMap.draw(tile_width, tile_height);
     Event.AddStepListener("FilterETCheckbox", (levels: number[]) => {
@@ -222,6 +225,7 @@ export class MainView {
         let endY = ny + link_length * directionY[i];
         if (this.valid_link(endX, endY)) {
           let link = {
+            start: node,
             connection: [
               this.nodeXYToID(node.idx, node.idy),
               this.nodeXYToID(
@@ -308,11 +312,11 @@ export class MainView {
   }
 
   draw() {
-    Renderer.draw_rect(this.primary_nodes.concat(this.sub_nodes));
-    Renderer.draw_line(this.links);
+    this.render.draw_rect(this.primary_nodes.concat(this.sub_nodes));
+    this.render.draw_line(this.links);
     if (this.dataLoaded) {
       let texts = this.get_text(this.links);
-      Renderer.draw_text(texts, this.rect_size);
+      this.render.draw_text(texts, this.rect_size);
     }
   }
 
@@ -355,14 +359,61 @@ export class MainView {
       );
   }
 
-  click_node_jump(event: any, node: RectNode) {}
+  view_jump(ev: any, k: number, x: number, y: number) {
+    console.log("click node jump");
+    const [initial_translate, initial_scale] = this.initial_transform_param();
 
-  click_edge_jump(event: any, edge: LineLink) {}
+    const zoomBehavior = d3
+      .zoom<SVGSVGElement, unknown>()
+      .scaleExtent([initial_scale, 1024]);
+
+    const graph = d3.select<SVGSVGElement, unknown>("#graph");
+
+    graph
+      .call(
+        zoomBehavior.on("zoom", (e) => {
+          this.update_zoom(e.transform);
+          console.log(e.transform);
+        })
+      )
+      // .transition()
+      // .duration(500)
+      // .call(
+      //   zoomBehavior.transform,
+      //   d3.zoomIdentity
+      //     .translate(initial_translate[0], initial_translate[1])
+      //     .scale(initial_scale)
+      // )
+      .transition()
+      .duration(500)
+      .call(
+        zoomBehavior.transform,
+        d3.zoomIdentity
+          .translate(this.windowWidth / 2, this.windowHeight / 2)
+          .scale(k)
+          .translate(x, y),
+        d3.pointer(ev)
+      );
+  }
+
+  click_node_jump(event: any, node: RectNode) {
+    this.view_jump(
+      event,
+      (10 * this.tile_width) / node.scale,
+      -(node.idy * node.scale + node.scale / 2),
+      -(node.idx * node.scale + node.scale / 2)
+    );
+  }
+
+  click_edge_jump(event: any, edge: LineLink) {
+    this.click_node_jump(event, edge.start);
+  }
 
   update_zoom(transform: d3.ZoomTransform) {
     this.transform_scale = transform.k;
 
-    Renderer.Transform(transform.toString());
+    this.render.Transform(transform.toString());
+    console.log("zoom ", transform.toString());
 
     console.log(this.windowWidth, this.windowHeight);
     const top_left = ReverseMapping([0, 0], transform);
