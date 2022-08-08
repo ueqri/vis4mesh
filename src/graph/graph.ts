@@ -355,6 +355,10 @@ export class MainView {
       );
   }
 
+  click_node_jump(event: any, node: RectNode) {}
+
+  click_edge_jump(event: any, edge: LineLink) {}
+
   update_zoom(transform: d3.ZoomTransform) {
     this.transform_scale = transform.k;
 
