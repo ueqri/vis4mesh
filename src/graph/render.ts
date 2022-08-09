@@ -8,7 +8,12 @@ import {
 import { RenderTimebar } from "timebar/timebar";
 import TooltipInteraction from "./interaction/tooltip";
 import ClickInteraction from "./interaction/click";
-import { ColorScheme, GetLinkDst } from "./util";
+import {
+  ColorScheme,
+  GetLinkDst,
+  GetRectIdentity,
+  GetLineIdentity,
+} from "./util";
 import { MainView } from "./graph";
 import { Component } from "global";
 import * as d3 from "d3";
@@ -47,7 +52,7 @@ export class Render {
     const mainview = this.mainview;
     this.grid
       .selectAll<SVGSVGElement, RectNode>("rect")
-      .data<RectNode>(nodes, (d) => `${d.scale}, ${d.idx}, ${d.idy}`)
+      .data<RectNode>(nodes, (d) => GetRectIdentity(d))
       .join(
         (enter) =>
           enter
@@ -103,10 +108,12 @@ export class Render {
           () => {
             sel.attr("fill", "#599dbb");
             sel.property("checked", true);
+            mainview.register_rect_color(d, "#599dbb");
           },
           () => {
             sel.attr("fill", d.color);
             sel.property("checked", false);
+            mainview.register_rect_color(d);
           }
         );
         mainview.click_node_jump(ev, d);
@@ -115,13 +122,16 @@ export class Render {
 
   draw_line(lines: LineLink[]) {
     const mainview = this.mainview;
-    console.log(lines);
+    // console.log(lines);
     this.grid
-      .selectAll("line")
-      .data(lines)
+      .selectAll<SVGSVGElement, LineLink>("line")
+      .data<LineLink>(lines, (l: LineLink) => GetLineIdentity(l))
       .join(
         function (enter) {
-          return enter.append("line").attr("marker-end", "url(#end)");
+          return enter
+            .append("line")
+            .attr("marker-end", "url(#end)")
+            .attr("stroke-width", (d) => d.width);
         },
         function (update) {
           return update;
@@ -136,7 +146,6 @@ export class Render {
       .attr("y2", (d) => d.y2)
       .attr("opacity", (d) => d.opacity)
       .attr("stroke-dasharray", (d) => d.dasharray)
-      .attr("stroke-width", (d) => d.width)
       .attr("stroke", (d) => ColorScheme(d.colorLevel))
       .on("mouseover", function (ev, d) {
         const sel = d3.select(this);
@@ -186,7 +195,7 @@ export class Render {
   }
 
   draw_text(texts: LinkText[], rect_size: number) {
-    let fontsize = rect_size * 0.2;
+    let fontsize = rect_size * 0.1;
     this.grid
       .selectAll(".edge-label")
       .data(texts)
@@ -208,6 +217,7 @@ export class Render {
       .attr("x", (d) => d.x)
       .attr("y", (d) => d.y)
       .attr("opacity", (d) => d.opacity)
+      .style("fill", "gray")
       .text((d) => d.label)
       .style("font-size", fontsize)
       .raise();

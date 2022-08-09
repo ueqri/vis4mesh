@@ -35,6 +35,7 @@ class ClickInteraction {
   }
 
   reset() {
+    console.log("reset interaction hit");
     this.clearLastEvent();
     this.clearLastEvent = () => {};
     // Back to overview

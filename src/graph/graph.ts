@@ -1,7 +1,6 @@
 import * as d3 from "d3";
 import { AbstractLayer } from "./abstractlayer";
 import { CompressBigNumber } from "controller/module/filtermsg";
-import { ReverseMapping, ColorScheme, DirectionOffset } from "./util";
 import EdgeTrafficCheckboxes from "filterbar/edgecheckbox";
 import Event from "event";
 import MiniMap from "./minimap";
@@ -14,7 +13,13 @@ import {
   ZoomWindowSize,
   SubDisplaySize,
 } from "./common";
-import { geoOrthographic } from "d3";
+import {
+  ReverseMapping,
+  ColorScheme,
+  DirectionOffset,
+  GetRectIdentity,
+  GetLineIdentity,
+} from "./util";
 
 export class MainView {
   render: Render;
@@ -44,6 +49,8 @@ export class MainView {
     width: d3.select<SVGSVGElement, unknown>("#graph").node()!.clientWidth,
     height: d3.select<SVGSVGElement, unknown>("#graph").node()!.clientHeight,
   };
+  readonly rectColorMap = new Map<string, string>();
+  readonly lineWidthMap = new Map<string, number>();
 
   constructor(tile_width: number, tile_height: number) {
     this.tile_width = tile_width;
@@ -115,6 +122,42 @@ export class MainView {
     this.rect_size = this.scale * this.node_size_ratio;
   }
 
+  register_rect_color(rect: RectNode, color?: string) {
+    let rect_name = GetRectIdentity(rect);
+    if (color === undefined) {
+      this.rectColorMap.delete(rect_name);
+    } else {
+      this.rectColorMap.set(rect_name, color);
+    }
+  }
+
+  register_line_width(line: LineLink, width?: number) {
+    let line_name = GetLineIdentity(line);
+    if (width === undefined) {
+      this.lineWidthMap.delete(line_name);
+    } else {
+      this.lineWidthMap.set(line_name, width);
+    }
+  }
+
+  color_node_by_map(node: RectNode) {
+    let node_identity = GetRectIdentity(node);
+    if (this.rectColorMap.has(node_identity)) {
+      node.color = this.rectColorMap.get(node_identity)!;
+    }
+  }
+
+  width_link_by_map(link: LineLink) {
+    let link_identity = GetLineIdentity(link);
+    if (this.rectColorMap.has(link_identity)) {
+      link.width = this.lineWidthMap.get(link_identity)!;
+    }
+  }
+
+  pin_node_on_graph() {}
+
+  pin_link_on_graph() {}
+
   get_primary_nodes() {
     let primary_nodes = [];
     let height = this.tile_height / this.scale;
@@ -141,7 +184,7 @@ export class MainView {
     if (right + 1 < width) right = right + 1;
     for (let i = top; i <= bottom; i++) {
       for (let j = left; j <= right; j++) {
-        primary_nodes.push({
+        let node = {
           scale: this.scale,
           idx: i,
           idy: j,
@@ -152,7 +195,9 @@ export class MainView {
           color: this.dataLoaded
             ? ColorScheme(this.layers[this.level].nodes[i][j].level)
             : "#8fbed1",
-        });
+        };
+        this.color_node_by_map(node);
+        primary_nodes.push(node);
       }
     }
 
@@ -180,7 +225,7 @@ export class MainView {
       let basepos_y = base_idx * sub_scale + 0.2 * this.scale;
       for (let i = base_idy; i < base_idy + 4; i++) {
         for (let j = base_idx; j < base_idx + 4; j++) {
-          sub_nodes.push({
+          let node = {
             scale: sub_scale,
             idx: j,
             idy: i,
@@ -191,7 +236,9 @@ export class MainView {
             color: this.dataLoaded
               ? ColorScheme(this.layers[this.level - 1].nodes[j][i].level)
               : "#8fbed1",
-          });
+          };
+          this.color_node_by_map(node);
+          sub_nodes.push(node);
         }
       }
       // OPTION: if sub layer is displayed, unset the color of primary layer
@@ -255,6 +302,7 @@ export class MainView {
             link.value != 0 && this.checkedColors[link.colorLevel] === true
               ? 1
               : 0;
+          this.width_link_by_map(link);
           links.push(link);
         }
       }
@@ -274,14 +322,14 @@ export class MainView {
       switch (link.direction) {
         case 0: {
           // South
-          posX = link.x1 + offsetText_3;
+          posX = link.x1 + offsetText_2;
           posY = (link.y1 + link.y2) / 2;
           sum = this.layers[this.level].nodes[link.idx][link.idy].edgeData[0];
           break;
         }
         case 1: {
           // North
-          posX = link.x1 - offsetText_3;
+          posX = link.x1 - offsetText_2;
           posY = (link.y1 + link.y2) / 2;
           sum = this.layers[this.level].nodes[link.idx][link.idy].edgeData[1];
           break;
@@ -373,7 +421,7 @@ export class MainView {
       .call(
         zoomBehavior.on("zoom", (e) => {
           this.update_zoom(e.transform);
-          console.log(e.transform);
+          // console.log(e.transform);
         })
       )
       // .transition()
@@ -418,9 +466,9 @@ export class MainView {
     this.transform_scale = transform.k;
 
     this.render.Transform(transform.toString());
-    console.log("zoom ", transform.toString());
+    // console.log("zoom ", transform.toString());
 
-    console.log(this.windowWidth, this.windowHeight);
+    // console.log(this.windowWidth, this.windowHeight);
     const top_left = ReverseMapping([0, 0], transform);
     const bottom_right = ReverseMapping(
       [this.windowWidth, this.windowHeight],

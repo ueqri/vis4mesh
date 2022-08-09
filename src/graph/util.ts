@@ -1,4 +1,5 @@
 import * as d3 from "d3";
+import { LineLink, RectNode } from "./common";
 
 const directionY = [0, 0, 1, -1];
 const directionX = [1, -1, 0, 0]; // S N E W
@@ -44,4 +45,14 @@ export function DirectionOffset(
       return [x - offset, y];
   }
   return [0, 0];
+}
+
+export function GetLineIdentity(line: LineLink): string {
+  let ret = `${line.level}_${line.direction}_${line.start.idx}_${line.start.idy}`;
+  return ret;
+}
+
+export function GetRectIdentity(rect: RectNode): string {
+  let ret = `${rect.scale}_${rect.idx}_${rect.idy}`;
+  return ret;
 }
