@@ -27,3 +27,21 @@ export function GetLinkDst([x, y]: [number, number], direction: number) {
   let dy = y + directionY[direction];
   return `(${dx}, ${dy})`;
 }
+
+export function DirectionOffset(
+  [x, y]: [number, number],
+  direction: number,
+  offset: number
+): [number, number] {
+  switch (direction) {
+    case 0:
+      return [x, y + offset];
+    case 1:
+      return [x, y - offset];
+    case 2:
+      return [x + offset, y];
+    case 3:
+      return [x - offset, y];
+  }
+  return [0, 0];
+}

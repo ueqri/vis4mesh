@@ -1,7 +1,7 @@
 import * as d3 from "d3";
 import { AbstractLayer } from "./abstractlayer";
 import { CompressBigNumber } from "controller/module/filtermsg";
-import { ReverseMapping, ColorScheme } from "./util";
+import { ReverseMapping, ColorScheme, DirectionOffset } from "./util";
 import EdgeTrafficCheckboxes from "filterbar/edgecheckbox";
 import Event from "event";
 import MiniMap from "./minimap";
@@ -406,7 +406,12 @@ export class MainView {
   }
 
   click_edge_jump(event: any, edge: LineLink) {
-    this.click_node_jump(event, edge.start);
+    const node = edge.start;
+    const k = (10 * this.tile_width) / node.scale;
+    const x = node.idy * node.scale + node.scale / 2;
+    const y = node.idx * node.scale + node.scale / 2;
+    let [mx, my] = DirectionOffset([x, y], edge.direction, node.scale / 2);
+    this.view_jump(event, k, -mx, -my);
   }
 
   update_zoom(transform: d3.ZoomTransform) {

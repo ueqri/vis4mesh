@@ -26,7 +26,7 @@ export interface LineLink {
   width: number;
   value: number;
   dasharray: string;
-  direction: number;
+  direction: number; // S N E W
   colorLevel: number;
   level: number;
   opacity: number;
