@@ -51,6 +51,7 @@ export class MainView {
   };
   readonly rectColorMap = new Map<string, string>();
   readonly lineWidthMap = new Map<string, number>();
+  readonly minimap: MiniMap = new MiniMap(this);
 
   constructor(tile_width: number, tile_height: number) {
     this.tile_width = tile_width;
@@ -60,7 +61,7 @@ export class MainView {
     console.log(this.client_size);
     this.render = new Render(this);
     this.initialize_zoom();
-    MiniMap.draw(tile_width, tile_height);
+    this.minimap.draw(tile_width, tile_height);
     Event.AddStepListener("FilterETCheckbox", (levels: number[]) => {
       this.loadcheckedColors(levels);
     });
@@ -75,7 +76,7 @@ export class MainView {
     this.links = this.get_links(this.primary_nodes);
     EdgeTrafficCheckboxes.applyUpperBound(this.layers[this.level].uppers);
     this.draw();
-    MiniMap.paint_wafer(layers);
+    this.minimap.paint_wafer(layers);
   }
 
   loadcheckedColors(levels: number[]) {
@@ -407,7 +408,7 @@ export class MainView {
       );
   }
 
-  view_jump(ev: any, k: number, x: number, y: number) {
+  view_jump(x: number, y: number, k: number, duration?: number, ev?: any) {
     console.log("click node jump");
     const [initial_translate, initial_scale] = this.initial_transform_param();
 
@@ -416,6 +417,10 @@ export class MainView {
       .scaleExtent([initial_scale, 1024]);
 
     const graph = d3.select<SVGSVGElement, unknown>("#graph");
+
+    if (duration === undefined) {
+      duration = 500;
+    }
 
     graph
       .call(
@@ -433,23 +438,27 @@ export class MainView {
       //     .scale(initial_scale)
       // )
       .transition()
-      .duration(500)
+      .duration(duration)
       .call(
         zoomBehavior.transform,
         d3.zoomIdentity
           .translate(this.windowWidth / 2, this.windowHeight / 2)
           .scale(k)
-          .translate(x, y),
-        d3.pointer(ev)
+          .translate(x, y)
       );
+  }
+
+  click_minimap_jump(x: number, y: number, duration: number) {
+    this.view_jump(-x, -y, this.transform_scale, duration);
   }
 
   click_node_jump(event: any, node: RectNode) {
     this.view_jump(
-      event,
-      (10 * this.tile_width) / node.scale,
       -(node.idy * node.scale + node.scale / 2),
-      -(node.idx * node.scale + node.scale / 2)
+      -(node.idx * node.scale + node.scale / 2),
+      (10 * this.tile_width) / node.scale,
+      500,
+      event
     );
   }
 
@@ -459,7 +468,7 @@ export class MainView {
     const x = node.idy * node.scale + node.scale / 2;
     const y = node.idx * node.scale + node.scale / 2;
     let [mx, my] = DirectionOffset([x, y], edge.direction, node.scale / 2);
-    this.view_jump(event, k, -mx, -my);
+    this.view_jump(-mx, -my, k, 500, event);
   }
 
   update_zoom(transform: d3.ZoomTransform) {
@@ -482,7 +491,7 @@ export class MainView {
     this.min_y = top_left[1];
     this.max_y = bottom_right[1];
 
-    MiniMap.update_minimap_viewport_box(
+    this.minimap.update_minimap_viewport_box(
       top_left[1],
       top_left[0],
       viewport_width,
@@ -522,4 +531,3 @@ export class MainView {
     this.draw();
   }
 }
-

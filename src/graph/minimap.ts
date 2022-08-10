@@ -1,25 +1,38 @@
 import * as d3 from "d3";
 import { AbstractLayer } from "./abstractlayer";
 import { ColorScheme } from "./util";
+import { MainView } from "./graph";
 
 interface block_tile {
   x: number;
   y: number;
+  idx: number;
+  idy: number;
   color: string;
 }
-export class Minimap {
+
+interface line {
+  x1: number;
+  y1: number;
+  x2: number;
+  y2: number;
+}
+export default class Minimap {
   scale: number = 1024;
   offset_x: number = 0;
   offset_y: number = 0;
   wafer_width: number = 0;
   wafer_height: number = 0;
   ratio: number;
+  mainview: MainView;
+  readonly viewbox_center = d3.select("#minimap").append("g");
 
-  constructor() {
+  constructor(mainview: MainView) {
     const graph = d3.select("#graph");
     const canvas_width = (graph.node() as SVGSVGElement).clientWidth;
     const canvas_height = (graph.node() as SVGSVGElement).clientHeight;
     this.ratio = canvas_width / canvas_height;
+    this.mainview = mainview;
   }
 
   draw(tile_width: number, tile_height: number) {
@@ -45,8 +58,8 @@ export class Minimap {
       .attr("y", this.offset_y)
       .attr("width", this.wafer_width)
       .attr("height", this.wafer_height)
-      .attr("fill", "#599dbb")
-      // .attr("stroke", "blue");
+      .attr("fill", "#599dbb");
+    // .attr("stroke", "blue");
   }
 
   paint_wafer(layers: AbstractLayer[]) {
@@ -67,6 +80,8 @@ export class Minimap {
         rects.push({
           x: this.offset_x + j * rect_width,
           y: this.offset_y + i * rect_height,
+          idx: i,
+          idy: j,
           color: ColorScheme(layers[level].nodes[i][j].level),
         });
       }
@@ -84,7 +99,10 @@ export class Minimap {
       .attr("y", (d) => d.y)
       .attr("width", rect_width)
       .attr("height", rect_height)
-      .attr("fill", (d) => d.color);
+      .attr("fill", (d) => d.color)
+      .on("click", (ev, d) => {
+        this.mainview.click_minimap_jump(d.idy + 0.5, d.idx + 0.5, 1000);
+      });
   }
 
   update_minimap_viewport_box(
@@ -95,15 +113,54 @@ export class Minimap {
   ) {
     const viewport_box = d3.select("#minimap-viewport-box");
 
+    const viewport_x = left * this.scale + this.offset_x;
+    const viewport_y = top * this.scale + this.offset_y;
+    const viewport_width = width * this.scale;
+    const viewport_height = height * this.scale;
     viewport_box
-      .attr("x", left * this.scale + this.offset_x)
-      .attr("y", top * this.scale + this.offset_y)
-      .attr("width", width * this.scale)
-      .attr("height", height * this.scale)
+      .attr("x", viewport_x)
+      .attr("y", viewport_y)
+      .attr("width", viewport_width)
+      .attr("height", viewport_height)
       .attr("fill", "none")
-      .attr("stroke", "green");
+      .attr("opacity", 0.5)
+      .attr("stroke-width", 2)
+      .attr("stroke", "black");
+
+    const center_x = viewport_x + viewport_width / 2;
+    const center_y = viewport_y + viewport_height / 2;
+    const line_length = Math.min(viewport_width, viewport_height) * 0.2;
+    2;
+    const center_lines = [
+      {
+        x1: center_x - line_length / 2,
+        y1: center_y,
+        x2: center_x + line_length / 2,
+        y2: center_y,
+      },
+      {
+        x1: center_x,
+        y1: center_y - line_length / 2,
+        x2: center_x,
+        y2: center_y + line_length / 2,
+      },
+    ];
+
+    this.viewbox_center
+      .selectAll<SVGSVGElement, line>("line")
+      .data<line>(center_lines, (d, i) => `${i}`)
+      .join(
+        (enter) => enter.append("line"),
+        (update) => update,
+        (exit) => exit
+      )
+      .attr("x1", (d) => d.x1)
+      .attr("y1", (d) => d.y1)
+      .attr("x2", (d) => d.x2)
+      .attr("y2", (d) => d.y2)
+      .attr("stroke-width", 1.5)
+      .attr("stroke", "black")
+      .attr("opacity", 0.5);
   }
 }
 
-let MiniMap = new Minimap();
-export default MiniMap;
