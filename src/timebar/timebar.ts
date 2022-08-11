@@ -179,7 +179,6 @@ export default class Timebar {
     let chart = new StackedChart(this.data, opt);
     let svg = chart.axis();
     svg.attr("id", "stacked-chart");
-    // chart.line(svg);
     chart.bar(svg);
     let brush = chart.brush(
       svg,

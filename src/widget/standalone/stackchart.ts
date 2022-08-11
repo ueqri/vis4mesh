@@ -75,8 +75,6 @@ export default class StackedChart {
   protected Z: any[];
   protected I: any[];
 
-  protected total: number[];
-
   protected xDomain: any;
   protected zDomain: any;
 
@@ -102,22 +100,6 @@ export default class StackedChart {
     const X = d3.map(data, opt.x);
     const Y = d3.map(data, opt.y);
     const Z = d3.map(data, opt.z);
-    this.total = [];
-
-    let lim = data.length / 4;
-    for (let i = 0; i < lim; i++) {
-      this.total.push(0);
-    }
-
-    let sum = 0;
-    for (let i = 0; i < data.length; i++) {
-      sum += Y[i];
-      if ((i + 1) % opt.zDomain!.length === 0) {
-        this.total.push(sum);
-        sum = 0;
-      }
-    }
-    let totalDomain = d3.extent(this.total) as [number, number];
 
     // Compute default x- and z-domains, and unique them.
     let xDomain: any, zDomain: any;
@@ -180,7 +162,6 @@ export default class StackedChart {
     const yType = opt.yType === undefined ? d3.scaleLinear : opt.yType;
     const xScale = d3.scaleBand(xDomain, xRange).paddingInner(this.xPadding);
     const yScale = yType(yDomain, yRange);
-    const totalScale = d3.scaleLinear(totalDomain, yRange);
 
     const color = d3.scaleOrdinal(zDomain, opt.colors);
     const xAxis = d3
@@ -218,7 +199,6 @@ export default class StackedChart {
     this.yAxis = yAxis;
     this.xScale = xScale;
     this.yScale = yScale;
-    this.totalScale = totalScale;
     this.yLabel = opt.yLabel;
     this.series = series;
     this.color = color;
@@ -288,29 +268,6 @@ export default class StackedChart {
     if (this.title) item.append("title").text(({ i }) => this.title(i));
 
     return bar;
-  }
-
-  line(onAxis: SVGSelection, groupId?: string) {
-    const xScale = this.xScale;
-    const totalScale = this.totalScale;
-    let line_generator = d3
-      .line<any>()
-      .x(function (d, i) {
-        return i * xScale.bandwidth();
-      })
-      .y(function (d, i) {
-        return totalScale(d);
-      })
-      .curve(d3.curveBasis);
-
-    let pathline = line_generator(this.total);
-    const line = onAxis
-      .append("g")
-      .append("path")
-      .attr("d", pathline)
-      .attr("fill", "none")
-      .attr("stroke", "black")
-      .attr("stroke-width", 2);
   }
 
   area(onAxis: SVGSelection, groupId?: string): SVGGroupSelection {
