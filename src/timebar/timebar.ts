@@ -29,7 +29,7 @@ const fixDoCColor = DataOrCommandDomain.reduce(
   {}
 );
 
-let opt: StackBarOptions = {
+export const opt: StackBarOptions = {
   x: (d) => d.id,
   y: (d) => d.count,
   z: (d) => d.group, // or d.doc
@@ -41,6 +41,8 @@ let opt: StackBarOptions = {
   colors: colorScheme[NumMsgGroups],
   yFormat: "~s", // SI prefix and trims insignificant trailing zeros
 };
+
+let timebar_opt = opt;
 
 interface FormattedDataForChartByMsgGroups {
   id: string;
@@ -54,7 +56,7 @@ interface FormattedDataForChartByDoC {
   count: number;
 }
 
-function handleFlatResponseByMsgGroups(
+export function handleFlatResponseByMsgGroups(
   data: DataPortFlatResponse
 ): FormattedDataForChartByMsgGroups[] {
   const reduce = d3.flatRollup(
@@ -90,29 +92,11 @@ function handleFlatResponseByDoC(
   });
 }
 
-export async function RenderTimebar(
-  name: string = "flat",
-  setzero: boolean = false
-) {
+export async function RenderTimebar() {
   console.log("Render Timebar from flat data");
-  let loadEdge = await Component.port.snapshotByEdge(name);
-  let resp = await Component.port.flat();
-  // console.log(resp);
-  if (setzero) {
-    let zeroresp = JSON.parse(JSON.stringify(resp));
-    console.log(zeroresp);
-    for (let data of zeroresp) {
-      data.count = 0;
-    }
-    RenderTimebarImpl(zeroresp);
-  } else {
-    if (loadEdge) {
-      opt.yLabel = "Bandwidth Percentage (%)";
-    } else {
-      opt.yLabel = "Message Count (flits)";
-    }
-    RenderTimebarImpl(resp);
-  }
+  const resp = await Component.port.flat();
+  timebar_opt.yLabel = "Message Count (flits)";
+  RenderTimebarImpl(resp);
 }
 
 export function RenderTimebarImpl(resp: FlatData) {
@@ -155,17 +139,17 @@ export default class Timebar {
   }
 
   updateMsgGroupDomain(domain: string[]) {
-    opt.z = (d) => d.group;
-    opt.zDomain = domain;
-    opt.colors = domain.map((d) => fixGroupColor[d]);
+    timebar_opt.z = (d) => d.group;
+    timebar_opt.zDomain = domain;
+    timebar_opt.colors = domain.map((d) => fixGroupColor[d]);
     this.data = this.dataForMsgGroups;
     this.render();
   }
 
   updateDataOrCommandDomain(domain: string[]) {
-    opt.z = (d) => d.doc;
-    opt.zDomain = domain;
-    opt.colors = domain.map((d) => fixDoCColor[d]);
+    timebar_opt.z = (d) => d.doc;
+    timebar_opt.zDomain = domain;
+    timebar_opt.colors = domain.map((d) => fixDoCColor[d]);
     this.data = this.dataForDoC;
     this.render();
   }
@@ -173,8 +157,8 @@ export default class Timebar {
   render() {
     div.select("#stacked-chart").remove();
 
-    opt.width = (div.node() as Element).getBoundingClientRect().width;
-    opt.height = (div.node() as Element).getBoundingClientRect().height;
+    timebar_opt.width = (div.node() as Element).getBoundingClientRect().width;
+    timebar_opt.height = (div.node() as Element).getBoundingClientRect().height;
 
     let chart = new StackedChart(this.data, opt);
     let svg = chart.axis();

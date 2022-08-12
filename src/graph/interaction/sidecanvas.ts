@@ -1,7 +1,8 @@
 import * as d3 from "d3";
-import { chord } from "d3-chord";
 import AbstractNode from "display/abstractnode";
-
+import { opt, handleFlatResponseByMsgGroups } from "timebar/timebar";
+import StackedChart from "widget/standalone/stackchart";
+import { Component } from "global";
 const div = d3.select("#sidecanvas");
 const content = div.select("#sidecanvas-content");
 const width = 350;
@@ -22,35 +23,54 @@ interface groupAttr {
   angle: number;
 }
 
-class SideCanvas {
-  readonly svg = div
-    .append("svg")
-    .attr("id", "flowchord")
-    .attr("height", height)
-    .attr("width", width)
-    .attr("viewBox", [-width / 2, -height / 2, width, height]);
+const port = Component.port;
 
+class SideCanvas {
   constructor() {}
 
   load(meta: Object, nodeMap: { [id: number]: AbstractNode }) {}
 
   Clear() {
     content.html(`<h4>Overview</h4>`);
-    this.svg.selectAll("g").remove();
+    div.selectAll("#flowchord").remove();
   }
 
   write(html: string) {
     content.html(html);
   }
 
+  async AddLinkHistogram(linkName: string) {
+    const history = await port.snapshotByEdge(linkName);
+    if (history === undefined) return;
+    let histogram_opt = opt;
+    histogram_opt.height = 250;
+    histogram_opt.width = 300;
+
+    let chart = new StackedChart(
+      handleFlatResponseByMsgGroups(history),
+      histogram_opt
+    );
+    let svg = chart.axis();
+    svg.attr("id", "stacked-chart");
+    chart.bar(svg);
+    div.append(() => chart.node(svg));
+  }
+
   DisplayChord() {
+    const svg = div
+      .append("svg")
+      .attr("id", "flowchord")
+      .attr("height", height)
+      .attr("width", width)
+      .attr("viewBox", [-width / 2, -height / 2, width, height]);
+
     const chords = d3
       .chord()
       .padAngle(10 / innerR)
       .sortSubgroups(d3.descending)
       .sortChords(d3.descending)(matrix);
 
-    const group = this.svg
+    const group = svg
       .append("g")
       .attr("font-size", 10)
       .attr("font-family", "sans-serif")
@@ -108,7 +128,7 @@ class SideCanvas {
         return `${names[d.index]}`;
       });
 
-    this.svg
+    svg
       .append("g")
       .attr("fill-opacity", 0.8)
       .selectAll("path")
@@ -136,45 +156,6 @@ class SideCanvas {
                 }`
           }`
       );
-  }
-
-  DisplayTransChord() {
-    // give this matrix to d3.chord(): it will calculates all the info we need to draw arc and ribbon
-    let res = d3.chord().padAngle(0.05).sortSubgroups(d3.descending)(matrix);
-
-    // add the groups on the outer part of the circle
-    let g = this.svg.datum(res).append("g");
-
-    g.selectAll("g")
-      .data(function (d) {
-        return d.groups;
-      })
-      .enter()
-      .append("g")
-      .append("path")
-      .style("fill", function (d, i) {
-        return colors[i];
-      })
-      .style("stroke", "black")
-      .attr(
-        "d",
-        d3.arc().innerRadius(100).outerRadius(110) as unknown as string
-      );
-
-    // Add the links between groups
-    g.datum(res)
-      .append("g")
-      .selectAll("path")
-      .data(function (d) {
-        return d;
-      })
-      .enter()
-      .append("path")
-      .attr("d", d3.ribbon().radius(100) as unknown as string)
-      .style("fill", function (d) {
-        return colors[d.source.index];
-      }) // colors depend on the source grouDisplayTransChordp. Change to target otherwise.
-      .style("stroke", "black");
   }
 }
 

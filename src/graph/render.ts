@@ -5,7 +5,6 @@ import {
   RectCornerRadius,
   ArrowWidth,
 } from "./common";
-import { RenderTimebar } from "timebar/timebar";
 import TooltipInteraction from "./interaction/tooltip";
 import ClickInteraction from "./interaction/click";
 import {
@@ -15,7 +14,7 @@ import {
   GetLineIdentity,
 } from "./util";
 import { MainView } from "./graph";
-import { Component } from "global";
+import sidecanvas from "./interaction/sidecanvas";
 import * as d3 from "d3";
 
 export class Render {
@@ -171,19 +170,16 @@ export class Render {
         let dstNode = GetLinkDst([d.idx, d.idy], d.direction);
         ClickInteraction.onEdge(
           `(${d.idx}, ${d.idy})->${dstNode}`,
-          () => {
+          function () {
             if (d.level === 0) {
               let edgeName = `${d.connection[0]}to${d.connection[1]}`;
-              RenderTimebar(edgeName);
+              sidecanvas.AddLinkHistogram(edgeName);
             }
             console.log("click on edge");
             sel.attr("stroke-width", d.width * 1.5);
             sel.property("checked", true);
           },
-          () => {
-            if (d.level === 0) {
-              RenderTimebar();
-            }
+          function () {
             console.log("clear click on edge");
             sel.attr("stroke-width", d.width);
             sel.property("checked", false);
