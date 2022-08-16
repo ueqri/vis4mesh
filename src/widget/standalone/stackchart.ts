@@ -169,7 +169,7 @@ export default class StackedChart {
       .tickSizeOuter(0)
       .tickValues(
         xScale.domain().filter(function (d, i) {
-          const realWidth = document.body.clientWidth;
+          const realWidth = opt.width;
           // console.log(realWidth);
           const numTicks = Math.floor(realWidth / 40); // 25px => 1cm
           return !(i % Math.floor(xScale.domain().length / numTicks));
@@ -229,10 +229,11 @@ export default class StackedChart {
         g
           .append("text")
           .attr("x", -this.marginLeft)
-          .attr("y", 10)
+          .attr("y", 0.1 * this.height)
           .attr("fill", "currentColor")
           .attr("text-anchor", "start")
           .text(this.yLabel)
+          .style("font-size", `${0.08 * this.height}`)
       );
 
     let dy: number = this.yScale(0);

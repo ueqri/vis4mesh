@@ -18,9 +18,9 @@ class ClickInteraction {
 
     // SideCanvas.write(`<h3>Node</h3>`);
     SideCanvas.write(`<h4>${text}</h4>`);
-    if (level === 0) {
-      SideCanvas.DisplayChord();
-    }
+    // if (level === 0) {
+    //   SideCanvas.DisplayChord();
+    // }
     this.clearLastEvent = clearEvent;
   }
 

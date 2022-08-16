@@ -180,9 +180,9 @@ export class Render {
             sel.property("checked", true);
           },
           function () {
-            console.log("clear click on edge");
-            sel.attr("stroke-width", d.width);
-            sel.property("checked", false);
+            // console.log("clear click on edge");
+            // sel.attr("stroke-width", d.width);
+            // sel.property("checked", false);
           }
         );
         mainview.click_edge_jump(ev, d);

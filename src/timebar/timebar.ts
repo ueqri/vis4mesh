@@ -42,7 +42,18 @@ export const opt: StackBarOptions = {
   yFormat: "~s", // SI prefix and trims insignificant trailing zeros
 };
 
-let timebar_opt = opt;
+let timebar_opt: StackBarOptions = {
+  x: (d) => d.id,
+  y: (d) => d.count,
+  z: (d) => d.group, // or d.doc
+  width: 0,
+  height: 0,
+  offset: d3.stackOffsetNone,
+  yLabel: "Message Count (flits)",
+  zDomain: MsgGroupsDomain,
+  colors: colorScheme[NumMsgGroups],
+  yFormat: "~s", // SI prefix and trims insignificant trailing zeros
+};
 
 interface FormattedDataForChartByMsgGroups {
   id: string;
@@ -95,7 +106,6 @@ function handleFlatResponseByDoC(
 export async function RenderTimebar() {
   console.log("Render Timebar from flat data");
   const resp = await Component.port.flat();
-  timebar_opt.yLabel = "Message Count (flits)";
   RenderTimebarImpl(resp);
 }
 
@@ -160,7 +170,7 @@ export default class Timebar {
     timebar_opt.width = (div.node() as Element).getBoundingClientRect().width;
     timebar_opt.height = (div.node() as Element).getBoundingClientRect().height;
 
-    let chart = new StackedChart(this.data, opt);
+    let chart = new StackedChart(this.data, timebar_opt);
     let svg = chart.axis();
     svg.attr("id", "stacked-chart");
     chart.bar(svg);
