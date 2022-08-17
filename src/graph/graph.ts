@@ -123,6 +123,7 @@ export class MainView {
     this.rect_size = this.scale * this.node_size_ratio;
   }
 
+
   register_rect_color(rect: RectNode, color?: string) {
     let rect_name = GetRectIdentity(rect);
     if (color === undefined) {

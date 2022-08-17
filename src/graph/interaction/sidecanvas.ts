@@ -50,9 +50,39 @@ class SideCanvas {
       handleFlatResponseByMsgGroups(history),
       histogram_opt
     );
+    const histoId = "stacked-chart-" + linkName;
     let svg = chart.axis();
-    svg.attr("id", "stacked-chart");
+    svg.attr("id", histoId);
     chart.bar(svg);
+    const close = {
+      cx: histogram_opt.width - 10,
+      cy: 10,
+      r: 4,
+      id: "close-" + linkName,
+    };
+    svg
+      .append("g")
+      .selectAll<SVGSVGElement, any>("circle")
+      .data<any>([close], (d) => d)
+      .enter()
+      .append("circle")
+      .attr("id", (d) => d.id)
+      .attr("cx", (d) => d.cx)
+      .attr("cy", (d) => d.cy)
+      .attr("r", (d) => d.r)
+      .attr("fill", "blue")
+      .on("mouseover", (ev, d) => {
+        console.log("mouseover close");
+        const sel = d3.select("#" + d.id);
+        sel.attr("fill", "#ff0000");
+      })
+      .on("mouseout", (ev, d) => {
+        const sel = d3.select("#" + d.id);
+        sel.attr("fill", "#0000ff");
+      })
+      .on("click", (ev, d) => {
+        d3.select("#" + histoId).remove();
+      });
     div.append(() => chart.node(svg));
   }
 

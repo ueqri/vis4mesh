@@ -41,6 +41,15 @@ export class Render {
       .attr("orient", "auto")
       .append("svg:path")
       .attr("d", "M0,-5L10,0L0,5");
+
+    // this.grid
+    //   .append("svg:defs")
+    //   .append("path")
+    //   .attr("viewBox", "-16 -18 64 64")
+    //   .attr("id", "pin")
+    //   .attr("d", "M0,47 Q0,28 10,15 A15,15 0,1,0 -10,15 Q0,28 0,47")
+    //   .attr("stroke-width", 1)
+    //   .attr("stroke", "black");
   }
 
   Transform(transform: string) {
@@ -121,6 +130,7 @@ export class Render {
 
   draw_line(lines: LineLink[]) {
     const mainview = this.mainview;
+    const grid = this.grid;
     // console.log(lines);
     this.grid
       .selectAll<SVGSVGElement, LineLink>("line")
@@ -172,6 +182,17 @@ export class Render {
           `(${d.idx}, ${d.idy})->${dstNode}`,
           function () {
             if (d.level === 0) {
+              // grid
+              //   .append("use")
+              //   .attr("xlink:href", "#pin")
+              //   .attr("fill", "red")
+              //   .call(zoomBehavior.);
+              grid
+                .append("circle")
+                .attr("cx", d.x1)
+                .attr("cy", d.y1)
+                .attr("r", 0.04)
+                .attr("fill", "red");
               let edgeName = `${d.connection[0]}to${d.connection[1]}`;
               sidecanvas.AddLinkHistogram(edgeName);
             }
@@ -180,9 +201,9 @@ export class Render {
             sel.property("checked", true);
           },
           function () {
-            // console.log("clear click on edge");
-            // sel.attr("stroke-width", d.width);
-            // sel.property("checked", false);
+            console.log("clear click on edge");
+            sel.attr("stroke-width", d.width);
+            sel.property("checked", false);
           }
         );
         mainview.click_edge_jump(ev, d);
