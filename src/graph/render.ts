@@ -12,6 +12,7 @@ import {
   GetLinkDst,
   GetRectIdentity,
   GetLineIdentity,
+  DirectionOffset,
 } from "./util";
 import { MainView } from "./graph";
 import sidecanvas from "./interaction/sidecanvas";
@@ -41,15 +42,6 @@ export class Render {
       .attr("orient", "auto")
       .append("svg:path")
       .attr("d", "M0,-5L10,0L0,5");
-
-    // this.grid
-    //   .append("svg:defs")
-    //   .append("path")
-    //   .attr("viewBox", "-16 -18 64 64")
-    //   .attr("id", "pin")
-    //   .attr("d", "M0,47 Q0,28 10,15 A15,15 0,1,0 -10,15 Q0,28 0,47")
-    //   .attr("stroke-width", 1)
-    //   .attr("stroke", "black");
   }
 
   Transform(transform: string) {
@@ -182,19 +174,40 @@ export class Render {
           `(${d.idx}, ${d.idy})->${dstNode}`,
           function () {
             if (d.level === 0) {
-              // grid
-              //   .append("use")
-              //   .attr("xlink:href", "#pin")
-              //   .attr("fill", "red")
-              //   .call(zoomBehavior.);
-              grid
-                .append("circle")
-                .attr("cx", d.x1)
-                .attr("cy", d.y1)
-                .attr("r", 0.04)
-                .attr("fill", "red");
+              let pin = grid.append("circle");
+
               let edgeName = `${d.connection[0]}to${d.connection[1]}`;
-              sidecanvas.AddLinkHistogram(edgeName);
+              sidecanvas.AddLinkHistogram(
+                edgeName,
+                (color: string) => {
+                  let [cx, cy] = DirectionOffset(
+                    [d.x1, d.y1],
+                    d.direction,
+                    0.2
+                  );
+                  pin
+                    .attr("cx", cx)
+                    .attr("cy", cy)
+                    .attr("r", 0.04)
+                    .attr("fill", color)
+                    .on("mouseover", () => {
+                      pin.attr("r", 0.06).style("cursor", "pointer");
+                    })
+                    .on("mouseout", () => {
+                      pin.attr("r", 0.04).style("cursor", "default");
+                    })
+                    .on("click", () => {
+                      pin.remove();
+                      sidecanvas.checkoutLink("stacked-chart-" + edgeName);
+                    });
+                },
+                () => {
+                  pin.remove();
+                },
+                () => {
+                  mainview.click_edge_jump(ev, d);
+                }
+              );
             }
             console.log("click on edge");
             sel.attr("stroke-width", d.width * 1.5);

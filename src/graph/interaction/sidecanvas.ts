@@ -24,9 +24,40 @@ interface groupAttr {
 }
 
 const port = Component.port;
+const colorList = [
+  "gold",
+  "blue",
+  "green",
+  "yellow",
+  "black",
+  "grey",
+  "darkgreen",
+  "pink",
+  "brown",
+  "slateblue",
+  "grey1",
+  "orange",
+];
 
 class SideCanvas {
-  constructor() {}
+  charts: Map<string, string>;
+  colorPools: Map<string, boolean>;
+
+  constructor() {
+    this.charts = new Map<string, string>();
+    this.colorPools = new Map<string, boolean>();
+    for (let color of colorList) {
+      this.colorPools.set(color, true);
+    }
+    div
+      .append("svg:defs")
+      .append("path")
+      .attr("viewBox", "-16 -18 64 64")
+      .attr("id", "pin")
+      .attr("d", "M0,47 Q0,28 10,15 A15,15 0,1,0 -10,15 Q0,28 0,47")
+      .attr("stroke-width", 1)
+      .attr("stroke", "black");
+  }
 
   load(meta: Object, nodeMap: { [id: number]: AbstractNode }) {}
 
@@ -39,7 +70,41 @@ class SideCanvas {
     content.html(html);
   }
 
-  async AddLinkHistogram(linkName: string) {
+  registerLink(name: string) {
+    if (this.charts.has(name) || this.colorPools.size === 0) {
+      return false;
+    }
+    let selectedColor = "black";
+    for (let color of this.colorPools) {
+      selectedColor = color[0];
+      break;
+    }
+    this.colorPools.delete(selectedColor);
+    this.charts.set(name, selectedColor);
+    return selectedColor;
+  }
+
+  checkoutLink(name: string) {
+    let color = this.charts.get(name);
+    this.colorPools.set(color!, true);
+    this.charts.delete(name);
+    div.select("#" + name).remove();
+  }
+
+  async AddLinkHistogram(
+    linkName: string,
+    register: (color: string) => any,
+    unregister: () => any,
+    clickJump: () => any
+  ) {
+    const histoId = "stacked-chart-" + linkName;
+
+    let color = this.registerLink(histoId);
+    if (color === false) {
+      return;
+    }
+    register(color);
+
     const history = await port.snapshotByEdge(linkName);
     if (history === undefined) return;
     let histogram_opt = opt;
@@ -50,16 +115,32 @@ class SideCanvas {
       handleFlatResponseByMsgGroups(history),
       histogram_opt
     );
-    const histoId = "stacked-chart-" + linkName;
     let svg = chart.axis();
     svg.attr("id", histoId);
     chart.bar(svg);
     const close = {
       cx: histogram_opt.width - 10,
-      cy: 10,
+      cy: 15,
       r: 4,
       id: "close-" + linkName,
     };
+
+    svg
+      .append("use")
+      .attr("xlink:href", "#pin")
+      .attr("id", "pin-" + histoId)
+      .attr("fill", color)
+      .attr("transform", `translate(275, 10) scale(0.3)`)
+      .on("click", clickJump)
+      .on("mouseover", () => {
+        let sel = svg.select("#pin-" + histoId);
+        sel.style("cursor", "pointer");
+      })
+      .on("mouseout", () => {
+        let sel = svg.select("#pin-" + histoId);
+        sel.style("cursor", "default");
+      });
+
     svg
       .append("g")
       .selectAll<SVGSVGElement, any>("circle")
@@ -73,15 +154,18 @@ class SideCanvas {
       .attr("fill", "blue")
       .on("mouseover", (ev, d) => {
         console.log("mouseover close");
-        const sel = d3.select("#" + d.id);
+        const sel = svg.select("#" + d.id);
         sel.attr("fill", "#ff0000");
+        sel.style("cursor", "pointer");
       })
       .on("mouseout", (ev, d) => {
-        const sel = d3.select("#" + d.id);
+        const sel = svg.select("#" + d.id);
         sel.attr("fill", "#0000ff");
+        sel.style("cursor", "default");
       })
       .on("click", (ev, d) => {
-        d3.select("#" + histoId).remove();
+        this.checkoutLink(histoId);
+        unregister();
       });
     div.append(() => chart.node(svg));
   }
