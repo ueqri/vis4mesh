@@ -36,7 +36,7 @@ export const opt: StackBarOptions = {
   width: 0,
   height: 0,
   offset: d3.stackOffsetNone,
-  yLabel: "BandWidth Percentage",
+  yLabel: "BandWidth Percentage(%)",
   zDomain: MsgGroupsDomain,
   colors: colorScheme[NumMsgGroups],
   yFormat: "~s", // SI prefix and trims insignificant trailing zeros

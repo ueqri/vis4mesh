@@ -62,7 +62,11 @@ export default class LocalDataPort extends DataPort {
     if (history === "") {
       return undefined;
     }
-    return JSON.parse(history) as FlatData;
+    let flat = JSON.parse(history) as FlatData;
+    for (let i of flat) {
+      i.count /= 20;
+    }
+    return flat;
   }
 
   async range(start: number, end: number) {

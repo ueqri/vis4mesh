@@ -363,11 +363,12 @@ export class MainView {
 
   draw() {
     this.render.draw_rect(this.primary_nodes.concat(this.sub_nodes));
-    this.render.draw_line(this.links);
+    this.render.draw_line(this.links, this.minimap);
     if (this.dataLoaded) {
       let texts = this.get_text(this.links);
       this.render.draw_text(texts, this.rect_size);
     }
+    this.render.SetPins(this.level);
   }
 
   initial_transform_param(): [number[], number] {

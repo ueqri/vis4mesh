@@ -15,11 +15,16 @@ import {
   DirectionOffset,
 } from "./util";
 import { MainView } from "./graph";
+import Minimap from "./minimap";
 import sidecanvas from "./interaction/sidecanvas";
 import * as d3 from "d3";
 
 export class Render {
   mainview: MainView;
+  pinMap: Map<
+    string,
+    d3.Selection<SVGCircleElement, unknown, HTMLElement, any>
+  >;
   readonly grid = d3.select("#graph").append("svg").append("g");
 
   constructor(mainview: MainView) {
@@ -42,6 +47,18 @@ export class Render {
       .attr("orient", "auto")
       .append("svg:path")
       .attr("d", "M0,-5L10,0L0,5");
+
+    this.pinMap = new Map();
+  }
+
+  SetPins(level: number) {
+    let op = 0;
+    if (level === 0) {
+      op = 1;
+    }
+    for (let [x, y] of this.pinMap) {
+      y.attr("opacity", op).raise();
+    }
   }
 
   Transform(transform: string) {
@@ -120,9 +137,10 @@ export class Render {
       });
   }
 
-  draw_line(lines: LineLink[]) {
+  draw_line(lines: LineLink[], minimap: Minimap) {
     const mainview = this.mainview;
     const grid = this.grid;
+    let pinMap = this.pinMap;
     // console.log(lines);
     this.grid
       .selectAll<SVGSVGElement, LineLink>("line")
@@ -173,13 +191,14 @@ export class Render {
         ClickInteraction.onEdge(
           `(${d.idx}, ${d.idy})->${dstNode}`,
           function () {
-            if (d.level === 0) {
+            if (d.level === 0 && d.opacity !== 0) {
               let pin = grid.append("circle");
-
               let edgeName = `${d.connection[0]}to${d.connection[1]}`;
+
               sidecanvas.AddLinkHistogram(
                 edgeName,
                 (color: string) => {
+                  minimap.AddPin([d.idx, d.idy], color, () => { mainview.click_edge_jump(ev, d) });
                   let [cx, cy] = DirectionOffset(
                     [d.x1, d.y1],
                     d.direction,
@@ -200,16 +219,24 @@ export class Render {
                       pin.remove();
                       sidecanvas.checkoutLink("stacked-chart-" + edgeName);
                     });
+                  pinMap.set(edgeName, pin);
                 },
                 () => {
+                  minimap.RemovePin([d.idx, d.idy]);
+                  pinMap.delete(edgeName);
                   pin.remove();
                 },
                 () => {
                   mainview.click_edge_jump(ev, d);
+                },
+                () => { 
+                  pin.attr("r", 0.06);
+                },
+                () => { 
+                  pin.attr("r", 0.04);
                 }
               );
             }
-            console.log("click on edge");
             sel.attr("stroke-width", d.width * 1.5);
             sel.property("checked", true);
           },

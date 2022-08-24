@@ -29,7 +29,6 @@ const colorList = [
   "blue",
   "green",
   "yellow",
-  "black",
   "grey",
   "darkgreen",
   "pink",
@@ -95,7 +94,9 @@ class SideCanvas {
     linkName: string,
     register: (color: string) => any,
     unregister: () => any,
-    clickJump: () => any
+    clickJump: () => any,
+    mouseoverPin: () => any, 
+    mouseoutPin: ()=> any,
   ) {
     const histoId = "stacked-chart-" + linkName;
 
@@ -135,10 +136,12 @@ class SideCanvas {
       .on("mouseover", () => {
         let sel = svg.select("#pin-" + histoId);
         sel.style("cursor", "pointer");
+        mouseoverPin();
       })
       .on("mouseout", () => {
         let sel = svg.select("#pin-" + histoId);
         sel.style("cursor", "default");
+        mouseoutPin();
       });
 
     svg

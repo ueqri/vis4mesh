@@ -23,8 +23,11 @@ export default class Minimap {
   offset_y: number = 0;
   wafer_width: number = 0;
   wafer_height: number = 0;
+  bottom_height: number = 0;
+  bottom_width: number = 0;
   ratio: number;
   mainview: MainView;
+  pinMap: Map<string, d3.Selection<SVGUseElement, unknown, HTMLElement, any>>;
   readonly viewbox_center = d3.select("#minimap").append("g");
 
   constructor(mainview: MainView) {
@@ -33,6 +36,15 @@ export default class Minimap {
     const canvas_height = (graph.node() as SVGSVGElement).clientHeight;
     this.ratio = canvas_width / canvas_height;
     this.mainview = mainview;
+    this.pinMap = new Map();
+    d3.select("#minimap")
+      .append("svg:defs")
+      .append("path")
+      .attr("viewBox", "-16 -18 64 64")
+      .attr("id", "minibar-pin")
+      .attr("d", "M0,47 Q0,28 10,15 A15,15 0,1,0 -10,15 Q0,28 0,47")
+      .attr("stroke-width", 1)
+      .attr("stroke", "black");
   }
 
   draw(tile_width: number, tile_height: number) {
@@ -62,6 +74,43 @@ export default class Minimap {
     // .attr("stroke", "blue");
   }
 
+  AddPin([x, y]: [number, number], color: string, clickJump: () => any) {
+    // TODO fix: [x, y] of bottom layer
+    const off_x = this.offset_x + (y) * this.bottom_width;
+    const off_y = this.offset_y + (x - 2) * this.bottom_height;
+    const name = `minimap-${x}-${y}`;
+    let pin = d3
+      .select("#minimap-blocks")
+      .append("use")
+      .attr("id", name)
+      .attr("xlink:href", "#minibar-pin")
+      .attr("fill", color)
+      .attr("transform", `translate(${off_x}, ${off_y}) scale(0.2)`)
+      .on("click", clickJump)
+      .on("mouseover", () => {
+        d3.select("#minimap-blocks")
+          .select("#" + name)
+          .style("cursor", "pointer");
+      })
+      .on("mouseout", () => {
+        d3.select("#minimap-blocks")
+          .select("#" + name)
+          .style("cursor", "default");
+      });
+
+    this.pinMap.set(`${x}-${y}`, pin);
+  }
+
+  RemovePin([x, y]: [number, number]) {
+    let pin = this.pinMap.get(`${x}-${y}`);
+    if (pin === undefined) {
+      console.log("remove minimap pin failed: undefined pin");
+      return;
+    }
+    pin.remove();
+    this.pinMap.delete(`${x}-${y}`);
+  }
+
   paint_wafer(layers: AbstractLayer[]) {
     let level = 0;
     for (let i = 0; i < layers.length; i++) {
@@ -74,6 +123,8 @@ export default class Minimap {
     const block_height = layers[level].height;
     const rect_width = this.wafer_width / layers[level].width;
     const rect_height = this.wafer_height / layers[level].height;
+    this.bottom_height = this.wafer_height / layers[0].height;
+    this.bottom_width = this.wafer_width / layers[0].width;
     let rects: block_tile[] = [];
     for (let i = 0; i < block_height; i++) {
       for (let j = 0; j < block_width; j++) {
@@ -163,4 +214,3 @@ export default class Minimap {
       .attr("opacity", 0.5);
   }
 }
-
