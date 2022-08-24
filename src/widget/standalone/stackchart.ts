@@ -213,6 +213,8 @@ export default class StackedChart {
       .attr("viewBox", `0 0 ${this.width} ${this.height}`)
       .attr("style", "max-width: 100%; height: auto; height: intrinsic;");
 
+    let titleSize = Math.min(0.08 * this.height, 16);
+    
     svg
       .append("g")
       .attr("transform", `translate(${this.marginLeft},0)`)
@@ -233,7 +235,7 @@ export default class StackedChart {
           .attr("fill", "currentColor")
           .attr("text-anchor", "start")
           .text(this.yLabel)
-          .style("font-size", `${0.08 * this.height}`)
+          .style("font-size", `${titleSize}`)
       );
 
     let dy: number = this.yScale(0);

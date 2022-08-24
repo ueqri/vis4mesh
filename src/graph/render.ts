@@ -188,13 +188,18 @@ export class Render {
         const sel = d3.select(this);
         const [src, dst] = d.connection;
         let dstNode = GetLinkDst([d.idx, d.idy], d.direction);
+        
         ClickInteraction.onEdge(
           `(${d.idx}, ${d.idy})->${dstNode}`,
           function () {
             if (d.level === 0 && d.opacity !== 0) {
               let pin = grid.append("circle");
               let edgeName = `${d.connection[0]}to${d.connection[1]}`;
-
+              let removePins = () => {
+                pin.remove();
+                minimap.RemovePin([d.idx, d.idy]);
+                pinMap.delete(edgeName);
+              };
               sidecanvas.AddLinkHistogram(
                 edgeName,
                 (color: string) => {
@@ -216,16 +221,12 @@ export class Render {
                       pin.attr("r", 0.04).style("cursor", "default");
                     })
                     .on("click", () => {
-                      pin.remove();
                       sidecanvas.checkoutLink("stacked-chart-" + edgeName);
+                      removePins();
                     });
                   pinMap.set(edgeName, pin);
                 },
-                () => {
-                  minimap.RemovePin([d.idx, d.idy]);
-                  pinMap.delete(edgeName);
-                  pin.remove();
-                },
+                removePins,
                 () => {
                   mainview.click_edge_jump(ev, d);
                 },

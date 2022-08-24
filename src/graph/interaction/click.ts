@@ -16,8 +16,7 @@ class ClickInteraction {
     this.reset();
     executeEvent();
 
-    // SideCanvas.write(`<h3>Node</h3>`);
-    SideCanvas.write(`<h4>${text}</h4>`);
+    SideCanvas.write(`<h9>${text}</h9>`);
     // if (level === 0) {
     //   SideCanvas.DisplayChord();
     // }
@@ -28,8 +27,7 @@ class ClickInteraction {
     this.reset();
     executeEvent();
 
-    // SideCanvas.write(`<h3>Link</h3>`);
-    SideCanvas.write(`<h4>${text}</h4>`);
+    SideCanvas.write(`<h9>${text}</h9>`);
 
     this.clearLastEvent = clearEvent;
   }

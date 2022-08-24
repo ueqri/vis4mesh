@@ -61,8 +61,7 @@ class SideCanvas {
   load(meta: Object, nodeMap: { [id: number]: AbstractNode }) {}
 
   Clear() {
-    content.html(`<h4>Overview</h4>`);
-    div.selectAll("#flowchord").remove();
+    content.html(`<h9>Overview</h9>`);
   }
 
   write(html: string) {
