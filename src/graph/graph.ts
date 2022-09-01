@@ -458,7 +458,7 @@ export class MainView {
     this.view_jump(
       -(node.idy * node.scale + node.scale / 2),
       -(node.idx * node.scale + node.scale / 2),
-      (10 * this.tile_width) / node.scale,
+      this.transform_scale,
       500,
       event
     );
@@ -466,7 +466,7 @@ export class MainView {
 
   click_edge_jump(event: any, edge: LineLink) {
     const node = edge.start;
-    const k = (10 * this.tile_width) / node.scale;
+    const k = this.transform_scale;
     const x = node.idy * node.scale + node.scale / 2;
     const y = node.idx * node.scale + node.scale / 2;
     let [mx, my] = DirectionOffset([x, y], edge.direction, node.scale / 2);
