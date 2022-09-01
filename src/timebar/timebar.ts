@@ -36,10 +36,11 @@ export const opt: StackBarOptions = {
   width: 0,
   height: 0,
   offset: d3.stackOffsetNone,
-  yLabel: "BandWidth Percentage(%)",
+  yLabel: "BandWidth(%)",
   zDomain: MsgGroupsDomain,
   colors: colorScheme[NumMsgGroups],
   yFormat: "~s", // SI prefix and trims insignificant trailing zeros
+  yDomain: [0, 100],
 };
 
 let timebar_opt: StackBarOptions = {
