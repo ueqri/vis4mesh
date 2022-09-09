@@ -5,14 +5,13 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Vis4Mesh</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.2/dist/css/bootstrap.min.css" rel="stylesheet"
-    integrity="sha384-uWxY/CJNBR+1zjPWmfnSnVxwRheevXITnMqoEIeG1LJrdI0GlVs/9cVSyPYXdcSF" crossorigin="anonymous">
+  <link rel="stylesheet" type="text/css"
+    href="https://fastly.jsdelivr.net/npm/bootstrap@5.1.2/dist/css/bootstrap.min.css">
 </head>
 
 <body>
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.2/dist/js/bootstrap.bundle.min.js"
-    integrity="sha384-kQtW33rZJAHjgefvhyyzcGF3C5TFyBQBA13V1RKPf4uH+bwyzQxZ6CmMZHmNBEfJ"
-    crossorigin="anonymous"></script>
+  <script type="text/javascript"
+    src="https://fastly.jsdelivr.net/npm/bootstrap@5.1.2/dist/js/bootstrap.min.js"></script>
 
   <nav id="navbar" class="fixed-top navbar navbar-light bg-light">
     <!-- TODO: tooltip for items -->
@@ -28,8 +27,9 @@
         <a id="dataport-status-dropdown" class="nav-link dropdown-toggle" href="#" role="button"
           data-bs-toggle="dropdown" aria-expanded="false">
           <!-- TODO: add interaction -->
-          <img id="dataport-status-icon" width="35" height="35" data-bs-toggle="tooltip" data-bs-placement="bottom"
-            title="Data Port Status">
+          <img id="dataport-status-icon" alt="click me"
+            src="https://fastly.jsdelivr.net/npm/twemoji@12.0.0/2/svg/1f61c.svg" width="35" height="35"
+            data-bs-toggle="tooltip" data-bs-placement="bottom" title="Data Port Status">
         </a>
         <ul class="dropdown-menu dropdown-menu-light" aria-labelledby="dataport-status-dropdown">
           <li><button class="dropdown-item" id="open-directory-btn">Open directory (local)</button></li>
@@ -37,6 +37,8 @@
           <li><button class="dropdown-item" id="close-instance-btn">Close current instance</button></li>
         </ul>
       </div>
+
+      <div id="nodesize"></div>
 
       <!-- Accordion Setting Toggle -->
       <button class="navbar-toggler ms-auto" type="button" data-bs-toggle="collapse" data-bs-target="#setting"
@@ -52,6 +54,11 @@
     <div class="resizer"></div>
     <div id="sidecanvas-content"></div>
   </div>
+
+  <svg id="minimap">
+    <g id="minimap-blocks"></g>
+    <rect id="minimap-viewport-box"></rect>
+  </svg>
 
   <div id="setting" class="collapse"></div>
 

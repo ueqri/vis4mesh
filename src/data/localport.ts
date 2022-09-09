@@ -8,7 +8,6 @@ import { directoryOpen } from "browser-fs-access";
 
 export default class LocalDataPort extends DataPort {
   protected loader!: FileLoader;
-
   protected meta!: MetaData;
   protected overview!: FlatData;
   protected nodes!: NodeData[];
@@ -35,7 +34,11 @@ export default class LocalDataPort extends DataPort {
   }
 
   async init() {
+    console.log("begin read dir");
     const dirEntries = await directoryOpen({ recursive: true });
+    console.log("read dirs finish");
+    console.log(dirEntries);
+
     this.loader = new FileLoader(dirEntries);
     // load lightweight file handles of all edge files at once
     await this.loader.getEdgeFiles();
@@ -51,6 +54,19 @@ export default class LocalDataPort extends DataPort {
 
   async flat() {
     return this.overview;
+  }
+
+  async snapshotByEdge(edgeName: string) {
+    console.log("load edge history to flat data: " + edgeName);
+    let history = await this.loader.getEdgeSnapshot(edgeName);
+    if (history === "") {
+      return undefined;
+    }
+    let flat = JSON.parse(history) as FlatData;
+    for (let i of flat) {
+      i.count /= 20;
+    }
+    return flat;
   }
 
   async range(start: number, end: number) {

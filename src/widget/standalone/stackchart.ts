@@ -85,6 +85,7 @@ export default class StackedChart {
 
   public xScale: any;
   public yScale: any;
+  public totalScale: any;
 
   protected series: (d3.SeriesPoint<{
     [key: string]: number;
@@ -161,13 +162,14 @@ export default class StackedChart {
     const yType = opt.yType === undefined ? d3.scaleLinear : opt.yType;
     const xScale = d3.scaleBand(xDomain, xRange).paddingInner(this.xPadding);
     const yScale = yType(yDomain, yRange);
+
     const color = d3.scaleOrdinal(zDomain, opt.colors);
     const xAxis = d3
       .axisBottom(xScale as any)
       .tickSizeOuter(0)
       .tickValues(
         xScale.domain().filter(function (d, i) {
-          const realWidth = document.body.clientWidth;
+          const realWidth = opt.width;
           // console.log(realWidth);
           const numTicks = Math.floor(realWidth / 40); // 25px => 1cm
           return !(i % Math.floor(xScale.domain().length / numTicks));
@@ -211,6 +213,8 @@ export default class StackedChart {
       .attr("viewBox", `0 0 ${this.width} ${this.height}`)
       .attr("style", "max-width: 100%; height: auto; height: intrinsic;");
 
+    let titleSize = Math.min(0.08 * this.height, 16);
+    
     svg
       .append("g")
       .attr("transform", `translate(${this.marginLeft},0)`)
@@ -227,10 +231,11 @@ export default class StackedChart {
         g
           .append("text")
           .attr("x", -this.marginLeft)
-          .attr("y", 10)
+          .attr("y", 0.1 * this.height)
           .attr("fill", "currentColor")
           .attr("text-anchor", "start")
           .text(this.yLabel)
+          .style("font-size", `${titleSize}`)
       );
 
     let dy: number = this.yScale(0);

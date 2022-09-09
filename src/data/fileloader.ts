@@ -5,11 +5,13 @@ export class FileLoader {
   edgeFiles: File[];
   readonly dirRoot = "meshmetrics/";
   readonly dirEdges = this.dirRoot.concat("edge_prefix_sum/");
+  readonly dirEdgeHistory = this.dirRoot.concat("edgehis/");
 
   // dirHandle: built by openDirectory() method supported by web-fs-access
   public constructor(dirHandle: FileWithDirectoryAndFileHandle[]) {
     this.edgeFiles = [];
     this.dirEnrties = dirHandle;
+    console.log("constructor FileLoader");
   }
 
   // getEdgeFiles: must be called and awaited before MeshInfo
@@ -19,10 +21,7 @@ export class FileLoader {
     }
     for (const entry of this.dirEnrties) {
       if (entry.webkitRelativePath.startsWith(this.dirEdges)) {
-        if (entry.handle === undefined) {
-          throw new Error("Unreachable code of build edgeFile[] object");
-        }
-        this.edgeFiles.push(await entry.handle.getFile());
+        this.edgeFiles.push(entry);
       }
     }
 
@@ -40,15 +39,15 @@ export class FileLoader {
   // getFileContent: expected to be called for three times (meta, flat, nodes)
   public async getFileContent(filename: string) {
     filename += ".json";
+
     for (const entry of this.dirEnrties) {
       if (entry.name === filename) {
-        if (entry.handle === undefined) {
-          throw new Error(filename + " has not been loaded");
-        }
-        let file = await entry.handle.getFile();
-        return await file.text();
+        console.log("Get file content succeed: " + filename);
+        return await entry.text();
       }
     }
+    console.log(filename + " not found");
+    return "";
   }
 
   // ! getEdgeFileContent: idx should be limited to meta.elapse by caller
@@ -59,6 +58,11 @@ export class FileLoader {
     }
     const content = await this.edgeFiles[idx].text();
     return content;
+  }
+
+  public async getEdgeSnapshot(name: string) {
+    // return edge snapshot
+    return await this.getFileContent(name);
   }
 
   private getFilenameIndex(filename: string): number {

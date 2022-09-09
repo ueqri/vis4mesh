@@ -6,6 +6,7 @@ const div = {
   navbar: d3.select("#navbar"),
   timebar: d3.select("#timebar"),
   sidecanvas: d3.select("#sidecanvas"),
+  minimap: d3.select("#minimap"),
 };
 
 export default class Layout {
@@ -40,6 +41,7 @@ export default class Layout {
         callback: ([w, h]) => {
           if (h == 0) {
             div.graph.style("bottom", "0px");
+            div.minimap.style("bottom", "0px");
             div.sidecanvas.style("bottom", "0px");
             // Height of sidecanvas changed in another resizer
             div.sidecanvas.style("height", null);
@@ -48,6 +50,8 @@ export default class Layout {
             div.graph.style("bottom", h + "px");
             div.sidecanvas.style("bottom", h + "px");
             div.sidecanvas.style("height", null);
+            // minimap bottom border is 2.5px
+            div.minimap.style("bottom", h + 2.5 + "px");
           }
         },
       },

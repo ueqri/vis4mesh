@@ -9,6 +9,7 @@ import {
 } from "data/classification";
 import { Component, Element, Module } from "global";
 import Event from "event";
+import { FlatData } from "data/data";
 
 const ev = {
   MsgGroup: "FilterMsgGroup",
@@ -28,14 +29,28 @@ const fixDoCColor = DataOrCommandDomain.reduce(
   {}
 );
 
-let opt: StackBarOptions = {
+export const opt: StackBarOptions = {
   x: (d) => d.id,
   y: (d) => d.count,
   z: (d) => d.group, // or d.doc
   width: 0,
   height: 0,
   offset: d3.stackOffsetNone,
-  yLabel: "Message Count",
+  yLabel: "BandWidth(%)",
+  zDomain: MsgGroupsDomain,
+  colors: colorScheme[NumMsgGroups],
+  yFormat: "~s", // SI prefix and trims insignificant trailing zeros
+  yDomain: [0, 100],
+};
+
+let timebar_opt: StackBarOptions = {
+  x: (d) => d.id,
+  y: (d) => d.count,
+  z: (d) => d.group, // or d.doc
+  width: 0,
+  height: 0,
+  offset: d3.stackOffsetNone,
+  yLabel: "Message Count (flits)",
   zDomain: MsgGroupsDomain,
   colors: colorScheme[NumMsgGroups],
   yFormat: "~s", // SI prefix and trims insignificant trailing zeros
@@ -53,7 +68,7 @@ interface FormattedDataForChartByDoC {
   count: number;
 }
 
-function handleFlatResponseByMsgGroups(
+export function handleFlatResponseByMsgGroups(
   data: DataPortFlatResponse
 ): FormattedDataForChartByMsgGroups[] {
   const reduce = d3.flatRollup(
@@ -89,22 +104,26 @@ function handleFlatResponseByDoC(
   });
 }
 
-export function RenderTimebar() {
-  Component.port.flat().then((resp) => {
-    const timebar = Element.timebar.loadFlatResponse(resp);
+export async function RenderTimebar() {
+  console.log("Render Timebar from flat data");
+  const resp = await Component.port.flat();
+  RenderTimebarImpl(resp);
+}
 
-    Component.ticker.setCast((l, r) => timebar.moveBrush(l, r));
-    Component.layout.timebar.afterResizing(() => timebar.render());
+export function RenderTimebarImpl(resp: FlatData) {
+  const timebar = Element.timebar.loadFlatResponse(resp);
 
-    Event.AddStepListener(ev.MsgGroup, (g: string[]) =>
-      timebar.updateMsgGroupDomain(g)
-    );
-    Event.AddStepListener(ev.DataOrCommand, (doc: string[]) =>
-      timebar.updateDataOrCommandDomain(doc)
-    );
+  Component.ticker.setCast((l, r) => timebar.moveBrush(l, r));
+  Component.layout.timebar.afterResizing(() => timebar.render());
 
-    timebar.render();
-  });
+  Event.AddStepListener(ev.MsgGroup, (g: string[]) =>
+    timebar.updateMsgGroupDomain(g)
+  );
+  Event.AddStepListener(ev.DataOrCommand, (doc: string[]) =>
+    timebar.updateDataOrCommandDomain(doc)
+  );
+
+  timebar.render();
 }
 
 export default class Timebar {
@@ -131,17 +150,17 @@ export default class Timebar {
   }
 
   updateMsgGroupDomain(domain: string[]) {
-    opt.z = (d) => d.group;
-    opt.zDomain = domain;
-    opt.colors = domain.map((d) => fixGroupColor[d]);
+    timebar_opt.z = (d) => d.group;
+    timebar_opt.zDomain = domain;
+    timebar_opt.colors = domain.map((d) => fixGroupColor[d]);
     this.data = this.dataForMsgGroups;
     this.render();
   }
 
   updateDataOrCommandDomain(domain: string[]) {
-    opt.z = (d) => d.doc;
-    opt.zDomain = domain;
-    opt.colors = domain.map((d) => fixDoCColor[d]);
+    timebar_opt.z = (d) => d.doc;
+    timebar_opt.zDomain = domain;
+    timebar_opt.colors = domain.map((d) => fixDoCColor[d]);
     this.data = this.dataForDoC;
     this.render();
   }
@@ -149,10 +168,10 @@ export default class Timebar {
   render() {
     div.select("#stacked-chart").remove();
 
-    opt.width = (div.node() as Element).getBoundingClientRect().width;
-    opt.height = (div.node() as Element).getBoundingClientRect().height;
+    timebar_opt.width = (div.node() as Element).getBoundingClientRect().width;
+    timebar_opt.height = (div.node() as Element).getBoundingClientRect().height;
 
-    let chart = new StackedChart(this.data, opt);
+    let chart = new StackedChart(this.data, timebar_opt);
     let svg = chart.axis();
     svg.attr("id", "stacked-chart");
     chart.bar(svg);
