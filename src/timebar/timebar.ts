@@ -104,6 +104,17 @@ function handleFlatResponseByDoC(
   });
 }
 
+
+const getMaxFlitsFromFlatResponse = (data: DataPortFlatResponse): number[] => {
+  let res = [];
+  for (let d of data) {
+    if (d.id >= res.length) {
+      res.push(d.max_flits);
+    }
+  }
+  return res;
+};
+
 export async function RenderTimebar() {
   console.log("Render Timebar from flat data");
   const resp = await Component.port.flat();
@@ -133,6 +144,7 @@ export default class Timebar {
   protected data!: Object;
   protected dataForMsgGroups!: FormattedDataForChartByMsgGroups[];
   protected dataForDoC!: FormattedDataForChartByDoC[];
+  protected maxFlits!: number[];
   protected prevBrush: [number, number];
 
   constructor(d?: DataPortFlatResponse) {
@@ -145,6 +157,7 @@ export default class Timebar {
   loadFlatResponse(d: DataPortFlatResponse): this {
     this.dataForMsgGroups = handleFlatResponseByMsgGroups(d);
     this.dataForDoC = handleFlatResponseByDoC(d);
+    this.maxFlits = getMaxFlitsFromFlatResponse(d);
     this.data = this.dataForMsgGroups; // filter message groups by default
     return this;
   }

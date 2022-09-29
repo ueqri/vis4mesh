@@ -37,7 +37,6 @@ export default class LocalDataPort extends DataPort {
     console.log("begin read dir");
     const dirEntries = await directoryOpen({ recursive: true });
     console.log("read dirs finish");
-    console.log(dirEntries);
 
     this.loader = new FileLoader(dirEntries);
     // load lightweight file handles of all edge files at once

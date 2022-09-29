@@ -3,9 +3,8 @@ import { FileWithDirectoryAndFileHandle } from "browser-fs-access";
 export class FileLoader {
   dirEnrties: FileWithDirectoryAndFileHandle[];
   edgeFiles: File[];
-  readonly dirRoot = "meshmetrics/";
-  readonly dirEdges = this.dirRoot.concat("edge_prefix_sum/");
-  readonly dirEdgeHistory = this.dirRoot.concat("edgehis/");
+  readonly dirEdges = "edge_prefix_sum/";
+  readonly dirEdgeHistory = "edgehis/";
 
   // dirHandle: built by openDirectory() method supported by web-fs-access
   public constructor(dirHandle: FileWithDirectoryAndFileHandle[]) {
@@ -20,7 +19,8 @@ export class FileLoader {
       return;
     }
     for (const entry of this.dirEnrties) {
-      if (entry.webkitRelativePath.startsWith(this.dirEdges)) {
+      if (entry.webkitRelativePath.includes(this.dirEdges)
+          && !entry.webkitRelativePath.endsWith(this.dirEdges)) {
         this.edgeFiles.push(entry);
       }
     }
