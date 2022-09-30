@@ -66,7 +66,7 @@ export default class StackedChart {
   protected height: number;
   protected marginTop = 30; // top margin, in pixels
   protected marginRight = 5; // right margin, in pixels
-  protected marginBottom = 30; // bottom margin, in pixels
+  protected marginBottom = 0; // bottom margin, in pixels
   protected marginLeft = 40; // left margin, in pixels
   protected xPadding = 0.1; // amount of x-range to reserve to separate bars
 
@@ -154,7 +154,7 @@ export default class StackedChart {
 
     // Compute x-range & y-range.
     let xRange = [this.marginLeft, opt.width - this.marginRight];
-    let yRange = [opt.height - this.marginBottom, this.marginTop];
+    let yRange = [opt.height - 20, this.marginTop];
     if (opt.xRange != undefined) xRange = opt.xRange;
     if (opt.yRange != undefined) yRange = opt.yRange;
 

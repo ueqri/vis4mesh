@@ -158,6 +158,7 @@ export default class Timebar {
     this.dataForMsgGroups = handleFlatResponseByMsgGroups(d);
     this.dataForDoC = handleFlatResponseByDoC(d);
     this.maxFlits = getMaxFlitsFromFlatResponse(d);
+    console.log(this.maxFlits);
     this.data = this.dataForMsgGroups; // filter message groups by default
     return this;
   }
@@ -180,13 +181,17 @@ export default class Timebar {
 
   render() {
     div.select("#stacked-chart").remove();
+    div.select("#saturation-bar").remove();
 
     timebar_opt.width = (div.node() as Element).getBoundingClientRect().width;
-    timebar_opt.height = (div.node() as Element).getBoundingClientRect().height;
+    timebar_opt.height = (div.node() as Element).getBoundingClientRect().height-20;
 
     let chart = new StackedChart(this.data, timebar_opt);
     let svg = chart.axis();
     svg.attr("id", "stacked-chart");
+    const saturation_bar = ramp(ColorScheme, this.maxFlits);
+    saturation_bar.id = "saturation-bar";
+    saturation_bar.style["display"] = "inline-block";
     chart.bar(svg);
     let brush = chart.brush(
       svg,
@@ -199,7 +204,10 @@ export default class Timebar {
       this.prevBrush
     );
 
+    
     div.append(() => chart.node(svg));
+    div.append(()=> saturation_bar);
+
 
     this.chart = chart;
     this.svg = svg;
@@ -210,4 +218,29 @@ export default class Timebar {
     this.prevBrush = [left, right];
     this.chart.moveBrush(this.svg, this.brush, this.prevBrush);
   }
+}
+
+function ColorScheme(lv: number): string {
+  // [0, 9] maps Blue-Yellow-Red color platte
+  return d3.interpolateReds(lv / 2000);
+}
+
+const marginLeft = 40;
+
+function ramp(color: (x: number)=>string, color_value: number[]) {
+  const n = color_value.length;
+  const canvas = document.createElement("canvas");
+  canvas.width = n;
+  canvas.height = 1;
+  const context = canvas.getContext("2d");
+  canvas.style.width = `calc(100% - ${marginLeft}px)`;
+  canvas.style.height = "20px"; 
+  canvas.style.imageRendering = "-moz-crisp-edges";
+  canvas.style.imageRendering = "pixelated";
+  canvas.style.marginLeft = `${marginLeft}px`;
+  for (let i = 0; i < n; ++i) {
+    context!.fillStyle = color(color_value[i]);
+    context!.fillRect(i, 0, 1, 1);
+  }
+  return canvas;
 }
