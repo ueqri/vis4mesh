@@ -93,8 +93,8 @@ export class AbstractLayer {
   }
 
   buildFromFlatData(
-    width: number,
     height: number,
+    width: number,
     edges: EdgeDisplay[]
   ): AbstractNode[][] {
     let nodes: AbstractNode[][] = [];
@@ -182,8 +182,8 @@ export function BuildAbstractLayers(
     let start = performance.now();
     let layer = new AbstractLayer(
       i,
-      tile_width / i,
       tile_height / i,
+      tile_width / i,
       bandwidth,
       [],
       layers[layers.length - 1]
