@@ -18,6 +18,8 @@ import { MainView } from "./graph";
 import Minimap from "./minimap";
 import sidecanvas from "./interaction/sidecanvas";
 import * as d3 from "d3";
+import selector from "widget/daisen";
+import { select } from "d3";
 
 export class Render {
   mainview: MainView;
@@ -102,6 +104,10 @@ export class Render {
         const sel = d3.select(this);
         sel.attr("fill", "#599dbb");
         sel.style("cursor", "pointer");
+        if(d.level > 0) {
+          return;
+        }
+        sel.append("title").text(`Tile_${d.idx}_${d.idy}`);
         // TooltipInteraction.onNode(nodeMap[d.id]);
       })
       .on("mousemove", function (ev) {
@@ -119,21 +125,26 @@ export class Render {
         ev.stopPropagation();
 
         const sel = d3.select(this);
+        mainview.click_node_jump(ev, d);
+        if(d.level > 0) {
+          return;
+        }
         ClickInteraction.onNode(
           d.level,
-          `(${d.idx}, ${d.idy})`,
+          `Tile_${d.idx}_${d.idy}`,
           () => {
             sel.attr("fill", "#599dbb");
             sel.property("checked", true);
             mainview.register_rect_color(d, "#599dbb");
+            selector.register_ep([d.idx, d.idy]);
           },
           () => {
             sel.attr("fill", d.color);
             sel.property("checked", false);
             mainview.register_rect_color(d);
+            selector.unset_ep();
           }
         );
-        mainview.click_node_jump(ev, d);
       });
   }
 
@@ -171,6 +182,11 @@ export class Render {
         sel.attr("stroke-width", d.width * 1.5);
         sel.style("cursor", "pointer");
         const [src, dst] = d.connection;
+        if(d.level > 0) {
+          return;
+        }
+        let dstNode = GetLinkDst([d.idx, d.idy], d.direction);
+        sel.append("title").text(`Tile_${d.idx}_${d.idy} ---> ${dstNode}`);
         // TooltipInteraction.onEdge([nodeMap[src], nodeMap[dst]]);
       })
       .on("mousemove", function (ev) {
@@ -190,7 +206,8 @@ export class Render {
         let dstNode = GetLinkDst([d.idx, d.idy], d.direction);
         
         ClickInteraction.onEdge(
-          `(${d.idx}, ${d.idy})->${dstNode}`,
+          d.level,
+          `Tile_${d.idx}_${d.idy} ---> ${dstNode}`,
           function () {
             if (d.level === 0 && d.opacity !== 0) {
               let pin = grid.append("circle");
@@ -203,7 +220,9 @@ export class Render {
               sidecanvas.AddLinkHistogram(
                 edgeName,
                 (color: string) => {
-                  minimap.AddPin([d.idx, d.idy], color, () => { mainview.click_edge_jump(ev, d) });
+                  minimap.AddPin([d.idx, d.idy], color, () => {
+                    mainview.click_edge_jump(ev, d);
+                  });
                   let [cx, cy] = DirectionOffset(
                     [d.x1, d.y1],
                     d.direction,
@@ -230,10 +249,10 @@ export class Render {
                 () => {
                   mainview.click_edge_jump(ev, d);
                 },
-                () => { 
+                () => {
                   pin.attr("r", 0.06);
                 },
-                () => { 
+                () => {
                   pin.attr("r", 0.04);
                 }
               );

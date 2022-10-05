@@ -314,8 +314,8 @@ export class MainView {
 
   get_text(links: LineLink[]) {
     let offsetText_1 = this.rect_size * 0.1;
+    let offsetText_15 = this.rect_size * 0.15;
     let offsetText_2 = this.rect_size * 0.2;
-    let offsetText_3 = this.rect_size * 0.3;
     let sum = 0;
     let texts: LinkText[] = [];
     for (let link of links) {
@@ -346,7 +346,7 @@ export class MainView {
         case 3: {
           // West
           posX = (link.x1 + link.x2) / 2;
-          posY = link.y1 - offsetText_2;
+          posY = link.y1 - offsetText_15;
           sum = this.layers[this.level].nodes[link.idx][link.idy].edgeData[3];
           break;
         }

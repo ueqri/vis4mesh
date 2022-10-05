@@ -10,6 +10,7 @@ import {
 import { Component, Element, Module } from "global";
 import Event from "event";
 import { FlatData } from "data/data";
+import selector from 'widget/daisen';
 
 const ev = {
   MsgGroup: "FilterMsgGroup",

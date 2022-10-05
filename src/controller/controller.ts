@@ -4,6 +4,7 @@ import { DataToDisplay } from "display/data";
 import DataWrapper from "data/localport";
 import { BuildAbstractLayers } from "../graph/abstractlayer";
 import { MainView } from "graph/graph";
+import selector from 'widget/daisen';
 
 export type SignalMap = { [type: string]: (v: any) => any };
 
@@ -43,6 +44,7 @@ export default class Controller {
   }
 
   async requestDataPort() {
+    selector.register_timerange([this.startTime, this.endTime]);
     try {
       let resp = await this.port.range(this.startTime, this.endTime);
       let data: DataToDisplay = {

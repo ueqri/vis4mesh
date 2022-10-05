@@ -26,7 +26,7 @@ export function ColorScheme(lv: number): string {
 export function GetLinkDst([x, y]: [number, number], direction: number) {
   let dx = x + directionX[direction];
   let dy = y + directionY[direction];
-  return `(${dx}, ${dy})`;
+  return `Tile_${dx}_${dy}`;
 }
 
 export function DirectionOffset(

@@ -60,10 +60,6 @@ class SideCanvas {
 
   load(meta: Object, nodeMap: { [id: number]: AbstractNode }) {}
 
-  Clear() {
-    content.html(`<h9>Overview</h9>`);
-  }
-
   write(html: string) {
     content.html(html);
   }
