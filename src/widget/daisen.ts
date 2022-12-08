@@ -44,8 +44,8 @@ class DaisenSelector {
 
   register_timerange([start, end]: [number, number]) {
     // TODO: match vis4mesh time range with daisen
-    this.time_start = start + 40;
-    this.time_end = end + 40; 
+    this.time_start = start;
+    this.time_end = end; 
   }
 
   unset_timerange() {
