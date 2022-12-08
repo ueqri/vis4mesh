@@ -5,41 +5,55 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Vis4Mesh</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.2/dist/css/bootstrap.min.css" rel="stylesheet"
-    integrity="sha384-uWxY/CJNBR+1zjPWmfnSnVxwRheevXITnMqoEIeG1LJrdI0GlVs/9cVSyPYXdcSF" crossorigin="anonymous">
+  <link rel="stylesheet" type="text/css"
+    href="https://fastly.jsdelivr.net/npm/bootstrap@5.1.2/dist/css/bootstrap.min.css">
 </head>
 
 <body>
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.2/dist/js/bootstrap.bundle.min.js"
-    integrity="sha384-kQtW33rZJAHjgefvhyyzcGF3C5TFyBQBA13V1RKPf4uH+bwyzQxZ6CmMZHmNBEfJ"
-    crossorigin="anonymous"></script>
+  <script type="text/javascript"
+    src="https://fastly.jsdelivr.net/npm/bootstrap@5.1.2/dist/js/bootstrap.min.js"></script>
 
   <nav id="navbar" class="fixed-top navbar navbar-light bg-light">
     <!-- TODO: tooltip for items -->
-    <div class="container-fluid">
-      <a class="navbar-brand" style="margin-left: 0.75em;" href="#" data-bs-toggle="tooltip" data-bs-placement="bottom"
-        title="metadata: undefined">Vis4Mesh</a>
+    <div class="container-fluid" style="height: 50px;">
+      <a class="navbar-brand" style="margin-left: 0.5em;" href="#" data-bs-toggle="tooltip" data-bs-placement="center"
+      title="A visualization tool for wafer-scale architecture">Vis4Mesh</a>
+
+      <button id="open-directory-btn" class="navbar-toggler" style="font-size: medium; margin-right: 0.5em;">Start</button>
+
+      <div id="instruction">
+      </div>
 
       <!-- Player Status -->
-      <div id="player-status"></div>
+      <div id="player-status" style="scale: 0.8;"></div>
 
       <!-- Data Port Status -->
-      <div id="dataport-status" class="dropdown">
-        <a id="dataport-status-dropdown" class="nav-link dropdown-toggle" href="#" role="button"
+      <!-- <div id="dataport-status" class="dropdown">
+        <a id="dataport-status-dropdown" style="margin-top: -0.5em;" class="nav-link dropdown-toggle" href="#" role="button"
           data-bs-toggle="dropdown" aria-expanded="false">
           <!-- TODO: add interaction -->
-          <img id="dataport-status-icon" width="35" height="35" data-bs-toggle="tooltip" data-bs-placement="bottom"
-            title="Data Port Status">
+          <!-- <img id="dataport-status-icon" alt="click me"
+            src="./icon/upload.svg" width="25" height="25"
+            data-bs-toggle="tooltip" data-bs-placement="bottom" title="Data Port Status">
         </a>
         <ul class="dropdown-menu dropdown-menu-light" aria-labelledby="dataport-status-dropdown">
           <li><button class="dropdown-item" id="open-directory-btn">Open directory (local)</button></li>
-          <li><button class="dropdown-item" id="connect-ws-btn">Connect WebSocket (remote)</button></li>
+          <li><button class="dropdown-item" id="connect-ws-btn">Connect WebSocket (remote)</button></li> 
           <li><button class="dropdown-item" id="close-instance-btn">Close current instance</button></li>
         </ul>
-      </div>
+      </div> 
+      -->
+
+      <div id="nodesize" data-bs-toggle="tooltip" data-bs-placement="center"
+       title="Each tile on screen actually contains (a * b) tiles"></div>
+
+      <button id="launch-daisen" class="navbar-toggler ms-auto" style="scale: 0.8;" type="button" data-bs-placement="center" data-bs-target="#daisen"
+       aria-controls="setting" aria-expanded="false" aria-label="Toggle setting">
+       Launch Daisen
+      </button>
 
       <!-- Accordion Setting Toggle -->
-      <button class="navbar-toggler ms-auto" type="button" data-bs-toggle="collapse" data-bs-target="#setting"
+      <button class="navbar-toggler ms-auto" style="scale: 0.5;" type="button" data-bs-toggle="collapse" data-bs-placement="center" data-bs-target="#setting"
         aria-controls="setting" aria-expanded="false" aria-label="Toggle setting">
         <span class="navbar-toggler-icon"></span>
       </button>
@@ -50,8 +64,12 @@
 
   <div id="sidecanvas">
     <div class="resizer"></div>
-    <div id="sidecanvas-content"></div>
   </div>
+
+  <svg id="minimap">
+    <g id="minimap-blocks"></g>
+    <rect id="minimap-viewport-box"></rect>
+  </svg>
 
   <div id="setting" class="collapse"></div>
 

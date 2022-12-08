@@ -9,6 +9,8 @@ import {
 } from "data/classification";
 import { Component, Element, Module } from "global";
 import Event from "event";
+import { FlatData } from "data/data";
+import selector from 'widget/daisen';
 
 const ev = {
   MsgGroup: "FilterMsgGroup",
@@ -28,14 +30,28 @@ const fixDoCColor = DataOrCommandDomain.reduce(
   {}
 );
 
-let opt: StackBarOptions = {
+export const opt: StackBarOptions = {
   x: (d) => d.id,
   y: (d) => d.count,
   z: (d) => d.group, // or d.doc
   width: 0,
   height: 0,
   offset: d3.stackOffsetNone,
-  yLabel: "Message Count",
+  yLabel: "BandWidth(%)",
+  zDomain: MsgGroupsDomain,
+  colors: colorScheme[NumMsgGroups],
+  yFormat: "~s", // SI prefix and trims insignificant trailing zeros
+  yDomain: [0, 100],
+};
+
+let timebar_opt: StackBarOptions = {
+  x: (d) => d.id,
+  y: (d) => d.count,
+  z: (d) => d.group, // or d.doc
+  width: 0,
+  height: 0,
+  offset: d3.stackOffsetNone,
+  yLabel: "Message Count (flits)",
   zDomain: MsgGroupsDomain,
   colors: colorScheme[NumMsgGroups],
   yFormat: "~s", // SI prefix and trims insignificant trailing zeros
@@ -53,7 +69,7 @@ interface FormattedDataForChartByDoC {
   count: number;
 }
 
-function handleFlatResponseByMsgGroups(
+export function handleFlatResponseByMsgGroups(
   data: DataPortFlatResponse
 ): FormattedDataForChartByMsgGroups[] {
   const reduce = d3.flatRollup(
@@ -89,22 +105,37 @@ function handleFlatResponseByDoC(
   });
 }
 
-export function RenderTimebar() {
-  Component.port.flat().then((resp) => {
-    const timebar = Element.timebar.loadFlatResponse(resp);
 
-    Component.ticker.setCast((l, r) => timebar.moveBrush(l, r));
-    Component.layout.timebar.afterResizing(() => timebar.render());
+const getMaxFlitsFromFlatResponse = (data: DataPortFlatResponse): number[] => {
+  let res = [];
+  for (let d of data) {
+    if (d.id >= res.length) {
+      res.push(d.max_flits);
+    }
+  }
+  return res;
+};
 
-    Event.AddStepListener(ev.MsgGroup, (g: string[]) =>
-      timebar.updateMsgGroupDomain(g)
-    );
-    Event.AddStepListener(ev.DataOrCommand, (doc: string[]) =>
-      timebar.updateDataOrCommandDomain(doc)
-    );
+export async function RenderTimebar() {
+  console.log("Render Timebar from flat data");
+  const resp = await Component.port.flat();
+  RenderTimebarImpl(resp);
+}
 
-    timebar.render();
-  });
+export function RenderTimebarImpl(resp: FlatData) {
+  const timebar = Element.timebar.loadFlatResponse(resp);
+
+  Component.ticker.setCast((l, r) => timebar.moveBrush(l, r));
+  Component.layout.timebar.afterResizing(() => timebar.render());
+
+  Event.AddStepListener(ev.MsgGroup, (g: string[]) =>
+    timebar.updateMsgGroupDomain(g)
+  );
+  Event.AddStepListener(ev.DataOrCommand, (doc: string[]) =>
+    timebar.updateDataOrCommandDomain(doc)
+  );
+
+  timebar.render();
 }
 
 export default class Timebar {
@@ -114,6 +145,7 @@ export default class Timebar {
   protected data!: Object;
   protected dataForMsgGroups!: FormattedDataForChartByMsgGroups[];
   protected dataForDoC!: FormattedDataForChartByDoC[];
+  protected maxFlits!: number[];
   protected prevBrush: [number, number];
 
   constructor(d?: DataPortFlatResponse) {
@@ -126,35 +158,41 @@ export default class Timebar {
   loadFlatResponse(d: DataPortFlatResponse): this {
     this.dataForMsgGroups = handleFlatResponseByMsgGroups(d);
     this.dataForDoC = handleFlatResponseByDoC(d);
+    this.maxFlits = getMaxFlitsFromFlatResponse(d);
+    console.log(this.maxFlits);
     this.data = this.dataForMsgGroups; // filter message groups by default
     return this;
   }
 
   updateMsgGroupDomain(domain: string[]) {
-    opt.z = (d) => d.group;
-    opt.zDomain = domain;
-    opt.colors = domain.map((d) => fixGroupColor[d]);
+    timebar_opt.z = (d) => d.group;
+    timebar_opt.zDomain = domain;
+    timebar_opt.colors = domain.map((d) => fixGroupColor[d]);
     this.data = this.dataForMsgGroups;
     this.render();
   }
 
   updateDataOrCommandDomain(domain: string[]) {
-    opt.z = (d) => d.doc;
-    opt.zDomain = domain;
-    opt.colors = domain.map((d) => fixDoCColor[d]);
+    timebar_opt.z = (d) => d.doc;
+    timebar_opt.zDomain = domain;
+    timebar_opt.colors = domain.map((d) => fixDoCColor[d]);
     this.data = this.dataForDoC;
     this.render();
   }
 
   render() {
     div.select("#stacked-chart").remove();
+    div.select("#saturation-bar").remove();
 
-    opt.width = (div.node() as Element).getBoundingClientRect().width;
-    opt.height = (div.node() as Element).getBoundingClientRect().height;
+    timebar_opt.width = (div.node() as Element).getBoundingClientRect().width;
+    timebar_opt.height = (div.node() as Element).getBoundingClientRect().height-20;
 
-    let chart = new StackedChart(this.data, opt);
+    let chart = new StackedChart(this.data, timebar_opt);
     let svg = chart.axis();
     svg.attr("id", "stacked-chart");
+    const saturation_bar = ramp(ColorScheme, this.maxFlits);
+    saturation_bar.id = "saturation-bar";
+    saturation_bar.style["display"] = "inline-block";
     chart.bar(svg);
     let brush = chart.brush(
       svg,
@@ -167,7 +205,10 @@ export default class Timebar {
       this.prevBrush
     );
 
+    
     div.append(() => chart.node(svg));
+    div.append(()=> saturation_bar);
+
 
     this.chart = chart;
     this.svg = svg;
@@ -178,4 +219,29 @@ export default class Timebar {
     this.prevBrush = [left, right];
     this.chart.moveBrush(this.svg, this.brush, this.prevBrush);
   }
+}
+
+function ColorScheme(lv: number): string {
+  // [0, 9] maps Blue-Yellow-Red color platte
+  return d3.interpolateReds(lv / 2000);
+}
+
+const marginLeft = 40;
+
+function ramp(color: (x: number)=>string, color_value: number[]) {
+  const n = color_value.length;
+  const canvas = document.createElement("canvas");
+  canvas.width = n;
+  canvas.height = 1;
+  const context = canvas.getContext("2d");
+  canvas.style.width = `calc(100% - ${marginLeft}px)`;
+  canvas.style.height = "20px"; 
+  canvas.style.imageRendering = "-moz-crisp-edges";
+  canvas.style.imageRendering = "pixelated";
+  canvas.style.marginLeft = `${marginLeft}px`;
+  for (let i = 0; i < n; ++i) {
+    context!.fillStyle = color(color_value[i]);
+    context!.fillRect(i, 0, 1, 1);
+  }
+  return canvas;
 }

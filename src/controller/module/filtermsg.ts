@@ -1,5 +1,5 @@
 import { SignalMap, ControllerModule } from "../controller";
-import { DataToDisplay } from "display/data";
+import { DataToDisplay, EdgeDisplay } from "display/data";
 import { DataPortRangeResponse } from "data/data";
 import {
   DataOrCommandDomain,
@@ -58,39 +58,47 @@ export default class FilterMsg implements ControllerModule {
   }
 
   decorateData(ref: DataPortRangeResponse, d: DataToDisplay) {
-    d.edges!.forEach((e, idx) => {
-      e.source = ref.edges[idx].source;
-      e.target = ref.edges[idx].target;
-      e.detail = ref.edges[idx].detail;
-
-      // weight
-      e.weight = 0;
+    let start = performance.now();
+    for (let edge of ref.edges) {
+      let detail = edge.detail;
+      let weight = 0;
       if (this.mode == FilterMsgMode.ByMsgGroup) {
-        this.groupDomain.forEach((g) => {
-          (MsgGroupsReverseMap[g] as string[]).forEach((key) => {
+        for (let g of this.groupDomain) {
+          let keys = MsgGroupsReverseMap[g] as string[];
+          for (let key of keys) {
             const typeIdx: number = MapMsgTypeToIdx[key];
-            const val: number | undefined = ref.edges[idx].value[typeIdx];
+            const val: number | undefined = edge.value[typeIdx];
             if (val !== undefined && val > 0) {
-              e.detail += `<br>${key}: ${val}`;
-              e.weight! += ref.edges[idx].value[typeIdx];
+              detail += `<br>${key}: ${val}`;
+              weight += edge.value[typeIdx];
             }
-          });
-        });
+          }
+        }
       } else if (this.mode == FilterMsgMode.ByDataOrCommand) {
-        this.docDomain.forEach((doc) => {
-          (DataOrCommandReverseMap[doc] as string[]).forEach((key) => {
+        for (let doc of this.docDomain) {
+          let keys = DataOrCommandReverseMap[doc] as string[];
+          for (let key of keys) {
             const typeIdx: number = MapMsgTypeToIdx[key];
-            const val: number | undefined = ref.edges[idx].value[typeIdx];
+            const val: number | undefined = edge.value[typeIdx];
             if (val !== undefined && val > 0) {
-              e.detail += `<br>${key}: ${val}`;
-              e.weight! += ref.edges[idx].value[typeIdx];
+              detail += `<br>${key}: ${val}`;
+              weight += edge.value[typeIdx];
             }
-          });
-        });
+          }
+        }
       }
-      // label
-      e.label = e.weight === 0 ? "" : CompressBigNumber(e.weight);
-    });
+
+      d.edges.push({
+        source: edge.source,
+        target: edge.target,
+        detail: edge.detail,
+        weight: weight,
+        // label is tentatively deserted
+        label: ""/*weight === 0 ? "" : CompressBigNumber(weight)*/, 
+      });
+    }
+    let end = performance.now();
+    console.log(`decorateData spend: ${end-start}ms`);
   }
 
   invokeController() {} // Nothing to do
@@ -104,7 +112,7 @@ export default class FilterMsg implements ControllerModule {
   }
 }
 
-function CompressBigNumber(number: string | number): string {
+export function CompressBigNumber(number: string | number): string {
   if (typeof number === "string") {
     number = Number(number);
   }

@@ -1,4 +1,5 @@
 import Controller, { SignalMap } from "./controller";
+import selector from 'widget/daisen';
 
 class InnerTicker {
   public timeoutHandle: any;
