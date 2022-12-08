@@ -6,9 +6,11 @@ const button = d3.select("#launch-daisen");
 button.on("click", () => {
   console.log("click launch daisen");
 
-  const sidecanvas = d3.select("#sidecanvas").style("width", "80%");
+  const sidecanvas = d3.select("#sidecanvas").style("width", "50%");
   sidecanvas.selectAll("svg").remove();
   sidecanvas.selectAll("iframe").remove();
+
+  const graph = d3.select('#graph');
 
   const close = sidecanvas
     .append("svg")
@@ -26,6 +28,7 @@ button.on("click", () => {
   close
     .on("click", () => {
       sidecanvas.style("width", "0%");
+      graph.style("right", "0%");
     })
     .on("mouseover", () => {
       close.style("fill", "red");
