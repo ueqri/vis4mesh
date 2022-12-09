@@ -257,6 +257,7 @@ export class MainView {
     }
     let half_size = nodes[0].size / 2;
     let link_length = (1 - this.node_size_ratio) * nodes[0].scale;
+    let arrow_length = 0.15 * link_length;
     let link_width = 0.1 * nodes[0].size;
     let dash = [link_length * 0.15, link_length * 0.1];
     let offset = 0.1 * nodes[0].size;
@@ -287,8 +288,8 @@ export class MainView {
             level: this.level,
             x1: nx,
             y1: ny,
-            x2: nx + link_length * directionX[i],
-            y2: ny + link_length * directionY[i],
+            x2: nx + (link_length - arrow_length) * directionX[i],
+            y2: ny + (link_length - arrow_length) * directionY[i],
             width: link_width,
             value: this.dataLoaded
               ? this.layers[this.level].nodes[node.idx][node.idy].edgeData[i]

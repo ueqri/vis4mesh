@@ -42,7 +42,6 @@ export class Render {
       .append("svg:marker") // this section adds in the arrows
       .attr("id", String)
       .attr("viewBox", "0 -5 10 10")
-      .attr("refX", ArrowWidth * 5.5)
       .attr("refY", 0)
       .attr("markerWidth", ArrowWidth)
       .attr("markerHeight", ArrowWidth)
