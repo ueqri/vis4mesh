@@ -7,6 +7,7 @@ import MiniMap from "./minimap";
 import { Render } from "./render";
 import {
   RectNode,
+  NodeCaption,
   LineLink,
   LinkText,
   ClientSize,
@@ -20,6 +21,9 @@ import {
   GetRectIdentity,
   GetLineIdentity,
 } from "./util";
+
+
+const node_default_color = "#8fbed1"; // #8fbed1
 
 export class MainView {
   render: Render;
@@ -39,6 +43,7 @@ export class MainView {
   max_y: number = 0;
   primary_nodes: RectNode[] = [];
   sub_nodes: RectNode[] = [];
+  captions: NodeCaption[] = [];
   links: LineLink[] = [];
   layers: AbstractLayer[] = [];
   checkedColors: boolean[] = [];
@@ -196,7 +201,7 @@ export class MainView {
           size: this.rect_size,
           color: this.dataLoaded
             ? ColorScheme(this.layers[this.level].nodes[i][j].level)
-            : "#8fbed1",
+            : node_default_color,
         };
         this.color_node_by_map(node);
         primary_nodes.push(node);
@@ -237,17 +242,35 @@ export class MainView {
             y: basepos_y + 0.2 * sub_cord_size + (j - base_idx) * sub_cord_size,
             color: this.dataLoaded
               ? ColorScheme(this.layers[this.level - 1].nodes[j][i].level)
-              : "#8fbed1",
+              : node_default_color,
           };
           this.color_node_by_map(node);
           sub_nodes.push(node);
         }
       }
       // OPTION: if sub layer is displayed, unset the color of primary layer
-      node.color = "#8fbed1";
+      node.color = node_default_color;
     }
 
     return sub_nodes;
+  }
+
+  get_captions(nodes: RectNode[]) {
+    let half_size = nodes[0].size / 2;
+    let captions: NodeCaption[] = [];
+    for (let node of nodes) {
+      let center = {
+        x: node.x + half_size,
+        y: node.y + half_size,
+      };
+      captions.push({
+        x: center.x,
+        y: center.y,
+        size: node.size * 0.1,
+        text: `${node.scale} x ${node.scale}`,
+      })
+    }
+    return captions;
   }
 
   get_links(nodes: RectNode[]) {
@@ -365,6 +388,7 @@ export class MainView {
   draw() {
     this.render.draw_rect(this.primary_nodes.concat(this.sub_nodes));
     this.render.draw_line(this.links, this.minimap);
+    this.render.draw_captions(this.captions);
     if (this.dataLoaded) {
       let texts = this.get_text(this.links);
       this.render.draw_text(texts, this.rect_size);
@@ -412,7 +436,7 @@ export class MainView {
   }
 
   view_jump(x: number, y: number, k: number, duration?: number, ev?: any) {
-    console.log("click node jump");
+    // console.log("click node jump");
     const [initial_translate, initial_scale] = this.initial_transform_param();
 
     const zoomBehavior = d3
@@ -429,17 +453,8 @@ export class MainView {
       .call(
         zoomBehavior.on("zoom", (e) => {
           this.update_zoom(e.transform);
-          // console.log(e.transform);
         })
       )
-      // .transition()
-      // .duration(500)
-      // .call(
-      //   zoomBehavior.transform,
-      //   d3.zoomIdentity
-      //     .translate(initial_translate[0], initial_translate[1])
-      //     .scale(initial_scale)
-      // )
       .transition()
       .duration(duration)
       .call(
@@ -524,7 +539,11 @@ export class MainView {
     this.primary_nodes = this.get_primary_nodes();
     this.links = this.get_links(this.primary_nodes);
     this.sub_nodes = this.get_sub_nodes(this.primary_nodes);
-
+    if(this.sub_nodes.length > 0) {
+      this.captions = this.get_captions(this.sub_nodes);
+    } else {
+      this.captions = this.get_captions(this.primary_nodes);
+    }
     this.draw();
   }
 }

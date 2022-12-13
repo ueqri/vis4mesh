@@ -19,7 +19,9 @@ import Minimap from "./minimap";
 import sidecanvas from "./interaction/sidecanvas";
 import * as d3 from "d3";
 import selector from "widget/daisen";
-import { select } from "d3";
+import { NodeCaption } from "./common";
+
+const node_rim_color = "#599dbb"; // #599dbb
 
 export class Render {
   mainview: MainView;
@@ -82,7 +84,7 @@ export class Render {
             .attr("width", (d) => d.size)
             .attr("height", (d) => d.size)
             .attr("fill", (d) => d.color)
-            .attr("stroke", "#599dbb")
+            .attr("stroke", node_rim_color)
             .attr("stroke-width", (d) => d.scale * 0.02),
         (update) =>
           update
@@ -95,15 +97,15 @@ export class Render {
             .attr("width", (d) => d.size)
             .attr("height", (d) => d.size)
             .attr("fill", (d) => d.color)
-            .attr("stroke", "#599dbb")
+            .attr("stroke", node_rim_color)
             .attr("stroke-width", (d) => d.scale * 0.02),
         (exit) => exit.remove()
       )
       .on("mouseover", function (ev, d) {
         const sel = d3.select(this);
-        sel.attr("fill", "#599dbb");
+        sel.attr("fill", node_rim_color);
         sel.style("cursor", "pointer");
-        if(d.level > 0) {
+        if (d.level > 0) {
           return;
         }
         sel.append("title").text(`Tile_${d.idx}_${d.idy}`);
@@ -125,16 +127,16 @@ export class Render {
 
         const sel = d3.select(this);
         mainview.click_node_jump(ev, d);
-        if(d.level > 0) {
+        if (d.level > 0) {
           return;
         }
         ClickInteraction.onNode(
           d.level,
           `Tile_${d.idx}_${d.idy}`,
           () => {
-            sel.attr("fill", "#599dbb");
+            sel.attr("fill", node_rim_color);
             sel.property("checked", true);
-            mainview.register_rect_color(d, "#599dbb");
+            mainview.register_rect_color(d, node_rim_color);
             selector.register_ep([d.idx, d.idy]);
           },
           () => {
@@ -145,6 +147,32 @@ export class Render {
           }
         );
       });
+  }
+
+  draw_captions(captions: NodeCaption[]) {
+    this.grid
+      .selectAll(".node-caption")
+      .data(captions)
+      .join(
+        function (enter) {
+          return enter.append("text");
+        },
+        function (update) {
+          return update;
+        },
+        function (exit) {
+          return exit.remove();
+        }
+      )
+      .attr("class", "node-caption")
+      .style("text-anchor", "middle")
+      .attr("x", (d) => d.x)
+      .attr("y", (d) => d.y)
+      .attr("font-family", "SanFrancisco")
+      .style("fill", "gray")
+      .text((d) => d.text)
+      .style("font-size", (d) => d.size)
+      .raise();
   }
 
   draw_line(lines: LineLink[], minimap: Minimap) {
@@ -181,7 +209,7 @@ export class Render {
         sel.attr("stroke-width", d.width * 1.5);
         sel.style("cursor", "pointer");
         const [src, dst] = d.connection;
-        if(d.level > 0) {
+        if (d.level > 0) {
           return;
         }
         let dstNode = GetLinkDst([d.idx, d.idy], d.direction);
@@ -203,7 +231,7 @@ export class Render {
         const sel = d3.select(this);
         const [src, dst] = d.connection;
         let dstNode = GetLinkDst([d.idx, d.idy], d.direction);
-        
+
         ClickInteraction.onEdge(
           d.level,
           `Tile_${d.idx}_${d.idy} ---> ${dstNode}`,
