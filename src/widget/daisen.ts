@@ -26,10 +26,9 @@ class DaisenUrl {
 
   with_ep(coord: number[] | undefined) {
     if (coord !== undefined) {
-      // deal with leading 0 
-      const start = coord[0].toString().padStart(2, '0');
-      const end = coord[1].toString().padStart(2, '0');
-      this.url += `name=GPU1.Tile_%5B${start}%5D%5B${end}%5D.CU&`;
+      const start = coord[0];
+      const end = coord[1];
+      this.url += `name=GPU1.EP_${start}_${end}_0&`;
     }
     return this;
   }
