@@ -84,7 +84,7 @@ class DaisenSelector {
 const selector = new DaisenSelector();
 export default selector;
 
-export function DaisenLaunch(div: any) {
+export function GetDaisenUrl() {
   const url = new DaisenUrl();
   const ep = selector.get_ep();
   const time_range = selector.get_timerange();
@@ -97,7 +97,12 @@ export function DaisenLaunch(div: any) {
   } else {
     url.component().with_ep(ep).with_timerange(time_range);
   }
-  console.log("request " + url.raw_url());
+  return url;
+}
+
+export function DaisenLaunch(div: any) {
+  const url = GetDaisenUrl();
+  console.log("request daisen: " + url.raw_url());
   
   div
     .append("iframe")

@@ -1,6 +1,9 @@
 import SideCanvas from "./sidecanvas";
+import { GetDaisenUrl } from '../../widget/daisen';
+import * as d3 from "d3";
 
 class ClickInteraction {
+  triggerDaisen = false;
   protected clearLastEvent: () => any;
 
   constructor() {
@@ -15,12 +18,16 @@ class ClickInteraction {
   ) {
     this.reset();
     executeEvent();
-    if (level === 0) {
-      SideCanvas.write(`<h9>${text}</h9>`);
-    }
+    // if (level === 0) {
+    //   SideCanvas.write(`<h9>${text}</h9>`);
+    // }
     // if (level === 0) {
     //   SideCanvas.DisplayChord();
     // }
+    if(this.triggerDaisen) {
+      const url = GetDaisenUrl();
+      d3.select("#daisen-iframe").attr("src", url.raw_url());
+    }
     this.clearLastEvent = clearEvent;
   }
 

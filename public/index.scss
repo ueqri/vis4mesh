@@ -143,3 +143,28 @@ svg {
   font-size: 10px;
   font-weight: bold;
 }
+
+.close-btn {
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  opacity: 0.3;
+  background: red;
+}
+.close-btn:hover {
+  opacity: 1;
+}
+.close-btn:before, .close-btn:after {
+  position: absolute;
+  left: 7px;
+  content: ' ';
+  height: 17px;
+  width: 2px;
+  background-color: #333;
+}
+.close-btn:before {
+  transform: rotate(45deg);
+}
+.close-btn:after {
+  transform: rotate(-45deg);
+}
