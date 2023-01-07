@@ -23,17 +23,18 @@ import {
 } from "./util";
 
 
-const node_default_color = "#8fbed1"; // #8fbed1
+const NODE_DEFAULT_COLOR = "#8fbed1"; // #8fbed1
+const MAX_ZOOM_SCALE = 200;
 
 export class MainView {
   render: Render;
   dataLoaded: boolean = false;
   windowWidth: number = 0;
   windowHeight: number = 0;
-  tile_width: number;
-  tile_height: number;
-  primary_width: number;
-  primary_height: number;
+  tile_width: number = 0;
+  tile_height: number = 0;
+  primary_width: number = 0;
+  primary_height: number = 0;
   max_scale: number = 0;
   level: number = 0;
   scale: number = 0; // abstract node, size: scale*scale
@@ -201,7 +202,7 @@ export class MainView {
           size: this.rect_size,
           color: this.dataLoaded
             ? ColorScheme(this.layers[this.level].nodes[i][j].level)
-            : node_default_color,
+            : NODE_DEFAULT_COLOR,
         };
         this.color_node_by_map(node);
         primary_nodes.push(node);
@@ -242,14 +243,14 @@ export class MainView {
             y: basepos_y + 0.2 * sub_cord_size + (j - base_idx) * sub_cord_size,
             color: this.dataLoaded
               ? ColorScheme(this.layers[this.level - 1].nodes[j][i].level)
-              : node_default_color,
+              : NODE_DEFAULT_COLOR,
           };
           this.color_node_by_map(node);
           sub_nodes.push(node);
         }
       }
       // OPTION: if sub layer is displayed, unset the color of primary layer
-      node.color = node_default_color;
+      node.color = NODE_DEFAULT_COLOR;
     }
 
     return sub_nodes;
@@ -441,7 +442,7 @@ export class MainView {
 
     const zoomBehavior = d3
       .zoom<SVGSVGElement, unknown>()
-      .scaleExtent([initial_scale, 1024]);
+      .scaleExtent([initial_scale, MAX_ZOOM_SCALE]);
 
     const graph = d3.select<SVGSVGElement, unknown>("#graph");
 
@@ -478,6 +479,15 @@ export class MainView {
       500,
       event
     );
+  }
+
+  bottom_layer_node_jump(x: number, y: number) {
+    this.view_jump(
+      -(y + 0.5),
+      -(x + 0.5),
+      MAX_ZOOM_SCALE,
+      500
+    )
   }
 
   click_edge_jump(event: any, edge: LineLink) {

@@ -82,6 +82,7 @@ class DaisenSelector {
 }
 
 const selector = new DaisenSelector();
+
 export default selector;
 
 export function GetDaisenUrl() {
@@ -90,18 +91,24 @@ export function GetDaisenUrl() {
   const time_range = selector.get_timerange();
   console.log(time_range);
 
-  if(ep === undefined && time_range === undefined) {
+  if (ep === undefined) {
+    return null;
+  }
 
-  } else if (ep === undefined) {
-    url.dashboard().with_timerange(time_range);
-  } else {
-    url.component().with_ep(ep).with_timerange(time_range);
+  url.component().with_ep(ep);
+
+  if (time_range) {
+    url.with_timerange(time_range);
   }
   return url;
 }
 
 export function DaisenLaunch(div: any) {
   const url = GetDaisenUrl();
+  if (!url) {
+    return;
+  }
+
   console.log("request daisen: " + url.raw_url());
   
   div

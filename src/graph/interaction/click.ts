@@ -26,7 +26,7 @@ class ClickInteraction {
     // }
     if(this.triggerDaisen) {
       const url = GetDaisenUrl();
-      d3.select("#daisen-iframe").attr("src", url.raw_url());
+      d3.select("#daisen-iframe").attr("src", url!.raw_url());
     }
     this.clearLastEvent = clearEvent;
   }
