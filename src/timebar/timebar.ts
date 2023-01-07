@@ -10,7 +10,7 @@ import {
 import { Component, Element, Module } from "global";
 import Event from "event";
 import { FlatData } from "data/data";
-import selector from 'widget/daisen';
+import selector from "widget/daisen";
 
 const ev = {
   MsgGroup: "FilterMsgGroup",
@@ -105,7 +105,6 @@ function handleFlatResponseByDoC(
   });
 }
 
-
 const getMaxFlitsFromFlatResponse = (data: DataPortFlatResponse): number[] => {
   let res = [];
   for (let d of data) {
@@ -185,7 +184,8 @@ export default class Timebar {
     div.select("#saturation-bar").remove();
 
     timebar_opt.width = (div.node() as Element).getBoundingClientRect().width;
-    timebar_opt.height = (div.node() as Element).getBoundingClientRect().height-20;
+    timebar_opt.height =
+      (div.node() as Element).getBoundingClientRect().height - 20;
 
     let chart = new StackedChart(this.data, timebar_opt);
     let svg = chart.axis();
@@ -205,10 +205,8 @@ export default class Timebar {
       this.prevBrush
     );
 
-    
     div.append(() => chart.node(svg));
-    div.append(()=> saturation_bar);
-
+    div.append(() => saturation_bar);
 
     this.chart = chart;
     this.svg = svg;
@@ -228,14 +226,14 @@ function ColorScheme(lv: number): string {
 
 const marginLeft = 40;
 
-function ramp(color: (x: number)=>string, color_value: number[]) {
+function ramp(color: (x: number) => string, color_value: number[]) {
   const n = color_value.length;
   const canvas = document.createElement("canvas");
   canvas.width = n;
   canvas.height = 1;
   const context = canvas.getContext("2d");
   canvas.style.width = `calc(100% - ${marginLeft}px)`;
-  canvas.style.height = "20px"; 
+  canvas.style.height = "20px";
   canvas.style.imageRendering = "-moz-crisp-edges";
   canvas.style.imageRendering = "pixelated";
   canvas.style.marginLeft = `${marginLeft}px`;

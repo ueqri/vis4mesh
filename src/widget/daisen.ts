@@ -46,7 +46,7 @@ class DaisenSelector {
 
   register_timerange([start, end]: [number, number]) {
     this.time_start = start;
-    this.time_end = end; 
+    this.time_end = end;
   }
 
   unset_timerange() {
@@ -68,7 +68,10 @@ class DaisenSelector {
     if (this.time_start === undefined || this.time_end === undefined) {
       return undefined;
     }
-    const range = [(this.time_start * 1e-6).toFixed(6), (this.time_end * 1e-6).toFixed(6)];
+    const range = [
+      (this.time_start * 1e-6).toFixed(6),
+      (this.time_end * 1e-6).toFixed(6),
+    ];
     console.log(range);
     return range;
   }
@@ -110,7 +113,7 @@ export function DaisenLaunch(div: any) {
   }
 
   console.log("request daisen: " + url.raw_url());
-  
+
   div
     .append("iframe")
     .attr("id", "daisen-iframe")

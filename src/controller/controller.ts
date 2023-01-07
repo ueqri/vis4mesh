@@ -4,7 +4,7 @@ import { DataToDisplay } from "display/data";
 import DataWrapper from "data/localport";
 import { BuildAbstractLayers } from "../graph/abstractlayer";
 import { MainView } from "graph/graph";
-import selector from 'widget/daisen';
+import selector from "widget/daisen";
 
 export type SignalMap = { [type: string]: (v: any) => any };
 
@@ -54,7 +54,7 @@ export default class Controller {
         edges: [],
       };
       // rebuild abstract layers and render
-      
+
       this.modules.forEach((m) => {
         m.decorateData(resp, data);
       });

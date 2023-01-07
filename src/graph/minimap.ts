@@ -76,7 +76,7 @@ export default class Minimap {
 
   AddPin([x, y]: [number, number], color: string, clickJump: () => any) {
     // TODO fix: [x, y] of bottom layer
-    const off_x = this.offset_x + (y) * this.bottom_width;
+    const off_x = this.offset_x + y * this.bottom_width;
     const off_y = this.offset_y + (x - 2) * this.bottom_height;
     const name = `minimap-${x}-${y}`;
     let pin = d3

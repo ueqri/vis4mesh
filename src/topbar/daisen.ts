@@ -95,4 +95,3 @@ export function register_daisen_insight(btn: any, graph_controller: MainView) {
     DaisenLaunch(sidecanvas);
   });
 }
-

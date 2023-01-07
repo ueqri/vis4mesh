@@ -90,8 +90,8 @@ class SideCanvas {
     register: (color: string) => any,
     unregister: () => any,
     clickJump: () => any,
-    mouseoverPin: () => any, 
-    mouseoutPin: ()=> any,
+    mouseoverPin: () => any,
+    mouseoutPin: () => any
   ) {
     const histoId = "stacked-chart-" + linkName;
 

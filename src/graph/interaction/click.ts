@@ -1,5 +1,5 @@
 import SideCanvas from "./sidecanvas";
-import { GetDaisenUrl } from '../../widget/daisen';
+import { GetDaisenUrl } from "../../widget/daisen";
 import * as d3 from "d3";
 
 class ClickInteraction {
@@ -24,7 +24,7 @@ class ClickInteraction {
     // if (level === 0) {
     //   SideCanvas.DisplayChord();
     // }
-    if(this.triggerDaisen) {
+    if (this.triggerDaisen) {
       const url = GetDaisenUrl();
       d3.select("#daisen-iframe").attr("src", url!.raw_url());
     }

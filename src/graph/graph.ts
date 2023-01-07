@@ -22,7 +22,6 @@ import {
   GetLineIdentity,
 } from "./util";
 
-
 const NODE_DEFAULT_COLOR = "#8fbed1"; // #8fbed1
 const MAX_ZOOM_SCALE = 200;
 
@@ -128,7 +127,6 @@ export class MainView {
   get_rect_size() {
     this.rect_size = this.scale * this.node_size_ratio;
   }
-
 
   register_rect_color(rect: RectNode, color?: string) {
     let rect_name = GetRectIdentity(rect);
@@ -269,7 +267,7 @@ export class MainView {
         y: center.y,
         size: node.size * 0.1,
         text: `${node.scale} x ${node.scale}`,
-      })
+      });
     }
     return captions;
   }
@@ -482,12 +480,7 @@ export class MainView {
   }
 
   bottom_layer_node_jump(x: number, y: number) {
-    this.view_jump(
-      -(y + 0.5),
-      -(x + 0.5),
-      MAX_ZOOM_SCALE,
-      500
-    )
+    this.view_jump(-(y + 0.5), -(x + 0.5), MAX_ZOOM_SCALE, 500);
   }
 
   click_edge_jump(event: any, edge: LineLink) {
@@ -549,7 +542,7 @@ export class MainView {
     this.primary_nodes = this.get_primary_nodes();
     this.links = this.get_links(this.primary_nodes);
     this.sub_nodes = this.get_sub_nodes(this.primary_nodes);
-    if(this.sub_nodes.length > 0) {
+    if (this.sub_nodes.length > 0) {
       this.captions = this.get_captions(this.sub_nodes);
     } else {
       this.captions = this.get_captions(this.primary_nodes);

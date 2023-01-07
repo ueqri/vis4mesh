@@ -19,8 +19,10 @@ export class FileLoader {
       return;
     }
     for (const entry of this.dirEnrties) {
-      if (entry.webkitRelativePath.includes(this.dirEdges)
-          && !entry.webkitRelativePath.endsWith(this.dirEdges)) {
+      if (
+        entry.webkitRelativePath.includes(this.dirEdges) &&
+        !entry.webkitRelativePath.endsWith(this.dirEdges)
+      ) {
         this.edgeFiles.push(entry);
       }
     }

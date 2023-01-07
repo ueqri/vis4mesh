@@ -6,7 +6,7 @@ import Timebar from "timebar/timebar";
 import Filterbar from "filterbar/filterbar";
 import Layout from "./layout";
 import LocalPort from "./data/localport";
-import { MainView } from './graph/graph';
+import { MainView } from "./graph/graph";
 
 const Component = {
   port: new LocalPort(),
@@ -26,6 +26,4 @@ const Module = {
   setTime: new SetTime(),
 };
 
-
 export { Component, Element, Module };
-

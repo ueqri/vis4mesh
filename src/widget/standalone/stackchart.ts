@@ -214,7 +214,7 @@ export default class StackedChart {
       .attr("style", "max-width: 100%; height: auto; height: intrinsic;");
 
     let titleSize = Math.min(0.08 * this.height, 16);
-    
+
     svg
       .append("g")
       .attr("transform", `translate(${this.marginLeft},0)`)

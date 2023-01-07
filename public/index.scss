@@ -154,10 +154,11 @@ svg {
 .close-btn:hover {
   opacity: 1;
 }
-.close-btn:before, .close-btn:after {
+.close-btn:before,
+.close-btn:after {
   position: absolute;
   left: 7px;
-  content: ' ';
+  content: " ";
   height: 17px;
   width: 2px;
   background-color: #333;

@@ -22,7 +22,7 @@ const c = {
 };
 
 function colorOf(lv: number): string {
-  return d3.interpolateReds((lv+1)/10);
+  return d3.interpolateReds((lv + 1) / 10);
 }
 
 const svg = d3

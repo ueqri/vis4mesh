@@ -94,11 +94,11 @@ export default class FilterMsg implements ControllerModule {
         detail: edge.detail,
         weight: weight,
         // label is tentatively deserted
-        label: ""/*weight === 0 ? "" : CompressBigNumber(weight)*/, 
+        label: "" /*weight === 0 ? "" : CompressBigNumber(weight)*/,
       });
     }
     let end = performance.now();
-    console.log(`decorateData spend: ${end-start}ms`);
+    console.log(`decorateData spend: ${end - start}ms`);
   }
 
   invokeController() {} // Nothing to do

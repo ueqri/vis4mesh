@@ -7,13 +7,12 @@ import { RenderFilterbar } from "./filterbar/filterbar";
 import { RenderTopbar } from "topbar/topbar";
 
 import { supported } from "browser-fs-access";
-import {daisen_button, register_daisen_insight} from './topbar/daisen';
-import { MainView } from './graph/graph';
+import { daisen_button, register_daisen_insight } from "./topbar/daisen";
+import { MainView } from "./graph/graph";
 
 const port = Component.port;
 
 const chooseDirButton = document.querySelector("#open-directory-btn")!;
-
 
 if (supported) {
   console.log("Using the File System Access API.");
@@ -46,5 +45,4 @@ chooseDirButton.addEventListener("click", async () => {
   } catch (err) {
     console.error(err);
   }
-
 });
