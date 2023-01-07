@@ -25,7 +25,7 @@ export interface SnapShotData {
   group: string; // group of the certain message type, e.g. Read, Write
   doc: string; // data or command message, e.g. D, C
   count: number; // count of the certain message type during this frame
-  max_flits: number; // maximum channel flit number of the mesh at certain time 
+  max_flits: number; // maximum channel flit number of the mesh at certain time
 }
 
 export type FlatData = SnapShotData[];

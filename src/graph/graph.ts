@@ -7,6 +7,7 @@ import MiniMap from "./minimap";
 import { Render } from "./render";
 import {
   RectNode,
+  NodeCaption,
   LineLink,
   LinkText,
   ClientSize,
@@ -21,15 +22,18 @@ import {
   GetLineIdentity,
 } from "./util";
 
+const NODE_DEFAULT_COLOR = "#8fbed1"; // #8fbed1
+const MAX_ZOOM_SCALE = 200;
+
 export class MainView {
   render: Render;
   dataLoaded: boolean = false;
   windowWidth: number = 0;
   windowHeight: number = 0;
-  tile_width: number;
-  tile_height: number;
-  primary_width: number;
-  primary_height: number;
+  tile_width: number = 0;
+  tile_height: number = 0;
+  primary_width: number = 0;
+  primary_height: number = 0;
   max_scale: number = 0;
   level: number = 0;
   scale: number = 0; // abstract node, size: scale*scale
@@ -39,6 +43,7 @@ export class MainView {
   max_y: number = 0;
   primary_nodes: RectNode[] = [];
   sub_nodes: RectNode[] = [];
+  captions: NodeCaption[] = [];
   links: LineLink[] = [];
   layers: AbstractLayer[] = [];
   checkedColors: boolean[] = [];
@@ -123,7 +128,6 @@ export class MainView {
     this.rect_size = this.scale * this.node_size_ratio;
   }
 
-
   register_rect_color(rect: RectNode, color?: string) {
     let rect_name = GetRectIdentity(rect);
     if (color === undefined) {
@@ -196,7 +200,7 @@ export class MainView {
           size: this.rect_size,
           color: this.dataLoaded
             ? ColorScheme(this.layers[this.level].nodes[i][j].level)
-            : "#8fbed1",
+            : NODE_DEFAULT_COLOR,
         };
         this.color_node_by_map(node);
         primary_nodes.push(node);
@@ -237,17 +241,35 @@ export class MainView {
             y: basepos_y + 0.2 * sub_cord_size + (j - base_idx) * sub_cord_size,
             color: this.dataLoaded
               ? ColorScheme(this.layers[this.level - 1].nodes[j][i].level)
-              : "#8fbed1",
+              : NODE_DEFAULT_COLOR,
           };
           this.color_node_by_map(node);
           sub_nodes.push(node);
         }
       }
       // OPTION: if sub layer is displayed, unset the color of primary layer
-      node.color = "#8fbed1";
+      node.color = NODE_DEFAULT_COLOR;
     }
 
     return sub_nodes;
+  }
+
+  get_captions(nodes: RectNode[]) {
+    let half_size = nodes[0].size / 2;
+    let captions: NodeCaption[] = [];
+    for (let node of nodes) {
+      let center = {
+        x: node.x + half_size,
+        y: node.y + half_size,
+      };
+      captions.push({
+        x: center.x,
+        y: center.y,
+        size: node.size * 0.1,
+        text: `${node.scale} x ${node.scale}`,
+      });
+    }
+    return captions;
   }
 
   get_links(nodes: RectNode[]) {
@@ -257,6 +279,7 @@ export class MainView {
     }
     let half_size = nodes[0].size / 2;
     let link_length = (1 - this.node_size_ratio) * nodes[0].scale;
+    let arrow_length = 0.15 * link_length;
     let link_width = 0.1 * nodes[0].size;
     let dash = [link_length * 0.15, link_length * 0.1];
     let offset = 0.1 * nodes[0].size;
@@ -287,8 +310,8 @@ export class MainView {
             level: this.level,
             x1: nx,
             y1: ny,
-            x2: nx + link_length * directionX[i],
-            y2: ny + link_length * directionY[i],
+            x2: nx + (link_length - arrow_length) * directionX[i],
+            y2: ny + (link_length - arrow_length) * directionY[i],
             width: link_width,
             value: this.dataLoaded
               ? this.layers[this.level].nodes[node.idx][node.idy].edgeData[i]
@@ -364,6 +387,7 @@ export class MainView {
   draw() {
     this.render.draw_rect(this.primary_nodes.concat(this.sub_nodes));
     this.render.draw_line(this.links, this.minimap);
+    this.render.draw_captions(this.captions);
     if (this.dataLoaded) {
       let texts = this.get_text(this.links);
       this.render.draw_text(texts, this.rect_size);
@@ -411,12 +435,12 @@ export class MainView {
   }
 
   view_jump(x: number, y: number, k: number, duration?: number, ev?: any) {
-    console.log("click node jump");
+    // console.log("click node jump");
     const [initial_translate, initial_scale] = this.initial_transform_param();
 
     const zoomBehavior = d3
       .zoom<SVGSVGElement, unknown>()
-      .scaleExtent([initial_scale, 1024]);
+      .scaleExtent([initial_scale, MAX_ZOOM_SCALE]);
 
     const graph = d3.select<SVGSVGElement, unknown>("#graph");
 
@@ -428,17 +452,8 @@ export class MainView {
       .call(
         zoomBehavior.on("zoom", (e) => {
           this.update_zoom(e.transform);
-          // console.log(e.transform);
         })
       )
-      // .transition()
-      // .duration(500)
-      // .call(
-      //   zoomBehavior.transform,
-      //   d3.zoomIdentity
-      //     .translate(initial_translate[0], initial_translate[1])
-      //     .scale(initial_scale)
-      // )
       .transition()
       .duration(duration)
       .call(
@@ -462,6 +477,10 @@ export class MainView {
       500,
       event
     );
+  }
+
+  bottom_layer_node_jump(x: number, y: number) {
+    this.view_jump(-(y + 0.5), -(x + 0.5), MAX_ZOOM_SCALE, 500);
   }
 
   click_edge_jump(event: any, edge: LineLink) {
@@ -511,12 +530,6 @@ export class MainView {
       this.scale *= 4;
       this.level++;
     }
-    d3.select("#nodesize").select("text").remove();
-    d3.select("#nodesize")
-      .append("text")
-      .attr("dy", ".35em")
-      .text(`${this.scale}X${this.scale}`)
-      .attr("font-size", 15);
     if (this.dataLoaded) {
       // draw traffic chose box
       EdgeTrafficCheckboxes.applyUpperBound(this.layers[this.level].uppers);
@@ -529,7 +542,11 @@ export class MainView {
     this.primary_nodes = this.get_primary_nodes();
     this.links = this.get_links(this.primary_nodes);
     this.sub_nodes = this.get_sub_nodes(this.primary_nodes);
-
+    if (this.sub_nodes.length > 0) {
+      this.captions = this.get_captions(this.sub_nodes);
+    } else {
+      this.captions = this.get_captions(this.primary_nodes);
+    }
     this.draw();
   }
 }

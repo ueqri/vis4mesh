@@ -14,6 +14,13 @@ export interface RectNode {
   level: number;
 }
 
+export interface NodeCaption {
+  x: number;
+  y: number;
+  size: number;
+  text: string;
+}
+
 export interface LineLink {
   start: RectNode;
   connection: number[];

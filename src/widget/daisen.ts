@@ -17,16 +17,18 @@ class DaisenUrl {
     return this;
   }
 
-  with_timerange(range: number[] | undefined) {
+  with_timerange(range: string[] | undefined) {
     if (range !== undefined) {
-      this.url += `starttime=${range[0]}&endtime=${range[1]}&`;
+      this.url += `starttime=${range[0]}&endtime=${range[1]}`;
     }
     return this;
   }
 
   with_ep(coord: number[] | undefined) {
     if (coord !== undefined) {
-      this.url += `name=GPU1.EP_${coord[0]}_${coord[1]}_0&`;
+      const start = coord[0];
+      const end = coord[1];
+      this.url += `name=GPU1.EP_${start}_${end}_0&`;
     }
     return this;
   }
@@ -43,9 +45,8 @@ class DaisenSelector {
   time_end?: number;
 
   register_timerange([start, end]: [number, number]) {
-    // TODO: match vis4mesh time range with daisen
-    this.time_start = start + 40;
-    this.time_end = end + 40; 
+    this.time_start = start;
+    this.time_end = end;
   }
 
   unset_timerange() {
@@ -67,7 +68,10 @@ class DaisenSelector {
     if (this.time_start === undefined || this.time_end === undefined) {
       return undefined;
     }
-    const range = [this.time_start * 1e-6, this.time_end * 1e-6];
+    const range = [
+      (this.time_start * 1e-6).toFixed(6),
+      (this.time_end * 1e-6).toFixed(6),
+    ];
     console.log(range);
     return range;
   }
@@ -81,23 +85,35 @@ class DaisenSelector {
 }
 
 const selector = new DaisenSelector();
+
 export default selector;
 
-export function DaisenLaunch(div: any) {
+export function GetDaisenUrl() {
   const url = new DaisenUrl();
   const ep = selector.get_ep();
   const time_range = selector.get_timerange();
   console.log(time_range);
 
-  if(ep === undefined && time_range === undefined) {
-
-  } else if (ep === undefined) {
-    url.dashboard().with_timerange(time_range);
-  } else {
-    url.component().with_timerange(time_range).with_ep(ep);
+  if (ep === undefined) {
+    return null;
   }
-  console.log("request " + url.raw_url());
-  
+
+  url.component().with_ep(ep);
+
+  if (time_range) {
+    url.with_timerange(time_range);
+  }
+  return url;
+}
+
+export function DaisenLaunch(div: any) {
+  const url = GetDaisenUrl();
+  if (!url) {
+    return;
+  }
+
+  console.log("request daisen: " + url.raw_url());
+
   div
     .append("iframe")
     .attr("id", "daisen-iframe")
