@@ -1,5 +1,7 @@
 # Design of Vis4Mesh
 
+**Note: this document is for v0.2.3 release only and is out-dated. Our v0.3 release is coming soon and we will update the corresponding documents.**
+
 ## **Principles**
 
 - Frontend only do rendering work, backend feeds the frontend with full graph details.
