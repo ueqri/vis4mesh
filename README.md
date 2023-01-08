@@ -2,9 +2,9 @@
 
 Vis4Mesh is a visualization tool for designing mesh Network-on-Chips (NoC) and assisting with computer architecture research.
 
-**Notice: This project is still under development, some features are not solid and the documents may be out-dated. We plan to release packages and documents in 2023 spring. If you are interested to use it for your research now, please feel free to contact [Hang Yan](mailto:iyanhang@gmail.com).**
+**Notice: This project is still under development, some features are not solid and the documents may be out-dated. We plan to release v0.3 packages and documents in 2023 spring. If you are interested to use it for your research now, please feel free to contact [Hang Yan](mailto:iyanhang@gmail.com).**
 
-<details><summary>Snapshot of Vis4Mesh v0.2.3 Release</summary><img alt="vis4mesh-v2" src="https://github.com/ueqri/vis4mesh/blob/main/doc/v0.2.3.png?raw=true"></details>
+<details open><summary>Snapshot of Vis4Mesh v0.2.3 Release</summary><img alt="vis4mesh-v2" width="95%" src="https://github.com/ueqri/vis4mesh/blob/main/doc/v0.2.3.png?raw=true"></details>
 
 ## Features
 
@@ -14,7 +14,7 @@ Vis4Mesh is a visualization tool for designing mesh Network-on-Chips (NoC) and a
 
 2. **Temporal and spatial overview to summarize execution behavior**
 
-   As a temporal overview, Vis4Mesh provides a *transaction vs. time graph* for the whole network and for each link. As a spatial overview, it displays the *topology* of the network in various colors based on the achieved bandwidth (or congestion level). With two types of overview, researchers can summarize both the network and execution behavior of a GPU program.
+   As a temporal overview, Vis4Mesh provides a *birdview* and a *transaction vs. time graph* for the whole network. As a spatial overview, it displays the *topology* of the network in various colors based on the achieved bandwidth (or congestion level). With two types of overview, researchers can summarize both the network and execution behavior of a GPU program.
 
 3. **Sheer scalability to visualize millions of devices**
 
