@@ -6,6 +6,8 @@ Vis4Mesh is a visualization tool for designing mesh Network-on-Chips (NoC) and a
 
 <details open><summary>Snapshot of Vis4Mesh v0.2.3 Release</summary><img alt="vis4mesh-v2" width="95%" src="https://github.com/ueqri/vis4mesh/blob/main/doc/v0.2.3.png?raw=true"></details>
 
+<details><summary>Snapshot of Vis4Mesh v0.3.0 Preview (in progress)</summary><img width="95%" alt="vis4mesh-v3" src="https://user-images.githubusercontent.com/56567688/211254564-425e8394-7480-4afc-b22a-09e1085cbed1.png"></details>
+
 ## Features
 
 1. **Animated playback of Network-on-Chip traffic**
