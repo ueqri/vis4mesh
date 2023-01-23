@@ -1,10 +1,12 @@
 # User Guide
 
+Still working in progress.
+
 ## Introduction
 
-Vis4Mesh is totally based on front-end and easy to use with just a browser. Note that you should have a local benchmark on your computer for Vis4Mesh to load. Here is a site of [Vis4Mesh](https://ueqri.github.io/vis4mesh-release/).
+Vis4Mesh is a front-end tool and easy-to-use with just a browser. Note that you should have a local benchmark on your computer for Vis4Mesh to load.
 
-You may also clone this repo and deploy a server yourself.
+The released webpage to launch Vis4Mesh is [https://ueqri.github.io/vis4mesh-release/](https://ueqri.github.io/vis4mesh-release/). You may also clone this repo and deploy a server yourself.
 
 ## Start with Vis4Mesh
 
@@ -23,7 +25,7 @@ Prepare a benchmark folder for Vis4Mesh and simply upload it through the `Start`
 This whole window can be divided into 3 parts.
 
 1. **Time Panel**
-   
+
 ![Time Panel](./images/time-panel.png)
 
 Time panel is at the bottom of the window, serving for time range controlling. Select a time range in the panel and Vis4Mesh will render and display the traffic of network-on-chip during the specified period.

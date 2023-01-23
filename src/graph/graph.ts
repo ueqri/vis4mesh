@@ -41,6 +41,8 @@ export class MainView {
   max_x: number = 0;
   min_y: number = 0;
   max_y: number = 0;
+  lastViewPortX: number = 0;
+  lastViewPortY: number = 0;
   primary_nodes: RectNode[] = [];
   sub_nodes: RectNode[] = [];
   captions: NodeCaption[] = [];
@@ -49,7 +51,7 @@ export class MainView {
   checkedColors: boolean[] = [];
   transform_scale: number = 0; // abstract node, size of scale*scale
   rect_size: number = 0; // reassign each time by this.draw()
-  readonly node_size_ratio = 0.6;
+  node_size_ratio: number = 0.6;
   readonly client_size: ClientSize = {
     width: d3.select<SVGSVGElement, unknown>("#graph").node()!.clientWidth,
     height: d3.select<SVGSVGElement, unknown>("#graph").node()!.clientHeight,
@@ -69,6 +71,10 @@ export class MainView {
     this.minimap.draw(tile_width, tile_height);
     Event.AddStepListener("FilterETCheckbox", (levels: number[]) => {
       this.loadcheckedColors(levels);
+    });
+    Event.AddStepListener("GridSpacingStep", (step: number) => {
+      this.node_size_ratio = step / 100;
+      this.update_semantic_zoom(this.lastViewPortX, this.lastViewPortY);
     });
   }
 
@@ -518,6 +524,9 @@ export class MainView {
       viewport_width,
       viewport_height
     );
+
+    this.lastViewPortX = viewport_width;
+    this.lastViewPortY = viewport_height;
     this.update_semantic_zoom(viewport_width, viewport_height);
   }
 
