@@ -49,7 +49,7 @@ export class MainView {
   checkedColors: boolean[] = [];
   transform_scale: number = 0; // abstract node, size of scale*scale
   rect_size: number = 0; // reassign each time by this.draw()
-  readonly node_size_ratio = 0.6;
+  readonly node_size_ratio = 0.5;
   readonly client_size: ClientSize = {
     width: d3.select<SVGSVGElement, unknown>("#graph").node()!.clientWidth,
     height: d3.select<SVGSVGElement, unknown>("#graph").node()!.clientHeight,
@@ -220,15 +220,16 @@ export class MainView {
     }
     let sub_nodes = [];
 
-    let sub_scale = this.scale / 4;
-    let sub_cord_size = sub_scale * this.node_size_ratio;
-    let sub_rect_size = sub_cord_size * this.node_size_ratio;
+    const sub_scale = this.scale / 4;
+    const sub_cord_size = sub_scale * this.node_size_ratio;
+    const sub_rect_size = sub_cord_size * this.node_size_ratio;
+    const sub_rect_offset = (1 - this.node_size_ratio) / 2;
 
     for (let node of primary_nodes) {
       let base_idx = node.idx * 4;
       let base_idy = node.idy * 4;
-      let basepos_x = base_idy * sub_scale + 0.2 * this.scale;
-      let basepos_y = base_idx * sub_scale + 0.2 * this.scale;
+      let basepos_x = base_idy * sub_scale + sub_rect_offset * this.scale;
+      let basepos_y = base_idx * sub_scale + sub_rect_offset * this.scale;
       for (let i = base_idy; i < base_idy + 4; i++) {
         for (let j = base_idx; j < base_idx + 4; j++) {
           let node = {
@@ -237,8 +238,8 @@ export class MainView {
             idy: i,
             level: this.level - 1,
             size: sub_rect_size,
-            x: basepos_x + 0.2 * sub_cord_size + (i - base_idy) * sub_cord_size,
-            y: basepos_y + 0.2 * sub_cord_size + (j - base_idx) * sub_cord_size,
+            x: basepos_x + sub_rect_offset * sub_cord_size + (i - base_idy) * sub_cord_size,
+            y: basepos_y + sub_rect_offset * sub_cord_size + (j - base_idx) * sub_cord_size,
             color: this.dataLoaded
               ? ColorScheme(this.layers[this.level - 1].nodes[j][i].level)
               : NODE_DEFAULT_COLOR,
