@@ -33,3 +33,4 @@ jobs:
           external_repository: ueqri/vis4mesh-release
           publish_branch: gh-pages
           publish_dir: ./dist
+          cname: vis4mesh.hyan.site
