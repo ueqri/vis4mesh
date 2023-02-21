@@ -2,7 +2,7 @@ class DaisenUrl {
   baseurl: string;
   url: string;
 
-  constructor(baseurl: string = "http://localhost:3001/") {
+  constructor(baseurl: string) {
     this.baseurl = baseurl;
     this.url = baseurl;
   }
@@ -88,8 +88,8 @@ const selector = new DaisenSelector();
 
 export default selector;
 
-export function GetDaisenUrl() {
-  const url = new DaisenUrl();
+export function GetDaisenUrl(addr: string = "localhost:3001") {
+  const url = new DaisenUrl("http://" + addr + "/");
   const ep = selector.get_ep();
   const time_range = selector.get_timerange();
   console.log(time_range);
@@ -106,8 +106,8 @@ export function GetDaisenUrl() {
   return url;
 }
 
-export function DaisenLaunch(div: any) {
-  const url = GetDaisenUrl();
+export function DaisenLaunch(div: any, addr: string = "http://localhost:3001/") {
+  const url = GetDaisenUrl(addr);
   if (!url) {
     return;
   }
