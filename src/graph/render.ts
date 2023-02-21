@@ -108,7 +108,9 @@ export class Render {
         if (d.level > 0) {
           return;
         }
-        sel.append("title").text(`Tile_${d.idx}_${d.idy}`);
+        const div = sel.append("div");
+        div.append("title").text(`Tile_${d.idx}_${d.idy}`);
+        div.append
         // TooltipInteraction.onNode(nodeMap[d.id]);
       })
       .on("mousemove", function (ev) {

@@ -28,7 +28,7 @@ class DaisenUrl {
     if (coord !== undefined) {
       const start = coord[0];
       const end = coord[1];
-      this.url += `name=GPU1.EP_${start}_${end}_0&`;
+      this.url += `name=GPU1.EP\[${start}\]\[${end}\]\[0\]&`;
     }
     return this;
   }

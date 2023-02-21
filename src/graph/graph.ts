@@ -51,7 +51,7 @@ export class MainView {
   checkedColors: boolean[] = [];
   transform_scale: number = 0; // abstract node, size of scale*scale
   rect_size: number = 0; // reassign each time by this.draw()
-  readonly node_size_ratio = 0.5;
+  node_size_ratio: number = 0.5;
   readonly client_size: ClientSize = {
     width: d3.select<SVGSVGElement, unknown>("#graph").node()!.clientWidth,
     height: d3.select<SVGSVGElement, unknown>("#graph").node()!.clientHeight,
