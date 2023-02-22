@@ -23,7 +23,7 @@ import {
 } from "./util";
 
 const NODE_DEFAULT_COLOR = "#8fbed1"; // #8fbed1
-const MAX_ZOOM_SCALE = 200;
+const MAX_ZOOM_SCALE = 400;
 
 export class MainView {
   render: Render;
@@ -332,7 +332,7 @@ export class MainView {
           };
           link.opacity =
             link.value != 0 && this.checkedColors[link.colorLevel] === true
-              ? 1
+              ? 1 - this.scale / 4 / this.max_scale
               : 0;
           this.width_link_by_map(link);
           links.push(link);

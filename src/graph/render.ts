@@ -110,7 +110,7 @@ export class Render {
         }
         const div = sel.append("div");
         div.append("title").text(`Tile_${d.idx}_${d.idy}`);
-        div.append
+        div.append;
         // TooltipInteraction.onNode(nodeMap[d.id]);
       })
       .on("mousemove", function (ev) {
@@ -204,7 +204,7 @@ export class Render {
       .attr("y1", (d) => d.y1)
       .attr("y2", (d) => d.y2)
       .attr("opacity", (d) => d.opacity)
-      .attr("stroke-dasharray", (d) => d.dasharray)
+      // .attr("stroke-dasharray", (d) => d.dasharray)
       .attr("stroke", (d) => ColorScheme(d.colorLevel))
       .on("mouseover", function (ev, d) {
         const sel = d3.select(this);
