@@ -108,13 +108,11 @@ export class Render {
         if (d.level > 0) {
           return;
         }
-        const div = sel.append("div");
-        div.append("title").text(`Tile_${d.idx}_${d.idy}`);
-        div.append;
+        sel.append("title").text(`Tile_${d.idx}_${d.idy}`);
         // TooltipInteraction.onNode(nodeMap[d.id]);
       })
       .on("mousemove", function (ev) {
-        TooltipInteraction.move([ev.pageX, ev.pageY]);
+        // TooltipInteraction.move([ev.pageX, ev.pageY]);
       })
       .on("mouseout", function (ev, d) {
         const sel = d3.select(this);
@@ -122,7 +120,8 @@ export class Render {
           sel.attr("fill", d.color);
           sel.style("cursor", "default");
         }
-        TooltipInteraction.hide();
+        // TooltipInteraction.hide();
+        sel.select("title").remove();
       })
       .on("click", function (ev, d) {
         ev.stopPropagation();
@@ -219,7 +218,7 @@ export class Render {
         // TooltipInteraction.onEdge([nodeMap[src], nodeMap[dst]]);
       })
       .on("mousemove", function (ev) {
-        TooltipInteraction.move([ev.pageX, ev.pageY]);
+        // TooltipInteraction.move([ev.pageX, ev.pageY]);
       })
       .on("mouseout", function (ev, d) {
         const sel = d3.select(this);
@@ -227,7 +226,8 @@ export class Render {
           sel.attr("stroke-width", d.width);
           sel.style("cursor", "default");
         }
-        TooltipInteraction.hide();
+        sel.select("title").remove();
+        // TooltipInteraction.hide();
       })
       .on("click", function (ev, d) {
         const sel = d3.select(this);
