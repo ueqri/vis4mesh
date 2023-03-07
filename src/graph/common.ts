@@ -1,5 +1,5 @@
-export const ZoomWindowSize = 50;
-export const SubDisplaySize = 200;
+export const ZoomWindowSize = 200;
+export const SubDisplaySize = 100;
 export const RectCornerRadius = 0.05;
 export const ArrowWidth = 5 / 3.8;
 

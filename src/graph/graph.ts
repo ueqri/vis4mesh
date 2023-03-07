@@ -101,7 +101,7 @@ export class MainView {
   filterLinks() {
     for (let link of this.links) {
       link.opacity =
-        link.value != 0 && this.checkedColors[link.level] === true ? 1 : 0;
+        (link.value != 0 && this.checkedColors[link.colorLevel] === true) ? 1 : 0;
     }
   }
 
