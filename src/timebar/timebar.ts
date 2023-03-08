@@ -17,7 +17,7 @@ const ev = {
   DataOrCommand: "FilterDoC",
 };
 
-const div = d3.select("#timebar");
+const div = d3.select("#timebar-body");
 const colorScheme = d3.schemeSpectral;
 // mapping from group to color, e.g. { "Translations": "red" }
 const fixGroupColor = MsgGroupsDomain.reduce(
@@ -183,9 +183,8 @@ export default class Timebar {
     div.select("#stacked-chart").remove();
     div.select("#saturation-bar").remove();
 
-    timebar_opt.width = (div.node() as Element).getBoundingClientRect().width;
-    timebar_opt.height =
-      (div.node() as Element).getBoundingClientRect().height - 20;
+    timebar_opt.width = (div.node() as Element).clientWidth;
+    timebar_opt.height = (div.node() as Element).clientHeight - 20;
 
     let chart = new StackedChart(this.data, timebar_opt);
     let svg = chart.axis();

@@ -60,19 +60,16 @@
         </ul>
       </div>
       -->
-        <div id="daisen-buttons" class="ms-auto">
+        <div id="mainview-toggle"></div>
+
+        <div id="daisen-buttons">
           <button
             id="launch-daisen"
             type="button"
             class="btn btn-secondary"
             style="scale: 0.8"
             type="button"
-            data-bs-placement="center"
-            data-bs-target="#daisen"
-            aria-controls="setting"
-            aria-expanded="false"
-            aria-label="Toggle setting"
-            title="launch daisen to trace messages"
+            title="Launch Daisen to visualize messages traces"
           >
             Daisen Insight
           </button>
@@ -89,6 +86,7 @@
           aria-controls="setting"
           aria-expanded="false"
           aria-label="Toggle setting"
+          title="Tool Settings"
         >
           <span class="navbar-toggler-icon"></span>
         </button>
@@ -101,7 +99,7 @@
       <div class="resizer"></div>
     </div>
 
-    <svg id="minimap">
+    <svg id="minimap" style="display: none">
       <g id="minimap-blocks"></g>
       <rect id="minimap-viewport-box"></rect>
     </svg>
@@ -112,7 +110,16 @@
 
     <div id="timebar" class="fixed-bottom bg-light">
       <div class="resizer"></div>
-      <div id="filterbar-group"></div>
+
+      <div id="timebar-body"></div>
+      <div id="timebar-filter">
+        <!-- <p>Filter by Instruction Types</p> -->
+        <div id="filterbar-inst-type"></div>
+        <!-- <p>Filter by NoC Message Types</p> -->
+        <div id="filterbar-noc-msg-type"></div>
+        <!-- <p>Filter by # Hops in NoC</p> -->
+        <div id="filterbar-noc-num-hops"></div>
+      </div>
     </div>
   </body>
 </html>

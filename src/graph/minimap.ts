@@ -2,6 +2,7 @@ import * as d3 from "d3";
 import { AbstractLayer } from "./abstractlayer";
 import { ColorScheme } from "./util";
 import { MainView } from "./graph";
+import Event from "event";
 
 interface block_tile {
   x: number;
@@ -45,10 +46,30 @@ export default class Minimap {
       .attr("d", "M0,47 Q0,28 10,15 A15,15 0,1,0 -10,15 Q0,28 0,47")
       .attr("stroke-width", 1)
       .attr("stroke", "black");
+
+    Event.AddStepListener("BirdViewSize", (h: number) => this.redraw(h));
   }
 
-  draw(tile_width: number, tile_height: number) {
-    const canvas_height = 150;
+  save_tile_width: number = 0;
+  save_tile_height: number = 0;
+
+  redraw(canvas_height: number) {
+    d3.select("#minimap-blocks").selectAll("rect").remove();
+    this.draw(this.save_tile_width, this.save_tile_height, canvas_height);
+    this.paint_wafer(this.save_abstract_layers);
+    const [a, b, c, d] = this.save_viewport_box;
+    this.update_minimap_viewport_box(a, b, c, d);
+  }
+
+  draw(tile_width: number, tile_height: number, canvas_height?: number) {
+    this.save_tile_width = tile_width;
+    this.save_tile_height = tile_height;
+
+    if (typeof canvas_height == "undefined") {
+      canvas_height = Math.floor(
+        document.getElementById("graph")?.clientHeight! * 0.3
+      );
+    }
     const canvas_width = canvas_height * this.ratio;
 
     d3.select("#minimap")
@@ -111,7 +132,10 @@ export default class Minimap {
     this.pinMap.delete(`${x}-${y}`);
   }
 
+  save_abstract_layers!: AbstractLayer[];
   paint_wafer(layers: AbstractLayer[]) {
+    this.save_abstract_layers = layers; // for resizing
+
     let level = 0;
     for (let i = 0; i < layers.length; i++) {
       if (layers[i].width * layers[i].height < 5000) {
@@ -156,12 +180,15 @@ export default class Minimap {
       });
   }
 
+  save_viewport_box!: number[];
   update_minimap_viewport_box(
     top: number,
     left: number,
     width: number,
     height: number
   ) {
+    this.save_viewport_box = [top, left, width, height]; // for resizing
+
     const viewport_box = d3.select("#minimap-viewport-box");
 
     const viewport_x = left * this.scale + this.offset_x;

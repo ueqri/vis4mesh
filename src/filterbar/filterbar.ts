@@ -13,7 +13,13 @@ import EdgeTrafficCheckboxes from "./edgecheckbox";
 type SignalMap = { [type: string]: (v: any) => any };
 
 const divE = d3.select("#filterbar-edge");
-const divG = d3.select("#filterbar-group");
+const divG = d3.select("#filterbar-inst-type");
+
+const titleG = divG
+  .append("p")
+  .text("Filter by Instruction Types")
+  .style("display", "none");
+
 const msgDiv = {
   MsgGroup: divG
     .append("div")
@@ -24,6 +30,7 @@ const msgDiv = {
     .attr("id", "filter-data-or-command")
     .style("display", "none"),
 };
+
 const edgeDiv = {
   Checkboxes: divE
     .append("div")
@@ -80,6 +87,7 @@ export default class Filterbar {
   protected initSignalCallbacks() {
     // Signal to show certain type of filter bar, e.g. msg group, data/command
     this.signal["msg"] = (v) => {
+      titleG.style("display", "block");
       if (v === "group") {
         msgDiv.DataOrCommand.style("display", "none");
         msgDiv.MsgGroup.style("display", "inline-block");

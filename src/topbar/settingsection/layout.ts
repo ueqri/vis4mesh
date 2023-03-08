@@ -5,6 +5,7 @@ import Event from "event";
 const ev = {
   GridSpacingStep: "GridSpacingStep",
   GridSpacingCover: "GridSpacingCover",
+  BirdViewSize: "BirdViewSize",
 };
 
 export default function RenderSettingLayoutSection() {
@@ -33,6 +34,19 @@ export default function RenderSettingLayoutSection() {
           })
           .event((v) => {
             Event.FireEvent(ev.GridSpacingCover, v);
+          }),
+        new SingleSlider("birdview-height-slider")
+          .append({
+            min: 0,
+            max: document.getElementById("graph")?.clientHeight!,
+            default: Math.floor(
+              document.getElementById("graph")?.clientHeight! * 0.3
+            ),
+            step: 1,
+            label: "Bird View Size",
+          })
+          .event((v) => {
+            Event.FireEvent(ev.BirdViewSize, v);
           }),
       ],
     },

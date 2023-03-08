@@ -380,7 +380,7 @@ export default class StackedChart {
 
   node(svg: SVGSelection) {
     const color = this.color;
-    return Object.assign(svg.node(), { scales: { color } });
+    return Object.assign(svg.node()!, { scales: { color } });
   }
 }
 
