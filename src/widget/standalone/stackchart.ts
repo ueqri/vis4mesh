@@ -331,7 +331,7 @@ export default class StackedChart {
           const snap = snappedSelection(d0);
           storePrevSelection(d0);
           d3.select(this).transition().call(event.target.move, snap);
-          d3.select(this).select("title").text(`TODO: [${d0[0]}, ${d0[1]})`);
+          // d3.select(this).select("title").text(`TODO: [${d0[0]}, ${d0[1]})`);
           if (isNumeric(d0[0]) && isNumeric(d0[1])) {
             callback(d0[0], d0[1]);
           }

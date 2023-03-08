@@ -23,7 +23,7 @@ import {
 } from "./util";
 
 const NODE_DEFAULT_COLOR = "#8fbed1"; // #8fbed1
-const MAX_ZOOM_SCALE = 200;
+const MAX_ZOOM_SCALE = 400;
 
 export class MainView {
   render: Render;
@@ -51,7 +51,7 @@ export class MainView {
   checkedColors: boolean[] = [];
   transform_scale: number = 0; // abstract node, size of scale*scale
   rect_size: number = 0; // reassign each time by this.draw()
-  readonly node_size_ratio = 0.5;
+  node_size_ratio: number = 0.5;
   readonly client_size: ClientSize = {
     width: d3.select<SVGSVGElement, unknown>("#graph").node()!.clientWidth,
     height: d3.select<SVGSVGElement, unknown>("#graph").node()!.clientHeight,
@@ -101,7 +101,7 @@ export class MainView {
   filterLinks() {
     for (let link of this.links) {
       link.opacity =
-        link.value != 0 && this.checkedColors[link.level] === true ? 1 : 0;
+        (link.value != 0 && this.checkedColors[link.colorLevel] === true) ? 1 : 0;
     }
   }
 
@@ -332,7 +332,7 @@ export class MainView {
           };
           link.opacity =
             link.value != 0 && this.checkedColors[link.colorLevel] === true
-              ? 1
+              ? 1 - this.scale / 4 / this.max_scale
               : 0;
           this.width_link_by_map(link);
           links.push(link);

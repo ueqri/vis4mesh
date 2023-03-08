@@ -11,7 +11,11 @@ export function register_daisen_insight(btn: any, graph_controller: MainView) {
       window.alert("Please select one endpoint first.");
       return;
     }
-    console.log("click launch daisen");
+    let addr = window.prompt("Daisen server address (default localhost:3001)");
+    if (!addr) {
+      addr = "localhost:3001";
+    }
+    console.log("click launch Daisen " + addr);
 
     const navbar = d3.select("#navbar").select("div");
     navbar.select("#daisen-follow").remove();
@@ -91,7 +95,6 @@ export function register_daisen_insight(btn: any, graph_controller: MainView) {
       .on("mouseout", () => {
         close.style("fill", "white");
       });
-
-    DaisenLaunch(sidecanvas);
+    DaisenLaunch(sidecanvas, addr!);
   });
 }
