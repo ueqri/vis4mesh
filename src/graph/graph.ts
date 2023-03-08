@@ -91,7 +91,6 @@ export class MainView {
   }
 
   loadcheckedColors(levels: number[]) {
-    console.log(levels);
     this.checkedColors.fill(false);
     levels.forEach((lv) => (this.checkedColors[lv] = true));
     this.filterLinks();
@@ -179,6 +178,9 @@ export class MainView {
     let left = width;
     let right = 0;
     // get the rim of wafer nodes within the viewport
+    if (this.dataLoaded) {
+      console.log(this.layers[this.level].nodes);
+    }
     for (let i = 0; i < height; i++) {
       for (let j = 0; j < width; j++) {
         if (this.within_view(i, j)) {

@@ -177,6 +177,7 @@ export function BuildAbstractLayers(
   );
   let end = performance.now();
   // console.log(`build from source edgeData: time spent ${end - start}ms`);
+  console.log("init_scale", init_scale);
   for (let i = 4; i <= init_scale; i *= 4) {
     bandwidth *= 4;
     let start = performance.now();

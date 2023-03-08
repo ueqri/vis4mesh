@@ -101,4 +101,11 @@ export const DataOrCommandMap: Object = {
   "*vm.TranslationRsp": "D",
 };
 
+export const TransferTypesInOrder: string[] = [
+  "mesh_send",
+  "mesh_relay",
+  "mesh_recv",
+  "peripheral",
+];
+
 export const DataOrCommandReverseMap = reverseObject(DataOrCommandMap);

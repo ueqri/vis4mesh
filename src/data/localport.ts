@@ -89,11 +89,12 @@ export default class LocalDataPort extends DataPort {
           await this.loader.getEdgeFileContent(start - 1)
         ) as EdgeData[];
         for (let i = 0; i < numEdges; i++) {
-          for (let j = 0; j < numMsgTypes; j++) {
+          for (let j = 0; j < 4 * this.meta.num_hop_units * numMsgTypes; j++) {
             edges[i].value[j] -= redundant[i].value[j];
           }
         }
       }
+      console.log(edges);
       return { meta: this.meta, nodes: this.nodes, edges: edges };
     }
   }

@@ -1,12 +1,13 @@
 import { SignalMap, ControllerModule } from "../controller";
 import { DataToDisplay, EdgeDisplay } from "display/data";
-import { DataPortRangeResponse } from "data/data";
+import { DataPortRangeResponse, EdgeData } from "data/data";
 import {
   DataOrCommandDomain,
   DataOrCommandReverseMap,
   MsgGroupsDomain,
   MsgGroupsReverseMap,
   MsgTypesInOrderIndexMap,
+  MsgTypesInOrder,
 } from "data/classification";
 import * as d3 from "d3";
 import Event from "event";
@@ -59,31 +60,76 @@ export default class FilterMsg implements ControllerModule {
 
   decorateData(ref: DataPortRangeResponse, d: DataToDisplay) {
     let start = performance.now();
+
+    if (this.mode == FilterMsgMode.ByMsgGroup) {
+      this.aggregate_data(
+        ref,
+        d,
+        (x) => true,
+        (x) => true,
+        (x) => true
+      );
+    } else {
+      alert("! NOT IMPLEMENTED YET");
+      // for (let edge of ref.edges) {
+      //   let detail = edge.detail;
+      //   let weight = 0;
+      //   for (let doc of this.docDomain) {
+      //     let keys = DataOrCommandReverseMap[doc] as string[];
+      //     for (let key of keys) {
+      //       const typeIdx: number = MapMsgTypeToIdx[key];
+      //       const val: number | undefined = edge.value[typeIdx];
+      //       if (val !== undefined && val > 0) {
+      //         detail += `<br>${key}: ${val}`;
+      //         weight += edge.value[typeIdx];
+      //       }
+      //     }
+      //   }
+      //   d.edges.push({
+      //     source: edge.source,
+      //     target: edge.target,
+      //     detail: edge.detail,
+      //     weight: weight,
+      //     // label is tentatively deserted
+      //     label: "" /*weight === 0 ? "" : CompressBigNumber(weight)*/,
+      //   });
+      // }
+    }
+    let end = performance.now();
+    console.log(`decorateData spend: ${end - start}ms`);
+  }
+
+  aggregate_data(
+    ref: DataPortRangeResponse,
+    d: DataToDisplay,
+    transfer_filter: (x: number) => boolean, // transfer_type: refers to `classification.ts: TransferTypesInOrder`
+    hops_filter: (x: number) => boolean,  // hop_unit: refers to `meta.num_hop_units & meta.hops_per_unit`
+    msg_filter: (x: number) => boolean // msg_type: refers to `classification.ts: MsgTypesInOrder`
+  ) {
+    // all 3 filters
+    const meta = ref.meta;
+    const msg_types = MsgTypesInOrder.length;
     for (let edge of ref.edges) {
       let detail = edge.detail;
       let weight = 0;
-      if (this.mode == FilterMsgMode.ByMsgGroup) {
-        for (let g of this.groupDomain) {
-          let keys = MsgGroupsReverseMap[g] as string[];
-          for (let key of keys) {
-            const typeIdx: number = MapMsgTypeToIdx[key];
-            const val: number | undefined = edge.value[typeIdx];
-            if (val !== undefined && val > 0) {
-              detail += `<br>${key}: ${val}`;
-              weight += edge.value[typeIdx];
-            }
-          }
+      let index = 0;
+      for (let transfer_type = 0; transfer_type < 4; transfer_type++) {
+        if (!transfer_filter(transfer_type)) {
+          index += meta.num_hop_units * msg_types;
+          continue;
         }
-      } else if (this.mode == FilterMsgMode.ByDataOrCommand) {
-        for (let doc of this.docDomain) {
-          let keys = DataOrCommandReverseMap[doc] as string[];
-          for (let key of keys) {
-            const typeIdx: number = MapMsgTypeToIdx[key];
-            const val: number | undefined = edge.value[typeIdx];
-            if (val !== undefined && val > 0) {
-              detail += `<br>${key}: ${val}`;
-              weight += edge.value[typeIdx];
+        for (let hop_unit = 0; hop_unit < meta.num_hop_units; hop_unit++) {
+          if (!hops_filter(hop_unit)) {
+            index += msg_types;
+            continue;
+          }
+          for (let msg_type = 0; msg_type < msg_types; msg_type++) {
+            if (!msg_filter(msg_type)) {
+              index++;
+              continue;
             }
+            weight += edge.value[index];
+            index++;
           }
         }
       }
@@ -97,8 +143,6 @@ export default class FilterMsg implements ControllerModule {
         label: "" /*weight === 0 ? "" : CompressBigNumber(weight)*/,
       });
     }
-    let end = performance.now();
-    console.log(`decorateData spend: ${end - start}ms`);
   }
 
   invokeController() {} // Nothing to do
