@@ -3,6 +3,8 @@ export interface MetaData {
   height: number;
   slice: number;
   elapse: number;
+  hops_per_unit: number;
+  num_hop_units: number;
 }
 
 export interface NodeData {
@@ -26,6 +28,8 @@ export interface SnapShotData {
   doc: string; // data or command message, e.g. D, C
   count: number; // count of the certain message type during this frame
   max_flits: number; // maximum channel flit number of the mesh at certain time
+  hop_units: number;
+  transfer_type: number;
 }
 
 export type FlatData = SnapShotData[];

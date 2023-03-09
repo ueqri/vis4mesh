@@ -1,45 +1,88 @@
 import { SignalMap, ControllerModule } from "../controller";
 import { DataToDisplay, EdgeDisplay } from "display/data";
-import { DataPortRangeResponse } from "data/data";
+import { DataPortRangeResponse, EdgeData, MetaData } from "data/data";
 import {
   DataOrCommandDomain,
   DataOrCommandReverseMap,
   MsgGroupsDomain,
   MsgGroupsReverseMap,
   MsgTypesInOrderIndexMap,
+  MsgTypesInOrder,
+  TransferTypesInOrder,
+  MsgGroupsMap,
 } from "data/classification";
 import * as d3 from "d3";
 import Event from "event";
 
 const ev = {
-  MsgGroup: "FilterMsgGroup",
-  DataOrCommand: "FilterDoC",
+  InstTypeFilter: {
+    MsgGroup: "FilterMsgGroup",
+    DataOrCommand: "FilterDoC",
+  },
+  NoCMsgTypeFilter: "FilterNoCMsgType",
+  NoCNumHopsFilter: "FilterNoCNumHops",
 };
 
-enum FilterMsgMode {
+enum InstTypeFilterMode {
   ByMsgGroup,
   ByDataOrCommand,
 }
 
+const NumHopsDomain = [...Array(4).keys()].map((i) => `${i}`);
 const MapMsgTypeToIdx = MsgTypesInOrderIndexMap;
+
+type TruthTable = { [key: string]: boolean };
 
 export default class FilterMsg implements ControllerModule {
   public signal: SignalMap;
-  protected groupDomain: string[];
-  protected docDomain: string[];
-  protected mode: FilterMsgMode;
+
+  protected instTypeGroupTruthTable: TruthTable;
+  protected instTypeDoCTruthTable: TruthTable;
+  protected instTypeFilterMode: InstTypeFilterMode;
+
+  protected nocMsgTypeTruthTable: TruthTable;
+
+  protected metaInfo!: MetaData;
+  protected NumHopsDomain!: string[];
+  protected nocNumHopsTruthTable!: TruthTable;
 
   constructor() {
     this.signal = {};
-    this.groupDomain = MsgGroupsDomain;
-    this.docDomain = DataOrCommandDomain;
-    this.mode = FilterMsgMode.ByMsgGroup; // filter msg group by default
 
-    Event.AddStepListener(ev.MsgGroup, (g: string[]) =>
-      this.updateMsgGroupDomain(g)
+    // Instruction Type Filter
+    this.instTypeGroupTruthTable = generateTruthTableViaSelectedDomain(
+      MsgGroupsDomain,
+      MsgGroupsDomain
     );
-    Event.AddStepListener(ev.DataOrCommand, (doc: string[]) =>
-      this.updateDataOrCommandDomain(doc)
+    this.instTypeDoCTruthTable = generateTruthTableViaSelectedDomain(
+      DataOrCommandDomain,
+      DataOrCommandDomain
+    );
+    this.instTypeFilterMode = InstTypeFilterMode.ByMsgGroup; // filter msg group by default
+
+    // NoC Transferred Msg Type Filter
+    this.nocMsgTypeTruthTable = generateTruthTableViaSelectedDomain(
+      TransferTypesInOrder,
+      TransferTypesInOrder
+    );
+
+    // NoC # Hops Filter
+    this.nocNumHopsTruthTable = generateTruthTableViaSelectedDomain(
+      NumHopsDomain,
+      NumHopsDomain
+    );
+
+    Event.AddStepListener(ev.InstTypeFilter.MsgGroup, (g: string[]) =>
+      this.updateInstTypeMsgGroupDomain(g)
+    );
+    Event.AddStepListener(ev.InstTypeFilter.DataOrCommand, (doc: string[]) =>
+      this.updateInstTypeDoCDomain(doc)
+    );
+    Event.AddStepListener(ev.NoCMsgTypeFilter, (x: string[]) =>
+      this.updateNoCMsgTypeDomain(x)
+    );
+    Event.AddStepListener(ev.NoCNumHopsFilter, (x: string[]) =>
+      this.updateNoCNumHopsDomain(x)
     );
 
     this.initSignalCallbacks();
@@ -48,9 +91,9 @@ export default class FilterMsg implements ControllerModule {
   protected initSignalCallbacks() {
     this.signal["msg"] = (v) => {
       if (v === "group") {
-        this.mode = FilterMsgMode.ByMsgGroup;
+        this.instTypeFilterMode = InstTypeFilterMode.ByMsgGroup;
       } else if (v === "doc") {
-        this.mode = FilterMsgMode.ByDataOrCommand;
+        this.instTypeFilterMode = InstTypeFilterMode.ByDataOrCommand;
       } else {
         console.error("Invalid message signal for module filter");
       }
@@ -59,31 +102,76 @@ export default class FilterMsg implements ControllerModule {
 
   decorateData(ref: DataPortRangeResponse, d: DataToDisplay) {
     let start = performance.now();
+
+    if (this.instTypeFilterMode == InstTypeFilterMode.ByMsgGroup) {
+      this.aggregate_data(
+        ref,
+        d,
+        (x) => this.nocMsgTypeTruthTable[x],
+        (x) => this.nocNumHopsTruthTable[x],
+        (x) => this.instTypeGroupTruthTable[x]
+      );
+    } else {
+      alert("! NOT IMPLEMENTED YET");
+      // for (let edge of ref.edges) {
+      //   let detail = edge.detail;
+      //   let weight = 0;
+      //   for (let doc of this.docDomain) {
+      //     let keys = DataOrCommandReverseMap[doc] as string[];
+      //     for (let key of keys) {
+      //       const typeIdx: number = MapMsgTypeToIdx[key];
+      //       const val: number | undefined = edge.value[typeIdx];
+      //       if (val !== undefined && val > 0) {
+      //         detail += `<br>${key}: ${val}`;
+      //         weight += edge.value[typeIdx];
+      //       }
+      //     }
+      //   }
+      //   d.edges.push({
+      //     source: edge.source,
+      //     target: edge.target,
+      //     detail: edge.detail,
+      //     weight: weight,
+      //     // label is tentatively deserted
+      //     label: "" /*weight === 0 ? "" : CompressBigNumber(weight)*/,
+      //   });
+      // }
+    }
+    let end = performance.now();
+    console.log(`decorateData spend: ${end - start}ms`);
+  }
+
+  aggregate_data(
+    ref: DataPortRangeResponse,
+    d: DataToDisplay,
+    transfer_filter: (x: string) => boolean, // transfer_type: refers to `classification.ts: TransferTypesInOrder`
+    hops_filter: (x: string) => boolean, // hop_unit: refers to `meta.num_hop_units & meta.hops_per_unit`
+    msg_filter: (x: string) => boolean // msg_type: refers to `classification.ts: MsgTypesInOrder`
+  ) {
+    // all 3 filters
+    const meta = ref.meta;
+    const msg_types = MsgTypesInOrder.length;
     for (let edge of ref.edges) {
       let detail = edge.detail;
       let weight = 0;
-      if (this.mode == FilterMsgMode.ByMsgGroup) {
-        for (let g of this.groupDomain) {
-          let keys = MsgGroupsReverseMap[g] as string[];
-          for (let key of keys) {
-            const typeIdx: number = MapMsgTypeToIdx[key];
-            const val: number | undefined = edge.value[typeIdx];
-            if (val !== undefined && val > 0) {
-              detail += `<br>${key}: ${val}`;
-              weight += edge.value[typeIdx];
-            }
-          }
+      let index = 0;
+      for (let transfer_type of TransferTypesInOrder) {
+        if (!transfer_filter(transfer_type)) {
+          index += meta.num_hop_units * msg_types;
+          continue;
         }
-      } else if (this.mode == FilterMsgMode.ByDataOrCommand) {
-        for (let doc of this.docDomain) {
-          let keys = DataOrCommandReverseMap[doc] as string[];
-          for (let key of keys) {
-            const typeIdx: number = MapMsgTypeToIdx[key];
-            const val: number | undefined = edge.value[typeIdx];
-            if (val !== undefined && val > 0) {
-              detail += `<br>${key}: ${val}`;
-              weight += edge.value[typeIdx];
+        for (let hop_unit = 0; hop_unit < meta.num_hop_units; hop_unit++) {
+          if (!hops_filter(`${hop_unit}`)) {
+            index += msg_types;
+            continue;
+          }
+          for (let msg_type of MsgTypesInOrder) {
+            if (!msg_filter(MsgGroupsMap[msg_type])) {
+              index++;
+              continue;
             }
+            weight += edge.value[index];
+            index++;
           }
         }
       }
@@ -97,19 +185,51 @@ export default class FilterMsg implements ControllerModule {
         label: "" /*weight === 0 ? "" : CompressBigNumber(weight)*/,
       });
     }
-    let end = performance.now();
-    console.log(`decorateData spend: ${end - start}ms`);
   }
 
   invokeController() {} // Nothing to do
 
-  updateMsgGroupDomain(domain: string[]) {
-    this.groupDomain = domain;
+  updateInstTypeMsgGroupDomain(domain: string[]) {
+    this.instTypeGroupTruthTable = generateTruthTableViaSelectedDomain(
+      domain,
+      MsgGroupsDomain
+    );
   }
 
-  updateDataOrCommandDomain(domain: string[]) {
-    this.docDomain = domain;
+  updateInstTypeDoCDomain(domain: string[]) {
+    this.instTypeDoCTruthTable = generateTruthTableViaSelectedDomain(
+      domain,
+      DataOrCommandDomain
+    );
   }
+
+  updateNoCMsgTypeDomain(domain: string[]) {
+    this.nocMsgTypeTruthTable = generateTruthTableViaSelectedDomain(
+      domain,
+      TransferTypesInOrder
+    );
+  }
+
+  updateNoCNumHopsDomain(domain: string[]) {
+    this.nocNumHopsTruthTable = generateTruthTableViaSelectedDomain(
+      domain,
+      NumHopsDomain
+    );
+  }
+}
+
+function generateTruthTableViaSelectedDomain(
+  selected: string[],
+  fullDomain: string[]
+): TruthTable {
+  let ans: TruthTable = {};
+  for (let item of fullDomain) {
+    ans[item] = false;
+  }
+  for (let item of selected) {
+    ans[item] = true;
+  }
+  return ans;
 }
 
 export function CompressBigNumber(number: string | number): string {
