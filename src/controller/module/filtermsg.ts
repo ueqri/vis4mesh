@@ -9,6 +9,7 @@ import {
   MsgTypesInOrderIndexMap,
   MsgTypesInOrder,
   TransferTypesInOrder,
+  MsgGroupsMap,
 } from "data/classification";
 import * as d3 from "d3";
 import Event from "event";
@@ -139,9 +140,9 @@ export default class FilterMsg implements ControllerModule {
   aggregate_data(
     ref: DataPortRangeResponse,
     d: DataToDisplay,
-    transfer_filter: (x: number) => boolean, // transfer_type: refers to `classification.ts: TransferTypesInOrder`
-    hops_filter: (x: number) => boolean, // hop_unit: refers to `meta.num_hop_units & meta.hops_per_unit`
-    msg_filter: (x: number) => boolean // msg_type: refers to `classification.ts: MsgTypesInOrder`
+    transfer_filter: (x: string) => boolean, // transfer_type: refers to `classification.ts: TransferTypesInOrder`
+    hops_filter: (x: string) => boolean, // hop_unit: refers to `meta.num_hop_units & meta.hops_per_unit`
+    msg_filter: (x: string) => boolean // msg_type: refers to `classification.ts: MsgTypesInOrder`
   ) {
     // all 3 filters
     const meta = ref.meta;
@@ -150,18 +151,18 @@ export default class FilterMsg implements ControllerModule {
       let detail = edge.detail;
       let weight = 0;
       let index = 0;
-      for (let transfer_type = 0; transfer_type < 4; transfer_type++) {
+      for (let transfer_type of TransferTypesInOrder) {
         if (!transfer_filter(transfer_type)) {
           index += meta.num_hop_units * msg_types;
           continue;
         }
         for (let hop_unit = 0; hop_unit < meta.num_hop_units; hop_unit++) {
-          if (!hops_filter(hop_unit)) {
+          if (!hops_filter(`${hop_unit}`)) {
             index += msg_types;
             continue;
           }
-          for (let msg_type = 0; msg_type < msg_types; msg_type++) {
-            if (msg_filter(msg_type)) {
+          for (let msg_type of MsgTypesInOrder) {
+            if (!msg_filter(MsgGroupsMap[msg_type])) {
               index++;
               continue;
             }
