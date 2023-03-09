@@ -1,56 +1,9 @@
-import * as d3 from "d3";
 import Event from "event";
 import { Component, Element } from "global";
-import { ColoredCheckbox } from "widget/colorcheckbox";
-import {
-  DataOrCommandDomain,
-  MsgGroupsDomain,
-  NumMsgGroups,
-  DataOrCommandDomainNameExtend,
-} from "data/classification";
-import EdgeTrafficCheckboxes from "./edgecheckbox";
+import EdgeTrafficByLegendCheckboxFilterBar from "./edgecheckboxwrapper";
+import InstructionTypeFilterBar from "./insttype";
 
 type SignalMap = { [type: string]: (v: any) => any };
-
-const divE = d3.select("#filterbar-edge");
-const divG = d3.select("#filterbar-inst-type");
-
-const titleG = divG
-  .append("p")
-  .text("Filter by Instruction Types")
-  .style("display", "none");
-
-const msgDiv = {
-  MsgGroup: divG
-    .append("div")
-    .attr("id", "filter-msg-group")
-    .style("display", "none"),
-  DataOrCommand: divG
-    .append("div")
-    .attr("id", "filter-data-or-command")
-    .style("display", "none"),
-};
-
-const edgeDiv = {
-  Checkboxes: divE
-    .append("div")
-    .attr("id", "filter-edge-checkbox")
-    .style("display", "none"),
-  Slider: divE
-    .append("div")
-    .attr("id", "filter-edge-slider")
-    .style("display", "none"),
-};
-
-let SelectedMsgGroup = MsgGroupsDomain.reduce(
-  (a, group) => ({ ...a, [group]: true }),
-  {}
-);
-
-let SelectedDataOrCommand = DataOrCommandDomain.reduce(
-  (a, group) => ({ ...a, [group]: true }),
-  {}
-);
 
 const ev = {
   MsgGroup: "FilterMsgGroup",
@@ -71,9 +24,8 @@ function InitFilterEvent() {
 export function RenderFilterbar() {
   InitFilterEvent();
   const f = Element.filterbar;
-  f.renderFilterMsgGroup();
-  f.renderFilterDataOrCommand();
-  f.renderFilterTrafficByCheckbox();
+  f.renderFilterInstructionType();
+  f.renderFilterEdgeTrafficByLegendCheckbox();
 }
 
 export default class Filterbar {
@@ -86,76 +38,16 @@ export default class Filterbar {
 
   protected initSignalCallbacks() {
     // Signal to show certain type of filter bar, e.g. msg group, data/command
-    this.signal["msg"] = (v) => {
-      titleG.style("display", "block");
-      if (v === "group") {
-        msgDiv.DataOrCommand.style("display", "none");
-        msgDiv.MsgGroup.style("display", "inline-block");
-        const now = MsgGroupsDomain.filter((g) => SelectedMsgGroup[g]);
-        Event.FireEvent(ev.MsgGroup, now);
-      } else if (v === "doc") {
-        msgDiv.DataOrCommand.style("display", "inline-block");
-        msgDiv.MsgGroup.style("display", "none");
-        const now = DataOrCommandDomain.filter((g) => SelectedDataOrCommand[g]);
-        Event.FireEvent(ev.DataOrCommand, now);
-      }
-    };
-    this.signal["edge"] = (v) => {
-      if (v === "checkbox") {
-        edgeDiv.Slider.style("display", "none");
-        edgeDiv.Checkboxes.style("display", "inline-block");
-        const now = EdgeTrafficCheckboxes.selected();
-        Event.FireEvent(ev.EdgeTrafficCheckbox, now);
-      } else if (v === "slider") {
-        edgeDiv.Slider.style("display", "inline-block");
-        edgeDiv.Checkboxes.style("display", "none");
-        // TODO: slider
-      }
-    };
+    this.signal["msg"] = (v) => InstructionTypeFilterBar.handleSignal(v);
+    this.signal["edge"] = (v) =>
+      EdgeTrafficByLegendCheckboxFilterBar.handleSignal(v);
   }
 
-  // Msg group filter
-  renderFilterMsgGroup() {
-    MsgGroupsDomain.forEach((group, i) => {
-      let box = new ColoredCheckbox()
-        .append({
-          label: group,
-          color: d3.schemeSpectral[NumMsgGroups][i],
-        })
-        .event((val) => this.updateMsgGroup(group, val))
-        .static(true);
-      msgDiv.MsgGroup.append(() => box.node());
-    });
+  renderFilterInstructionType() {
+    InstructionTypeFilterBar.render();
   }
 
-  protected updateMsgGroup(group: string, checked: boolean) {
-    SelectedMsgGroup[group] = checked;
-    let groups = MsgGroupsDomain.filter((g) => SelectedMsgGroup[g]);
-    Event.FireEvent(ev.MsgGroup, groups);
-  }
-
-  // Data/Command filter
-  renderFilterDataOrCommand() {
-    DataOrCommandDomain.forEach((group, i) => {
-      let box = new ColoredCheckbox()
-        .append({
-          label: DataOrCommandDomainNameExtend(group),
-          color: ["#d7191c", "#2b83ba"][i],
-        })
-        .event((val) => this.updateDataOrCommand(group, val))
-        .static(true);
-      msgDiv.DataOrCommand.append(() => box.node());
-    });
-  }
-
-  protected updateDataOrCommand(group: string, checked: boolean) {
-    SelectedDataOrCommand[group] = checked;
-    let groups = DataOrCommandDomain.filter((g) => SelectedDataOrCommand[g]);
-    Event.FireEvent(ev.DataOrCommand, groups);
-  }
-
-  // Traffic congestion filter
-  renderFilterTrafficByCheckbox() {
-    edgeDiv.Checkboxes.append(() => EdgeTrafficCheckboxes.node());
+  renderFilterEdgeTrafficByLegendCheckbox() {
+    EdgeTrafficByLegendCheckboxFilterBar.render();
   }
 }
