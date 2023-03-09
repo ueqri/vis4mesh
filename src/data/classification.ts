@@ -108,4 +108,11 @@ export const TransferTypesInOrder: string[] = [
   "peripheral",
 ];
 
+export const TransferTypesInOrderExtendNames = {
+  mesh_send: "TX",
+  mesh_relay: "Relay",
+  mesh_recv: "RX",
+  peripheral: "Outside NoC",
+};
+
 export const DataOrCommandReverseMap = reverseObject(DataOrCommandMap);

@@ -1,5 +1,5 @@
 $setting-separate: 76vw;
-$timebar-default-height: 20vh;
+$timebar-default-height: 26.5vh;
 
 body {
   overflow: hidden;
@@ -100,13 +100,13 @@ body {
 
     #timebar-body {
       height: 100%;
-      width: 78%;
+      width: 76%;
       float: left;
     }
 
     #timebar-filter {
       height: 100%;
-      width: 22%;
+      width: 24%;
       float: right;
 
       p {
@@ -116,22 +116,19 @@ body {
       }
 
       #filterbar-inst-type {
-        position: absolute;
-        top: -4px;
-        right: 2px;
+        position: relative;
+        left: 2px;
       }
 
-      // #filterbar-noc-msg-type {
-      //   position: absolute;
-      //   top: -4px;
-      //   right: 15px;
-      // }
+      #filterbar-noc-msg-type {
+        position: relative;
+        left: 2px;
+      }
 
-      // #filterbar-noc-num-hops {
-      //   position: absolute;
-      //   top: -4px;
-      //   right: 15px;
-      // }
+      #filterbar-noc-num-hops {
+        position: relative;
+        left: 2px;
+      }
     }
   }
 }

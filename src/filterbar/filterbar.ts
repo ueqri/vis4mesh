@@ -2,6 +2,8 @@ import Event from "event";
 import { Component, Element } from "global";
 import EdgeTrafficByLegendCheckboxFilterBar from "./edgecheckboxwrapper";
 import InstructionTypeFilterBar from "./insttype";
+import NoCMsgTypeFilterBar from "./nocmsgtype";
+import NoCNumHopsFilterBar from "./numhops";
 
 type SignalMap = { [type: string]: (v: any) => any };
 
@@ -24,8 +26,10 @@ function InitFilterEvent() {
 export function RenderFilterbar() {
   InitFilterEvent();
   const f = Element.filterbar;
-  f.renderFilterInstructionType();
   f.renderFilterEdgeTrafficByLegendCheckbox();
+  f.renderFilterInstructionType();
+  f.renderFilterNoCMsgType();
+  f.renderFilterNoCNumHopsType();
 }
 
 export default class Filterbar {
@@ -41,13 +45,23 @@ export default class Filterbar {
     this.signal["msg"] = (v) => InstructionTypeFilterBar.handleSignal(v);
     this.signal["edge"] = (v) =>
       EdgeTrafficByLegendCheckboxFilterBar.handleSignal(v);
+
+    // this.signal["num_hops"] = (v) => {};
+  }
+
+  renderFilterEdgeTrafficByLegendCheckbox() {
+    EdgeTrafficByLegendCheckboxFilterBar.render();
   }
 
   renderFilterInstructionType() {
     InstructionTypeFilterBar.render();
   }
 
-  renderFilterEdgeTrafficByLegendCheckbox() {
-    EdgeTrafficByLegendCheckboxFilterBar.render();
+  renderFilterNoCMsgType() {
+    NoCMsgTypeFilterBar.render();
+  }
+
+  renderFilterNoCNumHopsType() {
+    NoCNumHopsFilterBar.render();
   }
 }

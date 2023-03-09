@@ -17,11 +17,11 @@ const title = outerDiv
 
 const div = {
   MsgGroup: outerDiv
-    .append("outerDiv")
+    .append("div")
     .attr("id", "filter-msg-group")
     .style("display", "none"),
   DataOrCommand: outerDiv
-    .append("outerDiv")
+    .append("div")
     .attr("id", "filter-data-or-command")
     .style("display", "none"),
 };
