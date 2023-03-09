@@ -28,6 +28,7 @@ enum InstTypeFilterMode {
   ByDataOrCommand,
 }
 
+const NumHopsDomain = [...Array(4).keys()].map((i) => `${i}`);
 const MapMsgTypeToIdx = MsgTypesInOrderIndexMap;
 
 type TruthTable = { [key: string]: boolean };
@@ -66,7 +67,10 @@ export default class FilterMsg implements ControllerModule {
     );
 
     // NoC # Hops Filter
-    // See: `loadMetaInfo(meta: MetaData)` method
+    this.nocNumHopsTruthTable = generateTruthTableViaSelectedDomain(
+      NumHopsDomain,
+      NumHopsDomain
+    );
 
     Event.AddStepListener(ev.InstTypeFilter.MsgGroup, (g: string[]) =>
       this.updateInstTypeMsgGroupDomain(g)
@@ -209,19 +213,7 @@ export default class FilterMsg implements ControllerModule {
   updateNoCNumHopsDomain(domain: string[]) {
     this.nocNumHopsTruthTable = generateTruthTableViaSelectedDomain(
       domain,
-      this.NumHopsDomain
-    );
-  }
-
-  loadMetaInfo(meta: MetaData) {
-    this.metaInfo = meta;
-    console.log("FilterMsg Module: ", meta, " ", this.metaInfo);
-    this.NumHopsDomain = [...Array(this.metaInfo.num_hop_units).keys()].map(
-      (i) => `${i}`
-    );
-    this.nocNumHopsTruthTable = generateTruthTableViaSelectedDomain(
-      this.NumHopsDomain,
-      this.NumHopsDomain
+      NumHopsDomain
     );
   }
 }

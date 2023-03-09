@@ -26,7 +26,6 @@ chooseDirButton.addEventListener("click", async () => {
     chooseDirButton.remove();
 
     console.log(meta);
-    Module.filterMsg.loadMetaInfo(meta);
     const graph = new MainView(meta["width"], meta["height"]);
 
     register_daisen_insight(daisen_button, graph);
