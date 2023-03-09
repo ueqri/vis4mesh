@@ -11,6 +11,8 @@ const ev = {
   MsgGroup: "FilterMsgGroup",
   DataOrCommand: "FilterDoC",
   EdgeTrafficCheckbox: "FilterETCheckbox",
+  NoCMsgTypeFilter: "FilterNoCMsgType",
+  NoCNumHopsFilter: "FilterNoCNumHops",
 };
 
 function InitFilterEvent() {
