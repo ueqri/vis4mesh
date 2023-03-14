@@ -1,6 +1,6 @@
 import * as d3 from "d3";
 import Event from "event";
-import { ColoredCheckbox } from "widget/colorcheckbox";
+import { Checkbox } from "widget/checkbox";
 import {
   TransferTypesInOrder,
   TransferTypesInOrderExtendNames,
@@ -13,7 +13,10 @@ const title = outerDiv
   .text("Filter by NoC Transferred Msg Type")
   .style("display", "none");
 
-const div = outerDiv.append("div").attr("id", "filter-noc-msg-type-group");
+const div = outerDiv
+  .append("div")
+  .attr("id", "filter-noc-msg-type-group")
+  .style("padding-top", "4px");
 
 let SelectedMsgType = TransferTypesInOrder.reduce(
   (a, group) => ({ ...a, [group]: true }),
@@ -33,10 +36,9 @@ class NoCMsgTypeFilterBar {
     title.style("display", "block");
 
     TransferTypesInOrder.forEach((group, i) => {
-      let box = new ColoredCheckbox()
+      let box = new Checkbox()
         .append({
           label: TransferTypesInOrderExtendNames[group],
-          color: "dodgerblue",
         })
         .event((val) => this.updateMsgGroup(group, val))
         .static(true);

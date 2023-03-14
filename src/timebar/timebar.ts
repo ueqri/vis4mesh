@@ -158,7 +158,7 @@ export default class Timebar {
     this.dataForMsgGroups = handleFlatResponseByMsgGroups(d);
     this.dataForDoC = handleFlatResponseByDoC(d);
     this.maxFlits = getMaxFlitsFromFlatResponse(d);
-    console.log(this.maxFlits);
+    // console.log(this.maxFlits);
     this.data = this.dataForMsgGroups; // filter message groups by default
     return this;
   }

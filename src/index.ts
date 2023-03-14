@@ -1,6 +1,6 @@
 import "../public/index.scss";
 import Controller from "controller/controller";
-import { Component, Module } from "global";
+import { Component, Element, Module } from "global";
 
 import { RenderTimebar } from "./timebar/timebar";
 import { RenderFilterbar } from "./filterbar/filterbar";
@@ -42,6 +42,7 @@ chooseDirButton.addEventListener("click", async () => {
     RenderTopbar();
     RenderTimebar();
     RenderFilterbar();
+    Element.filterbar.signal["num_hops_per_unit"](meta.hops_per_unit);
   } catch (err) {
     console.error(err);
   }

@@ -1,6 +1,6 @@
 import * as d3 from "d3";
 import Event from "event";
-import { ColoredCheckbox } from "widget/colorcheckbox";
+import { Checkbox } from "widget/checkbox";
 
 const outerDiv = d3.select("#filterbar-noc-num-hops");
 
@@ -9,7 +9,10 @@ const title = outerDiv
   .text("Filter by NoC # Hops")
   .style("display", "none");
 
-const div = outerDiv.append("div").attr("id", "filter-noc-num-hops-group");
+const div = outerDiv
+  .append("div")
+  .attr("id", "filterbar-noc-num-hops-group")
+  .style("padding-top", "4px");
 
 const NumHopsDomain = [...Array(4).keys()].map((i) => `${i}`);
 
@@ -23,22 +26,29 @@ const ev = {
 };
 
 class NoCNumHopsFilterBar {
-  constructor() {}
+  checkboxes: Array<Checkbox>;
+  constructor() {
+    this.checkboxes = new Array<Checkbox>();
+  }
 
-  handleSignal() {}
+  handleSignal(num_hops_per_unit: number) {
+    this.checkboxes.forEach((box, i) => {
+      box.rename(`${i * num_hops_per_unit}-${(i + 1) * num_hops_per_unit}`);
+    });
+  }
 
   render() {
     title.style("display", "block");
 
-    NumHopsDomain.forEach((group, i) => {
-      let box = new ColoredCheckbox()
+    NumHopsDomain.forEach((group) => {
+      let box = new Checkbox()
         .append({
           label: NumHopsDomain[group],
-          color: "dodgerblue",
         })
         .event((val) => this.updateMsgGroup(group, val))
         .static(true);
       div.append(() => box.node());
+      this.checkboxes.push(box);
     });
   }
 

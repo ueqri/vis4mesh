@@ -48,7 +48,8 @@ export default class Filterbar {
     this.signal["edge"] = (v) =>
       EdgeTrafficByLegendCheckboxFilterBar.handleSignal(v);
 
-    // this.signal["num_hops"] = (v) => {};
+    this.signal["num_hops_per_unit"] = (v) =>
+      NoCNumHopsFilterBar.handleSignal(v);
   }
 
   renderFilterEdgeTrafficByLegendCheckbox() {

@@ -40,7 +40,7 @@ export class FlipButton extends Widget {
       const index = Number(d3.select(this).attr("flip-status"));
       const name = flip[index].name;
       const next = (index + 1) % flip.length;
-      console.log(name);
+      // console.log(name);
       handle(name);
       updateButton(flip[next], next);
     });

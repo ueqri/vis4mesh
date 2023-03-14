@@ -22,6 +22,8 @@ import {
   GetLineIdentity,
 } from "./util";
 
+const VERBOSE_MODE = false;
+
 const NODE_DEFAULT_COLOR = "#8fbed1"; // #8fbed1
 const MAX_ZOOM_SCALE = 400;
 
@@ -65,7 +67,7 @@ export class MainView {
     this.tile_height = tile_height;
     this.primary_width = tile_width;
     this.primary_height = tile_height;
-    console.log(this.client_size);
+    if (VERBOSE_MODE) console.log(this.client_size);
     this.render = new Render(this);
     this.initialize_zoom();
     this.minimap.draw(tile_width, tile_height);
@@ -100,7 +102,7 @@ export class MainView {
   filterLinks() {
     for (let link of this.links) {
       link.opacity =
-        (link.value != 0 && this.checkedColors[link.colorLevel] === true) ? 1 : 0;
+        link.value != 0 && this.checkedColors[link.colorLevel] === true ? 1 : 0;
     }
   }
 
@@ -179,7 +181,7 @@ export class MainView {
     let right = 0;
     // get the rim of wafer nodes within the viewport
     if (this.dataLoaded) {
-      console.log(this.layers[this.level].nodes);
+      if (VERBOSE_MODE) console.log(this.layers[this.level].nodes);
     }
     for (let i = 0; i < height; i++) {
       for (let j = 0; j < width; j++) {
@@ -246,8 +248,14 @@ export class MainView {
             idy: i,
             level: this.level - 1,
             size: sub_rect_size,
-            x: basepos_x + sub_rect_offset * sub_cord_size + (i - base_idy) * sub_cord_size,
-            y: basepos_y + sub_rect_offset * sub_cord_size + (j - base_idx) * sub_cord_size,
+            x:
+              basepos_x +
+              sub_rect_offset * sub_cord_size +
+              (i - base_idy) * sub_cord_size,
+            y:
+              basepos_y +
+              sub_rect_offset * sub_cord_size +
+              (j - base_idx) * sub_cord_size,
             color: this.dataLoaded
               ? ColorScheme(this.layers[this.level - 1].nodes[j][i].level)
               : NODE_DEFAULT_COLOR,
@@ -423,7 +431,7 @@ export class MainView {
     this.windowWidth = graph.node()!.clientWidth;
 
     const [initial_translate, initial_scale] = this.initial_transform_param();
-    console.log(initial_translate, initial_scale);
+    if (VERBOSE_MODE) console.log(initial_translate, initial_scale);
     const zoomBehavior = d3
       .zoom<SVGSVGElement, unknown>()
       .scaleExtent([initial_scale, 1024]);
@@ -432,7 +440,7 @@ export class MainView {
       .call(
         zoomBehavior.on("zoom", (e) => {
           this.update_zoom(e.transform);
-          console.log(e.transform);
+          if (VERBOSE_MODE) console.log(e.transform);
         })
       )
       .call(
@@ -444,7 +452,7 @@ export class MainView {
   }
 
   view_jump(x: number, y: number, k: number, duration?: number, ev?: any) {
-    // console.log("click node jump");
+    // if (VERBOSE_MODE) console.log("click node jump");
     const [initial_translate, initial_scale] = this.initial_transform_param();
 
     const zoomBehavior = d3
@@ -505,9 +513,9 @@ export class MainView {
     this.transform_scale = transform.k;
 
     this.render.Transform(transform.toString());
-    // console.log("zoom ", transform.toString());
+    // if (VERBOSE_MODE) console.log("zoom ", transform.toString());
 
-    // console.log(this.windowWidth, this.windowHeight);
+    // if (VERBOSE_MODE) console.log(this.windowWidth, this.windowHeight);
     const top_left = ReverseMapping([0, 0], transform);
     const bottom_right = ReverseMapping(
       [this.windowWidth, this.windowHeight],
@@ -549,7 +557,7 @@ export class MainView {
     this.primary_width = this.tile_width / this.scale;
     this.primary_height = this.tile_height / this.scale;
     this.max_scale = Math.max(this.max_scale, this.scale);
-    // console.log(this.scale);
+    // if (VERBOSE_MODE) console.log(this.scale);
     this.get_rect_size(); // get rectangle size
     this.primary_nodes = this.get_primary_nodes();
     this.links = this.get_links(this.primary_nodes);

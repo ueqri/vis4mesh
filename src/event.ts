@@ -12,6 +12,8 @@ function NewEventResponseStages(): EventResponseStages {
   };
 }
 
+const VERBOSE_MODE = false;
+
 class Event {
   protected eventMap: { [ev: string]: EventResponseStages };
   constructor() {
@@ -23,7 +25,7 @@ class Event {
       this.eventMap[ev] = NewEventResponseStages();
     }
     this.eventMap[ev].start.push(listener);
-    console.log("ev start", ev);
+    if (VERBOSE_MODE) console.log("ev start", ev);
   }
 
   AddStepListener(ev: string, listener: any) {
@@ -31,7 +33,7 @@ class Event {
       this.eventMap[ev] = NewEventResponseStages();
     }
     this.eventMap[ev].step.push(listener);
-    console.log("ev step", ev);
+    if (VERBOSE_MODE) console.log("ev step", ev);
   }
 
   AddEndListener(ev: string, listener: any) {
@@ -39,7 +41,7 @@ class Event {
       this.eventMap[ev] = NewEventResponseStages();
     }
     this.eventMap[ev].end.push(listener);
-    console.log("ev end", ev);
+    if (VERBOSE_MODE) console.log("ev end", ev);
   }
 
   FireEvent(ev: string, excitation: any) {
@@ -56,7 +58,7 @@ class Event {
       resp.end.forEach((callback) => {
         callback(excitation);
       });
-      console.log("ev fired", ev);
+      if (VERBOSE_MODE) console.log("ev fired", ev);
     }
   }
 
