@@ -5,17 +5,22 @@ import { MainView } from "../graph/graph";
 
 export const daisen_button = d3.select("#launch-daisen");
 
+let saved_daisen_external_url: string = "";
+
 export function register_daisen_insight(btn: any, graph_controller: MainView) {
   btn.on("click", () => {
     if (GetDaisenUrl() === null) {
       window.alert("Please select one endpoint first.");
       return;
     }
-    let addr = window.prompt("Daisen server address (default localhost:3001)");
-    if (!addr) {
-      addr = "localhost:3001";
+
+    if (saved_daisen_external_url === "") {
+      let addr = window.prompt(
+        "Daisen server address (default localhost:3001)"
+      );
+      saved_daisen_external_url = !addr ? "http://localhost:3001" : addr;
+      console.log("click launch Daisen " + saved_daisen_external_url);
     }
-    console.log("click launch Daisen " + addr);
 
     const navbar = d3.select("#navbar").select("div");
     navbar.select("#daisen-follow").remove();
@@ -95,6 +100,6 @@ export function register_daisen_insight(btn: any, graph_controller: MainView) {
       .on("mouseout", () => {
         close.style("fill", "white");
       });
-    DaisenLaunch(sidecanvas, addr!);
+    DaisenLaunch(sidecanvas, saved_daisen_external_url!);
   });
 }

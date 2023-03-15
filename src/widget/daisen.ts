@@ -88,8 +88,26 @@ const selector = new DaisenSelector();
 
 export default selector;
 
-export function GetDaisenUrl(addr: string = "localhost:3001") {
-  const url = new DaisenUrl("http://" + addr + "/");
+function isValidHTTPSUrl(str: string) {
+  let url: URL;
+  try {
+    url = new URL(str);
+  } catch (_) {
+    return false;
+  }
+  if (url.hostname === "localhost" || url.hostname === "127.0.0.1") {
+    return url.protocol === "http:";
+  } else {
+    return url.protocol === "https:";
+  }
+}
+
+export function GetDaisenUrl(addr: string = "http://localhost:3001") {
+  if (!isValidHTTPSUrl(addr)) {
+    console.error(`Daisen URL ${addr} is not valid`);
+  }
+
+  const url = new DaisenUrl(addr + "/");
   const ep = selector.get_ep();
   const time_range = selector.get_timerange();
   console.log(time_range);
@@ -106,7 +124,10 @@ export function GetDaisenUrl(addr: string = "localhost:3001") {
   return url;
 }
 
-export function DaisenLaunch(div: any, addr: string = "http://localhost:3001/") {
+export function DaisenLaunch(
+  div: any,
+  addr: string = "http://localhost:3001/"
+) {
   const url = GetDaisenUrl(addr);
   if (!url) {
     return;
