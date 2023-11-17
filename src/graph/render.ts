@@ -89,7 +89,7 @@ export class Render {
         (update) =>
           update
             .transition()
-            .duration(300)
+            .duration(245)
             .attr("x", (d) => d.x)
             .attr("y", (d) => d.y)
             .attr("rx", (d) => RectCornerRadius * d.size)

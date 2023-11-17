@@ -33,7 +33,7 @@ class NoCNumHopsFilterBar {
 
   handleSignal(num_hops_per_unit: number) {
     this.checkboxes.forEach((box, i) => {
-      box.rename(`${i * num_hops_per_unit}-${(i + 1) * num_hops_per_unit}`);
+      box.rename(`${i * num_hops_per_unit}-${(i + 1) * num_hops_per_unit - 1}`);
     });
   }
 

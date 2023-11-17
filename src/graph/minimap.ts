@@ -67,7 +67,7 @@ export default class Minimap {
 
     if (typeof canvas_height == "undefined") {
       canvas_height = Math.floor(
-        document.getElementById("graph")?.clientHeight! * 0.3
+        document.getElementById("graph")?.clientHeight! * 0.275
       );
     }
     const canvas_width = canvas_height * this.ratio;

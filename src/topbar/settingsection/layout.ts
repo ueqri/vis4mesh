@@ -40,7 +40,7 @@ export default function RenderSettingLayoutSection() {
             min: 0,
             max: document.getElementById("graph")?.clientHeight!,
             default: Math.floor(
-              document.getElementById("graph")?.clientHeight! * 0.3
+              document.getElementById("graph")?.clientHeight! * 0.25
             ),
             step: 1,
             label: "Bird View Size",
